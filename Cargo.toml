@@ -1,0 +1,25 @@
+[package]
+name = "rust_template"
+version = "0.1.0"
+edition = "2021"
+authors = ["Aiden Teng"]
+
+[[bin]]
+name = "main"
+path = "src/bin/main.rs"
+
+[workspace]
+members = [
+    "components/proto",
+    "components/common",
+]
+
+[dependencies]
+assert_cmd = "2.0.8"
+clap = "4.1.4"
+tokio = { version = "1.24.2", features = ["full"] }
+
+[workspace.dependencies]
+anyhow = "1.0.68"
+thiserror = "1.0.38"
+chrono = "0.4.23"
