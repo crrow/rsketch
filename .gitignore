@@ -4,9 +4,12 @@
 target
 debug
 bin/
+out/
 book/
 docs/node_modules/
 
+# OSX leaves these everywhere on SMB shares
+._*
 *.o
 *.so
 *.dump
