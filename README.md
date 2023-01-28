@@ -4,7 +4,7 @@ Quick set up a rust project with clap cli tools.
 
 ## Features
 
-- [x] clip
+- [x] clap
 - [x] proto
 - [x] convenient just recipes
 - [x] mdbook
