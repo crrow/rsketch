@@ -1,3 +1,4 @@
-# PROJECT_NAME
+# Just my personal rust project template.
 
-## Quick Start
+Quick set up a rust project with clap cli tools.
+
