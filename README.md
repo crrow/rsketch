@@ -10,3 +10,16 @@ Quick set up a rust project with clap cli tools.
 - [x] mdbook
 - [x] github action
 - [x] changelog
+
+## Fetch changes from template-repo.
+
+```shell
+
+git remote add template https://github.com/HaHadaxigua/rust_template
+
+git fetch template
+
+git merge template/main
+
+```
+
