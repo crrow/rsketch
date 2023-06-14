@@ -6,15 +6,17 @@ current_dir := invocation_directory()
 cloc:
     @echo cloc
     @cloc --exclude-dir target .
-book:
-    @echo serve book
-    @mdbook serve book
+docs:
+    @echo serve docs
+    @mdbook serve docs
 init_chglog:
     @go install github.com/git-chglog/git-chglog/cmd/git-chglog@latest
     @git-chglog --init
     @echo "Install Finished"
 chglog:
 	@git-chglog -o CHANGELOG.md
+oc:
+    @opencommit
 
 #cargo
 build:
@@ -24,10 +26,9 @@ release:
 check:
     @cargo check --workspace
 fmt:
-    @cargo fmt
+    @cargo +nightly fmt --all
 lint:
 	@echo lint
-	@rustup component add clippy 2> /dev/null
 	@cargo clippy
 test:
     @cargo test --all

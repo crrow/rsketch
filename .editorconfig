@@ -6,3 +6,10 @@ indent_style = space
 insert_final_newline = true
 trim_trailing_whitespace = true
 
+[*.proto]
+indent_style = tab
+indent_size = 4
+
+# Make sure all code is in utf-8 charset
+[*.{rs,js,toml,py,yml}]
+charset = utf-8
