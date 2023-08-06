@@ -1,0 +1,16 @@
+[package]
+name = "tcp_server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow.workspace = true
+clap = { version = "4.3.19", features = ["derive"] }
+tokio = "1.29.1"
+tokio-serde = "0.8.0"
+tracing = "0.1.37"
+config = "~0.13.3"
+serde = { version = "~1.0", features = ["derive"] }
+validator = { version = "0.16", features = ["derive"] }

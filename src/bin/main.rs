@@ -32,7 +32,7 @@ fn main() {
             let number = matches.get_one::<usize>("number").unwrap();
             println!("hi {}", number);
         }
-        _ => unreachable!("No subcommand was used")
+        _ => unreachable!("No subcommand was used"),
     }
 }
 
