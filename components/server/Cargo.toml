@@ -14,3 +14,4 @@ tracing = "0.1.37"
 config = "~0.13.3"
 serde = { version = "~1.0", features = ["derive"] }
 validator = { version = "0.16", features = ["derive"] }
+env_logger = "0.10.0"
