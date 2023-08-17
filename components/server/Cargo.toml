@@ -8,10 +8,11 @@ edition = "2021"
 [dependencies]
 anyhow.workspace = true
 clap = { version = "4.3.19", features = ["derive"] }
-tokio = "1.29.1"
+tokio = { version = "1.29.*", features = ["full"]}
 tokio-serde = "0.8.0"
 tracing = "0.1.37"
 config = "~0.13.3"
 serde = { version = "~1.0", features = ["derive"] }
 validator = { version = "0.16", features = ["derive"] }
 env_logger = "0.10.0"
+log = "0.4"

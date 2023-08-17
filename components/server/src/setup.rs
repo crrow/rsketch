@@ -1,3 +1,8 @@
+use log::LevelFilter;
+use std::path::PathBuf;
+use std::backtrace::Backtrace;
+use std ::panic;
+
 pub fn setup_logger(log_level: &str) {
     let is_info = log_level.to_ascii_uppercase() == "INFO";
     let mut log_builder = env_logger::Builder::new();
@@ -9,15 +14,63 @@ pub fn setup_logger(log_level: &str) {
         .parse_filters(log_level)
         // h2 is very verbose and we have many network operations,
         // so it is limited to only errors
-        .filter_module("h2", env_logger::LevelFilter::Error)
-        .filter_module("tower", env_logger::LevelFilter::Warn);
+        .filter_module("h2", LevelFilter::Error)
+        .filter_module("tower", LevelFilter::Warn);
 
     if is_info {
         // Additionally filter verbose modules if no extended logging configuration is provided
         log_builder
-            .filter_module("wal", env_logger::LevelFilter::Warn)
-            .filter_module("raft::raft", env_logger::LevelFilter::Warn);
+            .filter_module("wal", LevelFilter::Warn)
+            .filter_module("raft::raft", LevelFilter::Warn);
     };
 
     log_builder.init();
+}
+
+/// Removes a file that indicates that the server has been started.
+/// Use before server initialization to avoid false positives.
+pub fn remove_started_file_indicator() {
+    let path = get_init_file_path();
+    if path.exists() {
+        if let Err(err) = std::fs::remove_file(path) {
+            log::warn!("Failed to remove init file indicator: {}", err);
+        }
+    }
+}
+
+/// Creates a file that indicates that the server has been started.
+/// This file is used to check if the server has been been successfully started before potential kill.
+pub fn touch_started_file_indicator() {
+    if let Err(err) = std::fs::write(get_init_file_path(), "") {
+        log::warn!("Failed to create init file indicator: {}", err);
+    }
+}
+
+fn get_init_file_path() -> PathBuf {
+    std::env::var("RSKETCH_INIT_FILE_PATH")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| DEFAULT_INITIALIZED_FILE.into())
+}
+
+const DEFAULT_INITIALIZED_FILE: &str = "rsketch-initialized";
+
+pub fn setup_panic_hook() {
+    panic::set_hook(Box::new(move |panic_info| {
+        let backtrace = Backtrace::force_capture().to_string();
+        let loc = if let Some(loc) = panic_info.location() {
+            format!(" in file {} at line {}", loc.file(), loc.line())
+        } else {
+            String::new()
+        };
+        let message = if let Some(s) = panic_info.payload().downcast_ref::<&str>() {
+            s
+        } else if let Some(s) = panic_info.payload().downcast_ref::<String>() {
+            s
+        } else {
+            "Payload not captured as it is not a string."
+        };
+
+        log::error!("Panic backtrace: \n{}", backtrace);
+        log::error!("Panic occurred{loc}: {message}");
+    }));
 }

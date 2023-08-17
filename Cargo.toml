@@ -5,6 +5,8 @@ edition = "2021"
 authors = ["Aiden Teng"]
 homepage = "https://github.com/HaHadaxigua/rust_template"
 repository = "https://github.com/HaHadaxigua/rust_template"
+exclude = ["benchmarks", "examples", "bindings", "scripts", "experiments"]
+
 
 [[bin]]
 name = "main"
@@ -15,6 +17,11 @@ members = [
     "components/proto",
     "components/common",
     "components/server",
+    "benchmarks/benchsuite",
+]
+
+exclude = [
+    "target/", # exclude bench testing
 ]
 
 [dependencies]
