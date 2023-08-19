@@ -3,7 +3,6 @@
 .DS_Store
 target
 debug
-bin/
 out/
 book/
 docs/node_modules/
