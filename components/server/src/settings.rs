@@ -1,6 +1,6 @@
-use std::{io, env};
-use config::{ConfigError, Source};
+use std::{env, io};
 
+use config::{ConfigError, Source};
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
@@ -68,7 +68,10 @@ impl Settings {
         // Check if custom config file exists, report error if not
         if let Some(ref path) = path {
             if !config_exists(path) {
-                return Err(ConfigError::Message(format!("Config file {} does not exist", path)));
+                return Err(ConfigError::Message(format!(
+                    "Config file {} does not exist",
+                    path
+                )));
             }
         }
 
@@ -95,7 +98,8 @@ impl Settings {
         // Merge environment settings
         // E.g.: `QDRANT_DEBUG=1 ./target/app` would set `debug=true`
         config = config.add_source(config::Environment::with_prefix("OURO").separator("__"));
-        // Build and merge config and deserialize into Settings, attach any load errors we had
+        // Build and merge config and deserialize into Settings, attach any load errors
+        // we had
         let mut settings: Settings = config.build()?.try_deserialize()?;
         Ok(settings)
     }

@@ -1,11 +1,10 @@
-use std::path::Path;
-use std::process::Command;
+use std::{path::Path, process::Command};
 
 fn main() {
     commit_info();
     // ALLOWED: Accessing environment during build time shouldn't be prohibited.
     #[allow(clippy::disallowed_methods)]
-        let target = std::env::var("TARGET").unwrap();
+    let target = std::env::var("TARGET").unwrap();
     println!("cargo:rustc-env=RUST_HOST_TARGET={target}");
 }
 

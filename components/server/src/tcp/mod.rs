@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tokio::net::TcpListener;
-use tokio::sync::RwLock;
+
+use serde::{Deserialize, Serialize};
+use tokio::{net::TcpListener, sync::RwLock};
 use tracing::info;
 
 #[derive(Debug, Deserialize, Serialize)]

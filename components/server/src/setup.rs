@@ -1,7 +1,6 @@
+use std::{backtrace::Backtrace, panic, path::PathBuf};
+
 use log::LevelFilter;
-use std::path::PathBuf;
-use std::backtrace::Backtrace;
-use std ::panic;
 
 pub fn setup_logger(log_level: &str) {
     let is_info = log_level.to_ascii_uppercase() == "INFO";
@@ -18,7 +17,8 @@ pub fn setup_logger(log_level: &str) {
         .filter_module("tower", LevelFilter::Warn);
 
     if is_info {
-        // Additionally filter verbose modules if no extended logging configuration is provided
+        // Additionally filter verbose modules if no extended logging configuration is
+        // provided
         log_builder
             .filter_module("wal", LevelFilter::Warn)
             .filter_module("raft::raft", LevelFilter::Warn);
@@ -39,7 +39,8 @@ pub fn remove_started_file_indicator() {
 }
 
 /// Creates a file that indicates that the server has been started.
-/// This file is used to check if the server has been been successfully started before potential kill.
+/// This file is used to check if the server has been been successfully started
+/// before potential kill.
 pub fn touch_started_file_indicator() {
     if let Err(err) = std::fs::write(get_init_file_path(), "") {
         log::warn!("Failed to create init file indicator: {}", err);

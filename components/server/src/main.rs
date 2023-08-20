@@ -2,7 +2,6 @@ mod settings;
 mod setup;
 mod tcp;
 
-use std::env;
 use clap::Parser;
 use settings::Settings;
 
@@ -22,8 +21,5 @@ async fn main() -> anyhow::Result<()> {
     setup::setup_panic_hook();
     setup::touch_started_file_indicator();
 
-
     Ok(())
 }
-
-

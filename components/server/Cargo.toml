@@ -9,6 +9,11 @@ edition = "2021"
 name = "epoll"
 path = "src/bin/epoll.rs"
 
+[[bin]]
+name = "tokio"
+path = "src/bin/tokio.rs"
+
+
 [dependencies]
 anyhow.workspace = true
 clap = { version = "4.3.19", features = ["derive"] }

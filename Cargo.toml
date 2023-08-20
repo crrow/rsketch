@@ -16,6 +16,7 @@ path = "src/bin/main.rs"
 members = [
     "components/proto",
     "components/common",
+    "components/concurrency",
     "components/server",
     "benchmarks/benchsuite",
 ]
