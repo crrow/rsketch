@@ -14,10 +14,11 @@ path = "src/bin/main.rs"
 
 [workspace]
 members = [
-    "components/proto",
     "components/common",
-    "components/concurrency",
+    "components/concurrent",
+    "components/proto",
     "components/server",
+    "components/storage",
     "benchmarks/benchsuite",
 ]
 
