@@ -6,6 +6,7 @@ debug
 out/
 book/
 docs/node_modules/
+result/*
 
 # OSX leaves these everywhere on SMB shares
 ._*
@@ -20,3 +21,7 @@ docs/node_modules/
 *.swp
 __debug_bin
 Cargo.lock
+
+# Vagrant stuff
+.vagrant
+*.log
