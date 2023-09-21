@@ -1,12 +1,20 @@
 #[cfg(test)]
 mod tests {
-    use std::cell::{Cell, RefCell};
-    use std::collections::VecDeque;
-    use std::sync::atomic::{AtomicBool, AtomicPtr, AtomicU32, AtomicUsize, Ordering};
-    use std::sync::atomic::Ordering::{Acquire, Relaxed, Release};
-    use std::sync::Condvar;
-    use std::thread;
-    use std::time::Duration;
+    use std::{
+        cell::{Cell, RefCell},
+        collections::VecDeque,
+        marker::PhantomData,
+        sync::{
+            atomic::{
+                AtomicBool, AtomicPtr, AtomicU32, AtomicUsize, Ordering,
+                Ordering::{Acquire, Relaxed, Release},
+            },
+            Condvar,
+        },
+        thread,
+        time::Duration,
+    };
+
     use super::*;
 
     #[test]
@@ -30,7 +38,9 @@ mod tests {
             for n in &numbers {
                 println!("{n}");
             }
-        }).join().unwrap();
+        })
+        .join()
+        .unwrap();
 
         // getting a value back out of the thread
         let numbers = Vec::from_iter(0..=1000);
@@ -128,8 +138,7 @@ mod tests {
 
     #[test]
     fn cond_ver() {
-        use std::sync::Mutex;
-        use std::collections::VecDeque;
+        use std::{collections::VecDeque, sync::Mutex};
         let queue = Mutex::new(VecDeque::new());
         let not_empty = Condvar::new();
         thread::scope(|s| {
@@ -240,8 +249,9 @@ mod tests {
             }
         }
 
-        NEXT_ID.fetch_update(Relaxed, Relaxed,
-                             |n| n.checked_add(1)).expect("too many IDs!");
+        NEXT_ID
+            .fetch_update(Relaxed, Relaxed, |n| n.checked_add(1))
+            .expect("too many IDs!");
     }
 
     #[test]
@@ -250,12 +260,11 @@ mod tests {
         static mut DATA: u32 = 0;
         static READY: AtomicBool = AtomicBool::new(false);
         thread::spawn(|| {
-            unsafe {
-                DATA = 123
-            }
+            unsafe { DATA = 123 }
             READY.store(true, Release); // release applies to the store operation
         });
-        while !READY.load(Acquire) { // acquire applies to the load operation
+        while !READY.load(Acquire) {
+            // acquire applies to the load operation
             thread::sleep(Duration::from_millis(1));
         }
         unsafe {
@@ -267,7 +276,7 @@ mod tests {
     fn mutex_but_atomic() {
         static mut DATA: String = String::new();
         static LOCK: AtomicBool = AtomicBool::new(false);
-        fn f () {
+        fn f() {
             if LOCK.compare_exchange(false, true, Acquire, Relaxed).is_ok() {
                 unsafe {
                     DATA.push_str("hello");
@@ -289,20 +298,31 @@ mod tests {
         let mut p = PTR.load(Acquire);
         if p.is_null() {
             p = Box::into_raw(Box::new(Data {}));
-            if let Err(e) = PTR.compare_exchange(
-                std::ptr::null_mut(),
-                p,
-                Release,
-                Acquire,
-            ){
-                drop(unsafe {
-                    Box::from_raw(p)
-                });
+            if let Err(e) = PTR.compare_exchange(std::ptr::null_mut(), p, Release, Acquire) {
+                drop(unsafe { Box::from_raw(p) });
                 p = e;
             }
         }
         unsafe {
             &*p;
+        }
+    }
+
+    #[test]
+    fn phantom_data() {
+        struct MyPhantomPtrStruct<T> {
+            ptr: *mut T,
+            _marker: PhantomData<T>,
+        }
+
+        impl<T> MyPhantomPtrStruct<T> {
+            fn new(t: T) -> MyPhantomPtrStruct<T> {
+                let t = Box::new(t);
+                MyPhantomPtrStruct {
+                    ptr: Box::into_raw(t),
+                    _marker: PhantomData,
+                }
+            }
         }
     }
 }

@@ -31,5 +31,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn node() {}
+    fn node() {
+        type key = Vec<u8>;
+        type value = Vec<u8>;
+        let a: Vec<Vec<u8>> = Vec::new();
+        let mut v = vec![1i32, 2, 3, 4, 5];
+        let x = v.get(0); // Sure
+        let y = v.get(1); // Mhmm
+        let z = v.get_mut(2); // Should be fine..?
+    }
 }
