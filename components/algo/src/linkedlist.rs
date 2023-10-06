@@ -383,7 +383,7 @@ mod persistent_singly_linked_list {
 
 mod bad_safe_double_linked_deque {
     use std::{
-        cell::{Ref, RefCell},
+        cell::{Ref, RefCell, RefMut},
         mem,
         ops::Deref,
         rc::Rc,
@@ -417,6 +417,21 @@ mod bad_safe_double_linked_deque {
             }
         }
 
+        pub fn push_back(&mut self, elem: T) {
+            let new_tail = Rc::new(RefCell::new(Node::new(elem)));
+            match self.tail.take() {
+                Some(old_tail) => {
+                    old_tail.borrow_mut().next = Some(new_tail.clone());
+                    new_tail.borrow_mut().prev = Some(old_tail);
+                    self.tail = Some(new_tail);
+                }
+                None => {
+                    self.head = Some(new_tail.clone());
+                    self.tail = Some(new_tail);
+                }
+            }
+        }
+
         pub fn pop_front(&mut self) -> Option<T> {
             self.head.take().map(|node| {
                 match node.borrow_mut().next.take() {
@@ -432,18 +447,93 @@ mod bad_safe_double_linked_deque {
             })
         }
 
+        pub fn pop_back(&mut self) -> Option<T> {
+            self.tail.take().map(|old_tail| {
+                match old_tail.borrow_mut().prev.take() {
+                    // take the tail's previous node
+                    Some(new_tail) => {
+                        new_tail.borrow_mut().next.take();
+                        self.tail = Some(new_tail);
+                    }
+                    None => {
+                        self.head.take();
+                    }
+                };
+                Rc::try_unwrap(old_tail).ok().unwrap().into_inner().elem
+            })
+        }
+
         pub fn peek_front(&self) -> Option<Ref<T>> {
             self.head
                 .as_ref()
                 .map(|node| Ref::map(node.borrow(), |node| &node.elem))
         }
+
+        pub fn peek_back(&self) -> Option<Ref<T>> {
+            self.tail
+                .as_ref()
+                .map(|node| Ref::map(node.borrow(), |node| &node.elem))
+        }
+
+        pub fn peek_back_mut(&mut self) -> Option<RefMut<T>> {
+            self.tail
+                .as_ref()
+                .map(|node| RefMut::map(node.borrow_mut(), |node| &mut node.elem))
+        }
+
+        pub fn peek_front_mut(&mut self) -> Option<RefMut<T>> {
+            self.head
+                .as_ref()
+                .map(|node| RefMut::map(node.borrow_mut(), |node| &mut node.elem))
+        }
     }
 
+    pub struct IntoIter<T>(List<T>);
+
+    impl<T> List<T> {
+        pub fn into_iter(self) -> IntoIter<T> {
+            IntoIter(self)
+        }
+    }
     impl<T> Drop for List<T> {
         fn drop(&mut self) {
             while self.pop_front().is_some() {}
         }
     }
+
+    impl<T> Iterator for IntoIter<T> {
+        type Item = T;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            self.0.pop_front()
+        }
+    }
+
+    impl<T> DoubleEndedIterator for IntoIter<T> {
+        fn next_back(&mut self) -> Option<Self::Item> {
+            self.0.pop_back()
+        }
+    }
+
+    // pub struct Iter<T>(Option<Rc<Node<T>>>);
+
+    // impl<T> List<T> {
+    //     pub fn iter(&self) -> Iter<T> {
+    //         Iter(self.head.as_ref().map(|head| head.clone()))
+    //     }
+    // }
+
+    // impl<T> Iterator for Iter<T> {
+    //     type Item = T;
+    //     fn next(&mut self) -> Option<Self::Item> {
+    //         self.0.take().map(|node_ref| {
+    //             let (next, elem) = Ref::map_split(node_ref, |node| (&node.next, &node.elem));
+    //             self.0 = next.as_ref().map(|head| head.borrow());
+
+    //             elem
+    //         })
+    //     }
+    // }
 
     type Link<T> = Option<Rc<RefCell<Node<T>>>>;
     struct Node<T> {
@@ -483,22 +573,228 @@ mod bad_safe_double_linked_deque {
 
             assert_eq!(list.pop_front(), Some(5));
             assert_eq!(list.pop_front(), Some(4));
-
             assert_eq!(list.pop_front(), Some(1));
-
             assert_eq!(list.pop_front(), None);
+
+            // Check empty list behaves right
+            assert_eq!(list.pop_back(), None);
+
+            // Populate list
+            list.push_back(1);
+            list.push_back(2);
+            list.push_back(3);
+
+            // Check normal removal
+            assert_eq!(list.pop_back(), Some(3));
+            assert_eq!(list.pop_back(), Some(2));
+
+            // Push some more just to make sure nothing's corrupted
+            list.push_back(4);
+            list.push_back(5);
+
+            // Check normal removal
+            assert_eq!(list.pop_back(), Some(5));
+            assert_eq!(list.pop_back(), Some(4));
+
+            // Check exhaustion
+            assert_eq!(list.pop_back(), Some(1));
+            assert_eq!(list.pop_back(), None);
         }
 
         #[test]
         fn peek() {
             let mut list = List::new();
-            assert_eq!(list.pop_front(), None);
+            assert!(list.peek_front().is_none());
+            assert!(list.peek_back().is_none());
+            assert!(list.peek_front_mut().is_none());
+            assert!(list.peek_back_mut().is_none());
 
             list.push_front(1);
             list.push_front(2);
             list.push_front(3);
 
             assert_eq!(&*list.peek_front().unwrap(), &3);
+            assert_eq!(&mut *list.peek_front_mut().unwrap(), &mut 3);
+            assert_eq!(&*list.peek_back().unwrap(), &1);
+            assert_eq!(&mut *list.peek_back_mut().unwrap(), &mut 1);
         }
+
+        #[test]
+        fn into_iter() {
+            let mut list = List::new();
+            list.push_front(1);
+            list.push_front(2);
+            list.push_front(3);
+
+            let mut iter = list.into_iter();
+            assert_eq!(iter.next(), Some(3));
+            assert_eq!(iter.next_back(), Some(1));
+            assert_eq!(iter.next(), Some(2));
+            assert_eq!(iter.next(), None);
+            assert_eq!(iter.next_back(), None);
+        }
+    }
+}
+
+mod ok_unsafe_singly_linked_queue {
+    use std::{mem, ptr};
+
+    pub struct List<T> {
+        head: Link<T>,
+        tail: *mut Node<T>,
+    }
+    type Link<T> = Option<Box<Node<T>>>;
+
+    struct Node<T> {
+        elem: T,
+        next: Link<T>,
+    }
+
+    impl<T> List<T> {
+        pub fn new() -> Self {
+            List {
+                head: None,
+                tail: ptr::null_mut(),
+            }
+        }
+
+        pub fn push(&mut self, elem: T) {
+            let mut new_tail = Box::new(Node { elem, next: None });
+            let raw_tail: *mut _ = &mut *new_tail;
+            if !self.tail.is_null() {
+                // old tail exists
+                unsafe {
+                    (*self.tail).next = Some(new_tail);
+                }
+            } else {
+                // old tail doesn't exist
+                self.head = Some(new_tail);
+            }
+            self.tail = raw_tail;
+        }
+
+        pub fn pop(&mut self) -> Option<T> {
+            self.head.take().map(|node| {
+                let new_head = node.next;
+                self.head = new_head;
+                if self.head.is_none() {
+                    self.tail = ptr::null_mut();
+                }
+                node.elem
+            })
+        }
+    }
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[cfg(test)]
+        mod test {
+            use super::List;
+            #[test]
+            fn basics() {
+                let mut list = List::new();
+
+                // Check empty list behaves right
+                assert_eq!(list.pop(), None);
+
+                // Populate list
+                list.push(1);
+                list.push(2);
+                list.push(3);
+
+                // Check normal removal
+                assert_eq!(list.pop(), Some(1));
+                assert_eq!(list.pop(), Some(2));
+
+                // Push some more just to make sure nothing's corrupted
+                list.push(4);
+                list.push(5);
+
+                // Check normal removal
+                assert_eq!(list.pop(), Some(3));
+                assert_eq!(list.pop(), Some(4));
+
+                // Check exhaustion
+                assert_eq!(list.pop(), Some(5));
+                assert_eq!(list.pop(), None);
+
+                // Check the exhaustion case fixed the pointer right
+                list.push(6);
+                list.push(7);
+
+                // Check normal removal
+                assert_eq!(list.pop(), Some(6));
+                assert_eq!(list.pop(), Some(7));
+                assert_eq!(list.pop(), None);
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn miri() {
+        unsafe {
+            let mut data = 10;
+            let ref1 = &mut data;
+            let ptr2 = ref1 as *mut _;
+
+            // ORDER SWAPPED!
+            *ref1 += 1;
+            *ptr2 += 2;
+
+            println!("{}", data);
+        }
+    }
+
+    #[test]
+    fn shared_reference() {
+        fn opaque_read(val: &i32) {
+            println!("{}", val)
+        }
+        unsafe {
+            let mut data = 10;
+            let mref1 = &mut data;
+            let sref2 = &mref1;
+            let sref3 = sref2;
+            let sref4 = &*sref2;
+            opaque_read(sref3);
+            opaque_read(sref2);
+            opaque_read(sref4);
+            opaque_read(sref2);
+            opaque_read(sref3);
+            *mref1 += 1;
+            opaque_read(&data);
+        }
+
+        unsafe {
+            let mut data = 10;
+            let mref1 = &mut data;
+            let ptr2 = mref1 as *mut i32;
+            let sref3 = &*mref1;
+            let ptr4 = sref3 as *const i32 as *mut i32;
+            *ptr4 += 4;
+            opaque_read(&sref3);
+        }
+    }
+
+    #[test]
+    fn interior_mutability() {
+        use std::cell::Cell;
+
+        let mut data = Cell::new(10);
+        let mref1 = &mut data;
+        let pte2 = mref1 as *mut Cell<i32>;
+        let sref3 = &*mref1;
+        sref3.set(sref3.get() + 3);
+        unsafe {
+            (*pte2).set((*pte2).get() + 4);
+        }
+        mref1.set(mref1.get() + 1);
+        println!("{}", data.get());
     }
 }
