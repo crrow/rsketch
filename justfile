@@ -1,38 +1,25 @@
-project_name := "HELLO"
-home_dir := env_var('HOME')
-current_dir := invocation_directory()
+# List available just recipes
+@help:
+    just -l
 
-# helper
-cloc:
-    @echo cloc
-    @cloc --exclude-dir target .
-docs:
-    @echo serve docs
-    @mdbook serve docs
-init_chglog:
-    @go install github.com/git-chglog/git-chglog/cmd/git-chglog@latest
-    @git-chglog --init
-    @echo "Install Finished"
-chglog:
-	@git-chglog -o CHANGELOG.md
-oc:
-    @opencommit
+@fmt:
+    cargo +nightly fmt --all
+    taplo format
+    taplo format --check
+    hawkeye format
 
-#cargo
-build:
-    @cargo build
-release:
-    @cargo build --release
-check:
-    @cargo check --workspace
-fmt:
-    @cargo +nightly fmt --all
-lint:
-	@echo lint
-	@cargo clippy
-test:
-    @cargo test --all
-clean:
-    @echo clean
-    @cargo clean
+# Calculate code
+@cloc:
+    cloc . --exclude-dir=vendor,docs,tests,examples,build,scripts,tools,target
 
+# Example
+@example-hello:
+    cargo run --example hello-world
+
+# Binary
+@run:
+    cargo run --package binary hello
+
+alias c := check
+@check:
+    cargo check --all --all-features --all-targets

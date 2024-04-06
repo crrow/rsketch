@@ -11,3 +11,5 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+fn main() { built::write_built_file().expect("Failed to acquire build-time information"); }
