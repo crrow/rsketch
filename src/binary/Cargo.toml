@@ -1,0 +1,18 @@
+[package]
+name = "rsketch-binary"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "4.4.16", features = ["derive"] }
+const_format = "0.2.32"
+ctrlc = "3.4.2"
+human-panic = "1.2.3"
+snafu.workspace = true
+
+[build-dependencies]
+built = { version = "0.7.1", features = ["git2"] }
+const_format = "0.2.32"

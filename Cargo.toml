@@ -2,41 +2,51 @@
 name = "rust_template"
 version = "0.1.0"
 edition = "2021"
-authors = ["Aiden Teng"]
-homepage = "https://github.com/HaHadaxigua/rust_template"
-repository = "https://github.com/HaHadaxigua/rust_template"
-exclude = ["benchmarks", "examples", "bindings", "scripts", "experiments"]
+authors = ["crrow"]
+license = "Apache-2.0"
+description = "A template for rust projects"
+homepage = "https://github.com/crrow/rsketch"
+repository = "https://github.com/crrow/rsketch"
 
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
 
-[[bin]]
-name = "main"
-path = "src/bin/main.rs"
+[[example]]
+name = "hello-world"
+path = "examples/hello_world.rs"
 
 [workspace]
-members = [
-    "components/algo",
-    "components/common",
-    "components/concurrent",
-    "components/proto",
-    "components/server",
-    "components/storage",
-    "benchmarks/benchsuite",
-]
+resolver = "2"
+members = ["src/binary", "src/common"]
 
 exclude = [
-    "target/", # exclude bench testing
+    "target", # exclude bench testing
 ]
 
-[dependencies]
-anyhow.workspace = true
-assert_cmd = "2.0.8"
-clap = "4.1.4"
-serde = { version = "~1.0", features = ["derive"] }
-tokio = { version = "~1.29", features = ["full"] }
-tracing = "0.1.37"
-tracing-subscriber = "0.3.17"
-
 [workspace.dependencies]
-anyhow = "1.0.68"
-thiserror = "1.0.38"
-chrono = "0.4.23"
+serde = "1.0.197"
+snafu = "0.8.2"
+tokio = { version = "1.35.1", features = ["full", "tracing"] }
+tracing = "0.1.39"
+
+# Config for 'cargo dist'
+[workspace.metadata.dist]
+# The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
+cargo-dist-version = "0.12.2"
+# CI backends to support
+ci = ["github"]
+# The installers to generate for each app
+installers = ["shell", "powershell"]
+# Target platforms to build apps for (Rust target-triple syntax)
+targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc"]
+# Publish jobs to run in CI
+pr-run-mode = "upload"
+# Whether to install an updater program
+install-updater = false
+
+# The profile that 'cargo dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
