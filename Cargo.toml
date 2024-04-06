@@ -1,6 +1,6 @@
 [package]
 name = "rust_template"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["crrow"]
 license = "Apache-2.0"
