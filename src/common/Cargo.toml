@@ -1,0 +1,29 @@
+[package]
+name = "rsketch-common"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+dotenvy = "0.15.7"
+snafu.workspace = true
+serde.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+tracing-appender = "0.2.3"
+tracing-core = "0.1.32"
+tracing-opentelemetry = "0.23.0"
+opentelemetry = { version = "0.22.0" }
+opentelemetry-otlp = { version = "0.15.0", default_features = false, features = [
+    "http-proto",
+    "trace",
+    "http",
+    "reqwest-client",
+    "grpc-tonic",
+] }
+opentelemetry-semantic-conventions = "0.14.0"
+opentelemetry_sdk = { version = "0.22.1", features = ["rt-tokio"] }
+sentry = "0.32.1"
+sentry-tracing = "0.32.2"
