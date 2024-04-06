@@ -12,10 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use snafu::{Location, Snafu};
-
-pub type Result<T> = std::result::Result<T, Error>;
-
-#[derive(Snafu, Debug)]
-#[snafu(visibility(pub))]
-pub enum Error {}
+fn main() { built::write_built_file().expect("Failed to acquire build-time information"); }

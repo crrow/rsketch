@@ -13,8 +13,12 @@
     cloc . --exclude-dir=vendor,docs,tests,examples,build,scripts,tools,target
 
 # Example
-@hello:
+@example-hello:
     cargo run --example hello-world
+
+# Binary
+@run:
+    cargo run --package binary hello
 
 alias c := check
 @check:
