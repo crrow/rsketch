@@ -42,7 +42,6 @@ excludes = [
     "**/*.cue",
     "**/*.json",
     "**/*.sql",
-    "**/*.proto",
     "**/*.yml",
     "**/*.yaml",
     "**/*.toml",

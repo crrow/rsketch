@@ -19,7 +19,11 @@ path = "examples/hello_world.rs"
 
 [workspace]
 resolver = "2"
-members = ["src/binary", "src/common"]
+members = [
+    "src/api",
+    "src/binary",
+    "src/common",
+]
 
 exclude = [
     "target", # exclude bench testing
