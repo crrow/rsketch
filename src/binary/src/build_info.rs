@@ -16,8 +16,6 @@ mod built {
     include!(concat!(env!("OUT_DIR"), "/built.rs"));
 }
 
-pub use built::*;
-
 pub const AUTHOR: &str = built::PKG_AUTHORS;
 
 /// Valid SemVer version constructed using declared Cargo version and short

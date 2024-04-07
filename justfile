@@ -23,3 +23,7 @@
 alias c := check
 @check:
     cargo check --all --all-features --all-targets
+
+alias t := test
+@test:
+    cargo nextest run
