@@ -32,6 +32,8 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - basic-test
+    steps:
+      - run: exit 0
 
   basics:
     name: basic checks
