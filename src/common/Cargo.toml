@@ -17,7 +17,7 @@ opentelemetry-otlp = { version = "0.16.0", default_features = false, features = 
 ] }
 opentelemetry-semantic-conventions = "0.15.0"
 opentelemetry_sdk = { version = "0.23.0", features = ["rt-tokio"] }
-sentry = "0.32.1"
+sentry = "0.33.0"
 sentry-tracing = "0.32.2"
 serde.workspace = true
 snafu.workspace = true
