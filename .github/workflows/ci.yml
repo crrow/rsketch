@@ -27,6 +27,41 @@ permissions:
   contents: read
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check license header
+        uses: apache/skywalking-eyes/header@v0.6.0
+      - name: Check code style
+        run: cd python && make check-rust
+
+  rust-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        # TODO: add windows which does not support container
+        os:
+          #          - ubuntu-22.04
+          - windows-latest
+    runs-on: ${{ matrix.os }}
+    #    container:
+    #      image: xd009642/tarpaulin:0.30.0
+    #      options: --security-opt seccomp=unconfined
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tarpaulin
+        run: cargo install cargo-tarpaulin --version 0.30.0 --locked
+      - name: Rust unit tests with coverage report
+        # https://github.com/xd009642/tarpaulin/issues/1092#issuecomment-1407739176
+        run: cargo tarpaulin --engine llvm --no-dead-code --no-fail-fast --all-features --workspace -o xml --output-dir ./cov-reports
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: cov-report-rust-tests-${{ runner.os }}
+          path: ./cov-reports
+          if-no-files-found: 'error'
+
   tests-pass:
     name: all systems go
     runs-on: ubuntu-latest
