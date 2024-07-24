@@ -46,11 +46,14 @@ jobs:
     #      options: --security-opt seccomp=unconfined
     steps:
       - uses: actions/checkout@v4
-      - name: Install tarpaulin
-        run: cargo install cargo-tarpaulin --version 0.30.0 --locked
-      - name: Rust unit tests with coverage report
-        # https://github.com/xd009642/tarpaulin/issues/1092#issuecomment-1407739176
-        run: cargo tarpaulin --engine llvm --no-dead-code --no-fail-fast --all-features --workspace -o xml --output-dir ./cov-reports
+      - name: Run cargo-tarpaulin
+        uses: actions-rs/tarpaulin@v0.1
+        with:
+          version: '0.30.0'
+          args: '-- --engine llvm --no-dead-code --no-fail-fast --all-features --workspace -o xml --output-dir ./cov-reports'
+#      - name: Rust unit tests with coverage report
+#        # https://github.com/xd009642/tarpaulin/issues/1092#issuecomment-1407739176
+#        run: cargo tarpaulin
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
