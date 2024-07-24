@@ -41,19 +41,15 @@ jobs:
           #          - ubuntu-22.04
           - windows-latest
     runs-on: ${{ matrix.os }}
-    #    container:
-    #      image: xd009642/tarpaulin:0.30.0
-    #      options: --security-opt seccomp=unconfined
     steps:
       - uses: actions/checkout@v4
-      - name: Run cargo-tarpaulin
-        uses: actions-rs/tarpaulin@v0.1
-        with:
-          version: '0.30.0'
-          args: '-- --engine llvm --no-dead-code --no-fail-fast --all-features --workspace -o xml --output-dir ./cov-reports'
-#      - name: Rust unit tests with coverage report
-#        # https://github.com/xd009642/tarpaulin/issues/1092#issuecomment-1407739176
-#        run: cargo tarpaulin
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@main
+      - name: Install cargo-tarpaulin
+        run: cargo binstall cargo-tarpaulin
+      - name: Rust unit tests with coverage report
+#         https://github.com/xd009642/tarpaulin/issues/1092#issuecomment-1407739176
+        run: cargo tarpaulin --engine llvm --no-dead-code --no-fail-fast --all-features --workspace -o xml --output-dir ./cov-reports
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
