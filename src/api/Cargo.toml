@@ -9,7 +9,7 @@ license.workspace = true
 [dependencies]
 prost = "0.13.0"
 serde.workspace = true
-strum = "0.26.2"
+strum = "0.27.0"
 strum_macros = "0.26.2"
 tonic = "0.12.0"
 
