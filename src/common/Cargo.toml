@@ -16,7 +16,7 @@ opentelemetry-otlp = { version = "0.28.0", default_features = false, features = 
     "grpc-tonic",
 ] }
 opentelemetry-semantic-conventions = "0.27.0"
-opentelemetry_sdk = { version = "0.27.0", features = ["rt-tokio"] }
+opentelemetry_sdk = { version = "0.28.0", features = ["rt-tokio"] }
 sentry = "0.35.0"
 sentry-tracing = "0.36.0"
 serde.workspace = true
