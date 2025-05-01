@@ -14,5 +14,5 @@ human-panic = "2.0.0"
 snafu.workspace = true
 
 [build-dependencies]
-built = { version = "0.7.1", features = ["git2"] }
+built = { version = "0.8.0", features = ["git2"] }
 const_format = "0.2.32"
