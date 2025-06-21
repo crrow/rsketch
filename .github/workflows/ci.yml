@@ -16,8 +16,8 @@ env:
   # used for debugging purposes.
   RUST_BACKTRACE: 1
   rust_stable: stable
-  rust_nightly: nightly-2024-01-23
-  rust_clippy: '1.77'
+  rust_nightly: nightly-2025-06-20
+  rust_clippy: '1.87.0'
 
 defaults:
   run:
