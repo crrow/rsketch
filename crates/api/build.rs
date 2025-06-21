@@ -1,4 +1,4 @@
-// Copyright 2024 Rsketch
+// Copyright 2025 Crrow
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,11 +20,13 @@ fn main() {
             .expect("cargo built-in env value 'OUT_DIR' must be set during compilation"),
     );
 
-    const EQ_ATTR: &str = "#[derive(serde::Serialize, serde::Deserialize,  Eq)]";
+    // const EQ_ATTR: &str = "#[derive(serde::Serialize, serde::Deserialize,  Eq)]";
 
     tonic_build::configure()
         .file_descriptor_set_path(out_dir.join("rsketch_grpc_desc.bin"))
-        .type_attribute("rsketch.v1.hello.Message", EQ_ATTR)
-        .compile(&["proto/v1/hello/hello.proto"], &["proto"])
+        // .type_attribute("rsketch.v1.hello.Message", EQ_ATTR)
+        .compile_protos(&[
+            "proto/hello/v1/hello.proto",
+        ], &["proto"])
         .expect("compile proto");
 }
