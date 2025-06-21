@@ -43,6 +43,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - name: Install protoc
+        uses: arduino/setup-protoc@v3
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@main
       - name: Install cargo-tarpaulin
@@ -80,7 +82,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
+      - name: Install protoc
+        uses: arduino/setup-protoc@v3
       - name: Install Rust ${{ env.rust_clippy }}
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -97,6 +100,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install protoc
+        uses: arduino/setup-protoc@v3
 
       - name: Install Rust ${{ env.rust_nightly }}
         uses: dtolnay/rust-toolchain@stable
@@ -137,7 +143,8 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ env.rust_stable }}
-
+      - name: Install protoc
+        uses: arduino/setup-protoc@v3
       - name: Install cargo-nextest
         uses: taiki-e/install-action@v2
         with:
