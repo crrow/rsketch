@@ -12,6 +12,9 @@
 @cloc:
     cloc . --exclude-dir=vendor,docs,tests,examples,build,scripts,tools,target
 
+@clean:
+    cargo clean
+
 # Example
 @example-hello:
     cargo run --example hello-world
@@ -27,4 +30,3 @@ alias c := check
 alias t := test
 @test:
     cargo nextest run
-    cargo test --doc

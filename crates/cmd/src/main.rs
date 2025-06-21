@@ -18,8 +18,8 @@ mod build_info;
 
 #[derive(Debug, Parser)]
 #[clap(
-name = "kiseki",
-about= "kiseki-fs client",
+name = "rsketch",
+about= "rsketch-cmd",
 author = build_info::AUTHOR,
 version = build_info::FULL_VERSION)]
 struct Cli {
