@@ -1,4 +1,4 @@
-// Copyright 2024 Rsketch
+// Copyright 2025 Crrow
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 use std::{error::Error, str::FromStr};
 
-use snafu::{whatever, ResultExt, Whatever};
+use snafu::{ResultExt, Whatever, whatever};
 
 /// Reads an environment variable for the current process.
 ///
