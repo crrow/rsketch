@@ -23,10 +23,7 @@ use serde::{Deserialize, Serialize};
 use snafu::ResultExt;
 use tokio::sync::oneshot;
 use tokio_util::sync::CancellationToken;
-use tonic::{
-    service::{LayerExt as _, RoutesBuilder},
-    transport::Server,
-};
+use tonic::{service::RoutesBuilder, transport::Server};
 use tonic_health::server::HealthReporter;
 use tonic_reflection::server::v1::{ServerReflection, ServerReflectionServer};
 use tracing::info;
@@ -119,7 +116,7 @@ pub trait GrpcServiceHandler: Send + Sync + 'static {
     /// allows the service to set its initial health status
     async fn readiness_reporting(
         self: &Arc<Self>,
-        cancellation_token: CancellationToken,
+        _cancellation_token: CancellationToken,
         health_reporter: HealthReporter,
     ) {
         // Default implementation does nothing - services can override this
@@ -284,6 +281,7 @@ mod tests {
         fn file_descriptor_set(&self) -> &'static [u8] { rsketch_api::pb::GRPC_DESC }
 
         fn register_service(self: &Arc<Self>, builder: &mut RoutesBuilder) {
+            use tonic::service::LayerExt as _;
             let svc = tower::ServiceBuilder::new()
                 .layer(tower_http::cors::CorsLayer::new())
                 .layer(tonic_web::GrpcWebLayer::new())
@@ -296,7 +294,7 @@ mod tests {
 
         async fn readiness_reporting(
             self: &Arc<Self>,
-            cancellation_token: CancellationToken,
+            _cancellation_token: CancellationToken,
             reporter: HealthReporter,
         ) {
             // Register the Hello service as healthy
@@ -371,7 +369,7 @@ mod tests {
         // Check initial health status
         let request = tonic::Request::new(HealthCheckRequest::default());
         let response = health_client.check(request).await.unwrap().into_inner();
-        assert_eq!(response.status(), ServingStatus::Serving.into());
+        assert_eq!(response.status(), ServingStatus::Serving);
 
         // Signal shutdown
         handle.shutdown();

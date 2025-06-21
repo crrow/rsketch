@@ -15,6 +15,9 @@
 @clean:
     cargo clean
 
+@lint:
+    cargo clippy --all --tests --all-features --no-deps
+
 # Example
 @example-hello:
     cargo run --example hello-world

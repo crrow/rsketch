@@ -64,8 +64,6 @@ impl ReadableSize {
     pub const fn as_bytes(self) -> u64 { self.0 }
 
     pub const fn as_bytes_usize(self) -> usize { self.0 as usize }
-
-    pub fn to_string(self) -> String { format!("{:?}", self) }
 }
 
 impl Div<u64> for ReadableSize {
@@ -99,9 +97,9 @@ impl Serialize for ReadableSize {
             write!(buffer, "{}PiB", size / PIB).unwrap();
         } else if size % TIB == 0 {
             write!(buffer, "{}TiB", size / TIB).unwrap();
-        } else if size % GIB as u64 == 0 {
+        } else if size % GIB == 0 {
             write!(buffer, "{}GiB", size / GIB).unwrap();
-        } else if size % MIB as u64 == 0 {
+        } else if size % MIB == 0 {
             write!(buffer, "{}MiB", size / MIB).unwrap();
         } else if size % KIB == 0 {
             write!(buffer, "{}KiB", size / KIB).unwrap();

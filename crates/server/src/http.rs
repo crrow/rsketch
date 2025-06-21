@@ -12,14 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::sync::Arc;
-
 use axum::{
-    Router,
-    extract::DefaultBodyLimit,
-    http::StatusCode,
-    response::IntoResponse,
-    routing::{get, post},
+    Router, extract::DefaultBodyLimit, http::StatusCode, response::IntoResponse, routing::get,
 };
 use rsketch_common::{
     error::{ParseAddressSnafu, Result},
@@ -29,7 +23,6 @@ use serde::{Deserialize, Serialize};
 use snafu::ResultExt;
 use tokio::sync::oneshot;
 use tokio_util::sync::CancellationToken;
-use tower::ServiceBuilder;
 use tower_http::cors::{Any, CorsLayer};
 use tracing::info;
 
