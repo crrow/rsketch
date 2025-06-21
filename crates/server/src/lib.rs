@@ -1,5 +1,7 @@
 pub mod grpc;
+pub mod http;
 
+use futures::future::join_all;
 use snafu::Snafu;
 use tokio::{sync::oneshot::Receiver, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
@@ -48,6 +50,8 @@ pub struct ServiceHandler {
     cancellation_token: CancellationToken,
     /// Receiver for server start notification
     started_rx:         Option<Receiver<()>>,
+    /// Join handles for readiness reporting tasks
+    reporter_handles:   Vec<JoinHandle<()>>,
 }
 
 impl ServiceHandler {
@@ -76,7 +80,11 @@ impl ServiceHandler {
     /// # Panics
     /// Panics if the server task panicked during execution.
     pub async fn wait_for_stop(self) -> Result<()> {
-        self.join_handle.await.expect("Server task failed");
+        let handles = self
+            .reporter_handles
+            .into_iter()
+            .chain(std::iter::once(self.join_handle));
+        join_all(handles).await;
         Ok(())
     }
 

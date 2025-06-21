@@ -29,4 +29,4 @@ alias c := check
 
 alias t := test
 @test:
-    cargo nextest run
+    cargo nextest run --verbose
