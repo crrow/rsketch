@@ -14,7 +14,7 @@ members = [
     "crates/api",
     "crates/cmd",
     "crates/common",
-    "crates/services",
+    "crates/server",
 ]
 
 exclude = [
