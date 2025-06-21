@@ -12,4 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-fn main() { println!("hello world") }
+use std::path::PathBuf;
+
+fn main() {
+    let out_dir = PathBuf::from(
+        std::env::var("OUT_DIR")
+            .expect("cargo built-in env value 'OUT_DIR' must be set during compilation"),
+    );
+
+    // const EQ_ATTR: &str = "#[derive(serde::Serialize, serde::Deserialize,  Eq)]";
+
+    tonic_build::configure()
+        .file_descriptor_set_path(out_dir.join("rsketch_grpc_desc.bin"))
+        // .type_attribute("rsketch.v1.hello.Message", EQ_ATTR)
+        .compile_protos(&[
+            "proto/hello/v1/hello.proto",
+        ], &["proto"])
+        .expect("compile proto");
+}

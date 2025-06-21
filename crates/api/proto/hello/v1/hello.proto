@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package rsketch.hello.v1;
+
+import "google/protobuf/empty.proto";
+
+service Hello {
+  rpc Hello(google.protobuf.Empty) returns (google.protobuf.Empty);
+}

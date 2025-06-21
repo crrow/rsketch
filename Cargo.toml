@@ -1,28 +1,20 @@
-[package]
-name = "rust_template"
-version = "0.1.0"
-edition = "2021"
-authors = ["crrow"]
-license = "Apache-2.0"
-description = "A template for rust projects"
-homepage = "https://github.com/crrow/rsketch"
-repository = "https://github.com/crrow/rsketch"
-
 [workspace.package]
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 license = "Apache-2.0"
+authors = ["crrow"]
 
-[[example]]
-name = "hello-world"
-path = "examples/hello_world.rs"
+# [[example]]
+# name = "hello-world"
+# path = "examples/hello_world.rs"
 
 [workspace]
 resolver = "2"
-members = [
-    "src/api",
-    "src/binary",
-    "src/common",
+members = [ 
+    "crates/api",
+    "crates/cmd",
+    "crates/common",
+    "crates/services",
 ]
 
 exclude = [
@@ -30,10 +22,29 @@ exclude = [
 ]
 
 [workspace.dependencies]
-serde = "1.0.197"
-snafu = "0.8.2"
-tokio = { version = "1.35.1", features = ["full", "tracing"] }
-tracing = "0.1.39"
+actix = "^0.13.5"
+async-trait = "^0.1.88"
+axum = "^0.8.4"
+bon = "^3.6.4"
+defer = "^0.2.1"
+futures = "^0.3.31"
+protobuf = "^3.7.2"
+serde = { version = "^1.0.219", features = ["derive"] }
+snafu = "^0.8.6"
+tokio = { version = "^1.45.1", features = ["full", "tracing"] }
+tokio-util = "^0.7.15"
+tonic = "^0.13.1"
+tonic-build = "^0.13.1"
+tonic-web = "^0.13.1"
+tonic-reflection = "^0.13.1"
+tonic-health = "^0.13.1"
+tower = "^0.5.2"
+tower-http = { version = "^0.6.6", features = ["cors"] }
+tracing = "^0.1.41"
+tracing-subscriber = "^0.3.18"
+prost = "^0.14.1"
+strum = "^0.26.2"
+strum_macros = "^0.26.2"
 
 # Config for 'cargo dist'
 [workspace.metadata.dist]

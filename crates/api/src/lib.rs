@@ -17,9 +17,9 @@ pub use serde;
 pub mod pb {
     pub const GRPC_DESC: &[u8] = tonic::include_file_descriptor_set!("rsketch_grpc_desc");
 
-    pub mod v1 {
-        pub mod hello {
-            tonic::include_proto!("rsketch.v1.hello");
+    pub mod hello {
+        pub mod v1 {
+            tonic::include_proto!("rsketch.hello.v1");
         }
     }
 }
