@@ -1,0 +1,18 @@
+[package]
+name = "rsketch-api"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+prost = { workspace = true }
+protobuf = { workspace = true }
+serde = { workspace = true }
+strum = { workspace = true }
+strum_macros = { workspace = true }
+tonic = { workspace = true }
+
+[build-dependencies]
+tonic-build = { workspace = true }

@@ -1,4 +1,4 @@
-// Copyright 2024 Rsketch
+// Copyright 2025 Crrow
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,10 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use snafu::Snafu;
-
-pub type Result<T> = std::result::Result<T, Error>;
-
-#[derive(Snafu, Debug)]
-#[snafu(visibility(pub))]
-pub enum Error {}
+pub mod env;
+pub mod error;
+pub mod readable_size;
+pub mod runtime;

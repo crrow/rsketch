@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Rsketch
+ * Copyright 2025 Crrow
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,10 @@
 
 syntax = "proto3";
 
-package rsketch.v1.hello;
+package rsketch.hello.v1;
 
 import "google/protobuf/empty.proto";
 
-// Serve as a distributed kv database
 service Hello {
-  // Raft commands
-  rpc Hello(Message) returns (google.protobuf.Empty);
+  rpc Hello(google.protobuf.Empty) returns (google.protobuf.Empty);
 }
-
-message Message {}

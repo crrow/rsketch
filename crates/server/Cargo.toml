@@ -1,0 +1,31 @@
+[package]
+name = "rsketch-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+actix = { workspace = true }
+async-trait = { workspace = true }
+axum = { workspace = true }
+bon = { workspace = true }
+defer = { workspace = true }
+# fastrace = { workspace = true }
+futures = { workspace = true }
+rsketch-api = { path = "../api" }
+rsketch-common = { path = "../common" }
+serde = { workspace = true }
+snafu = { workspace = true }
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+tonic = { workspace = true }
+tonic-health = { workspace = true }
+tonic-reflection = { workspace = true }
+tonic-web = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[dev-dependencies]
+reqwest = { version = "0.11", features = ["json"] }

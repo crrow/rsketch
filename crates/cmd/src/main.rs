@@ -1,4 +1,4 @@
-// Copyright 2024 Rsketch
+// Copyright 2025 Crrow
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ mod build_info;
 
 #[derive(Debug, Parser)]
 #[clap(
-name = "kiseki",
-about= "kiseki-fs client",
+name = "rsketch",
+about= "rsketch-cmd",
 author = build_info::AUTHOR,
 version = build_info::FULL_VERSION)]
 struct Cli {

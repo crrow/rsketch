@@ -1,4 +1,4 @@
-// Copyright 2024 Rsketch
+// Copyright 2025 Crrow
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,14 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub use serde;
-
-pub mod pb {
-    pub const GRPC_DESC: &[u8] = tonic::include_file_descriptor_set!("rsketch_grpc_desc");
-
-    pub mod v1 {
-        pub mod hello {
-            tonic::include_proto!("rsketch.v1.hello");
-        }
-    }
-}
+fn main() { built::write_built_file().expect("Failed to acquire build-time information"); }
