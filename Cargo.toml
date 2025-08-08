@@ -39,7 +39,7 @@ tokio-util = "^0.7.15"
 tonic = "^0.14.1"
 tonic-build = "^0.14.0"
 tonic-health = "^0.14.1"
-tonic-reflection = "^0.13.1"
+tonic-reflection = "^0.14.1"
 tonic-web = "^0.14.0"
 tower = "^0.5.2"
 tower-http = { version = "^0.6.6", features = ["cors"] }
