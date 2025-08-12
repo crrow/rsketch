@@ -30,7 +30,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
   rust-tests:
     strategy:
@@ -42,7 +42,7 @@ jobs:
           - windows-latest
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install protoc
         uses: arduino/setup-protoc@v3
       - name: Install cargo-binstall
@@ -81,7 +81,7 @@ jobs:
     name: clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install protoc
         uses: arduino/setup-protoc@v3
       - name: Install Rust ${{ env.rust_clippy }}
@@ -99,7 +99,7 @@ jobs:
     name: docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install protoc
         uses: arduino/setup-protoc@v3
@@ -116,7 +116,7 @@ jobs:
     name: cargo fmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
@@ -138,7 +138,7 @@ jobs:
           - ubuntu-latest
           - macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install Rust ${{ env.rust_stable }}
         uses: dtolnay/rust-toolchain@stable
         with:
