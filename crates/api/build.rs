@@ -22,7 +22,7 @@ fn main() {
 
     // const EQ_ATTR: &str = "#[derive(serde::Serialize, serde::Deserialize,  Eq)]";
 
-    tonic_build::configure()
+    tonic_prost_build::configure()
         .file_descriptor_set_path(out_dir.join("rsketch_grpc_desc.bin"))
         // .type_attribute("rsketch.v1.hello.Message", EQ_ATTR)
         .compile_protos(&[
