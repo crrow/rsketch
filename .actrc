@@ -1,7 +1,7 @@
 # act configuration for local GitHub Actions execution
 # https://github.com/nektos/act
 
-# Use specific platform images for better compatibility
+# Use specific platform images for better compatibility with Rust pre-installed
 -P ubuntu-latest=catthehacker/ubuntu:act-latest
 -P windows-latest=catthehacker/ubuntu:act-latest
 -P macos-latest=catthehacker/ubuntu:act-latest
