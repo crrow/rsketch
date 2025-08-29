@@ -11,10 +11,11 @@ authors = ["crrow"]
 [workspace]
 resolver = "2"
 members = [
-    "crates/api",
+    "api",
     "crates/cmd",
     "crates/common",
     "crates/server",
+    "examples",
 ]
 
 exclude = [
@@ -27,10 +28,12 @@ async-trait = "^0.1.88"
 axum = "^0.8.4"
 bon = "^3.6.4"
 defer = "^0.2.1"
+derive_more = "2.0"
 futures = "^0.3.31"
 prost = "^0.14.1"
 protobuf = "^3.7.2"
 serde = { version = "^1.0.219", features = ["derive"] }
+smart-default = "0.7"
 snafu = "^0.8.6"
 strum = "^0.27.1"
 strum_macros = "^0.27.1"
@@ -47,6 +50,7 @@ tower = "^0.5.2"
 tower-http = { version = "^0.6.6", features = ["cors"] }
 tracing = "^0.1.41"
 tracing-subscriber = "^0.3.18"
+validator = "0.20"
 
 # Config for 'cargo dist'
 [workspace.metadata.dist]

@@ -18,6 +18,10 @@ syntax = "proto3";
 
 package rsketch.hello.v1;
 
+option go_package = "github.com/crrow/rsketch/gen/go/hello/v1;helloPB";
+option java_package = "com.rsketch.api.hello.v1";
+option java_outer_classname = "HelloProto";
+
 import "google/protobuf/empty.proto";
 
 service Hello {

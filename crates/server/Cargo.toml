@@ -12,7 +12,7 @@ bon = { workspace = true }
 defer = { workspace = true }
 # fastrace = { workspace = true }
 futures = { workspace = true }
-rsketch-api = { path = "../api" }
+rsketch-api = { path = "../../api" }
 rsketch-common = { path = "../common" }
 serde = { workspace = true }
 snafu = { workspace = true }

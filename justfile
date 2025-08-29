@@ -26,6 +26,44 @@ DISTRI_PLATFORM := "ubuntu"
 @lint:
     cargo clippy --all --tests --all-features --no-deps
 
+# Protobuf/gRPC operations with Buf
+@proto-lint:
+    cd api && buf lint
+
+@proto-format:
+    cd api && buf format -w
+
+@proto-breaking:
+    cd api && buf breaking --against .git#branch=main
+
+@proto:
+    cd api && buf generate
+
+@proto-generate-go:
+    cd api && buf generate --template buf.gen.go.yaml
+
+@proto-generate-java:
+    cd api && buf generate --template buf.gen.java.yaml
+
+@proto-generate-cpp:
+    cd api && buf generate --template buf.gen.cpp.yaml
+
+@proto-generate-c:
+    cd api && buf generate --template buf.gen.c.yaml
+
+@proto-deps-update:
+    cd api && buf dep update
+
+@proto-push:
+    cd api && buf push
+
+# Documentation
+@docs-serve:
+    mdbook serve docs
+
+@docs-build:
+    mdbook build docs
+
 @build:
     cargo build -p rsketch-cmd
 

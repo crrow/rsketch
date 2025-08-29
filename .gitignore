@@ -19,6 +19,9 @@ Cargo.lock
 # Act artifacts directory
 /tmp/act-artifacts
 
+# Generated code from buf
+/api/gen/
+
 # IDE files
 .vscode/
 .idea/
@@ -33,3 +36,5 @@ Cargo.lock
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+.devbox/
