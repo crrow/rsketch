@@ -53,3 +53,56 @@ alias t := test
         --file docker/Dockerfile \
         --output type=docker \
         .
+
+# GitHub Actions (local execution with act)
+# Install act: https://github.com/nektos/act#installation
+
+# Run the full CI workflow locally
+@ci-local:
+    act
+
+# Run specific jobs from the CI workflow
+@ci-validate:
+    act -j validate
+
+@ci-clippy:
+    act -j clippy
+
+@ci-docs:
+    act -j docs
+
+@ci-test:
+    act -j test
+
+@ci-coverage:
+    act -j coverage
+
+# List available workflows and jobs
+@ci-list:
+    act -l
+
+# Run CI with specific event (push/pull_request)
+@ci-push:
+    act push
+
+@ci-pr:
+    act pull_request
+
+# Debug CI workflow (with verbose output)
+@ci-debug:
+    act --verbose --dry-run
+
+# Setup local environment for act
+@ci-setup:
+    echo "Setting up local CI environment..."
+    @if [ ! -f .env.local ]; then \
+        echo "Creating .env.local from example..."; \
+        cp env.local.example .env.local; \
+        echo "Please edit .env.local and add your GITHUB_TOKEN if needed"; \
+    else \
+        echo ".env.local already exists"; \
+    fi
+    @echo "Install act if not already installed:"
+    @echo "  macOS: brew install act"
+    @echo "  Linux: curl https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash"
+    @echo "  Windows: choco install act-cli"

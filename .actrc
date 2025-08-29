@@ -1,0 +1,30 @@
+# act configuration for local GitHub Actions execution
+# https://github.com/nektos/act
+
+# Use specific platform images for better compatibility
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+-P windows-latest=catthehacker/ubuntu:act-latest
+-P macos-latest=catthehacker/ubuntu:act-latest
+
+# Container architecture (use native architecture for performance)
+--container-architecture linux/amd64
+
+# Docker configuration will be read from environment variables
+
+# Enable verbose logging for debugging
+--verbose
+
+# Reuse containers for faster subsequent runs
+--reuse
+
+# Bind workspace to avoid permission issues
+--bind
+
+# Use environment file for secrets and variables
+--env-file .env.local
+
+# Artifact server (optional - for uploading artifacts locally)
+--artifact-server-path /tmp/act-artifacts
+
+# Network configuration
+--network host
