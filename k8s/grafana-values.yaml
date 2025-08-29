@@ -1,0 +1,17 @@
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+    - name: Loki
+      type: loki
+      url: http://loki:3100
+      access: proxy
+      isDefault: true
+    - name: Tempo
+      type: tempo
+      url: http://tempo:9411
+      access: proxy
+    - name: Pyroscope
+      type: pyroscope
+      url: http://pyroscope:4040
+      access: proxy

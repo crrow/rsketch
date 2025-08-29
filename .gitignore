@@ -38,3 +38,9 @@ ehthumbs.db
 Thumbs.db
 
 .devbox/
+
+# Lima VM
+.lima/
+
+# Scripts
+scripts/

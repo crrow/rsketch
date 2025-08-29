@@ -1,3 +1,7 @@
+# Load environment variables from .env.local if it exists
+set dotenv-load
+set dotenv-filename := ".env.local"
+
 RUST_TOOLCHAIN := `grep 'channel = ' rust-toolchain.toml | cut -d '"' -f 2`
 TARGET_PLATFORM := "linux/arm64"
 DISTRI_PLATFORM := "ubuntu"
@@ -15,6 +19,7 @@ DISTRI_PLATFORM := "ubuntu"
     taplo format
     taplo format --check
     hawkeye format
+    cd api && buf format -w
 
 # Calculate code
 @cloc:
@@ -24,38 +29,12 @@ DISTRI_PLATFORM := "ubuntu"
     cargo clean
 
 @lint:
-    cargo clippy --all --tests --all-features --no-deps
+    cargo clippy --all --tests --all-features
 
 # Protobuf/gRPC operations with Buf
-@proto-lint:
-    cd api && buf lint
-
-@proto-format:
-    cd api && buf format -w
-
-@proto-breaking:
-    cd api && buf breaking --against .git#branch=main
-
+[working-directory: 'api']
 @proto:
-    cd api && buf generate
-
-@proto-generate-go:
-    cd api && buf generate --template buf.gen.go.yaml
-
-@proto-generate-java:
-    cd api && buf generate --template buf.gen.java.yaml
-
-@proto-generate-cpp:
-    cd api && buf generate --template buf.gen.cpp.yaml
-
-@proto-generate-c:
-    cd api && buf generate --template buf.gen.c.yaml
-
-@proto-deps-update:
-    cd api && buf dep update
-
-@proto-push:
-    cd api && buf push
+    buf generate
 
 # Documentation
 @docs-serve:
@@ -93,54 +72,6 @@ alias t := test
         .
 
 # GitHub Actions (local execution with act)
-# Install act: https://github.com/nektos/act#installation
-
-# Run the full CI workflow locally
-@ci-local:
-    act
-
-# Run specific jobs from the CI workflow
-@ci-validate:
-    act -j validate
-
-@ci-clippy:
-    act -j clippy
-
-@ci-docs:
-    act -j docs
-
-@ci-test:
-    act -j test
-
-@ci-coverage:
-    act -j coverage
-
-# List available workflows and jobs
-@ci-list:
-    act -l
-
-# Run CI with specific event (push/pull_request)
-@ci-push:
-    act push
-
-@ci-pr:
-    act pull_request
-
-# Debug CI workflow (with verbose output)
-@ci-debug:
-    act --verbose --dry-run
-
-# Setup local environment for act
-@ci-setup:
-    echo "Setting up local CI environment..."
-    @if [ ! -f .env.local ]; then \
-        echo "Creating .env.local from example..."; \
-        cp env.local.example .env.local; \
-        echo "Please edit .env.local and add your GITHUB_TOKEN if needed"; \
-    else \
-        echo ".env.local already exists"; \
-    fi
-    @echo "Install act if not already installed:"
-    @echo "  macOS: brew install act"
-    @echo "  Linux: curl https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash"
-    @echo "  Windows: choco install act-cli"
+# Run comprehensive CI checks locally using act
+@act:
+    ./scripts/ci-act.sh check-all
