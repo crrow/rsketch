@@ -20,6 +20,7 @@ use rsketch_common::{
     readable_size::ReadableSize,
 };
 use serde::{Deserialize, Serialize};
+use smart_default::SmartDefault;
 use snafu::ResultExt;
 use tokio::sync::oneshot;
 use tokio_util::sync::CancellationToken;
@@ -32,24 +33,17 @@ use super::ServiceHandler;
 pub const DEFAULT_MAX_HTTP_BODY_SIZE: ReadableSize = ReadableSize::mb(100);
 
 /// Configuration options for a REST server
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, bon::Builder)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, SmartDefault, bon::Builder)]
 pub struct RestServerConfig {
     /// The address to bind the REST server
+    #[default = "127.0.0.1:3000"]
     pub bind_address:  String,
     /// Maximum HTTP request body size
+    #[default(_code = "DEFAULT_MAX_HTTP_BODY_SIZE")]
     pub max_body_size: ReadableSize,
     /// Whether to enable CORS
+    #[default = true]
     pub enable_cors:   bool,
-}
-
-impl Default for RestServerConfig {
-    fn default() -> Self {
-        Self {
-            bind_address:  "127.0.0.1:3000".to_string(),
-            max_body_size: DEFAULT_MAX_HTTP_BODY_SIZE,
-            enable_cors:   true,
-        }
-    }
 }
 
 /// Starts the REST server and returns a handle for managing its lifecycle.
@@ -160,6 +154,27 @@ where
 /// Health check endpoint for the REST server
 async fn health_check() -> impl IntoResponse { (StatusCode::OK, "OK") }
 
+/// Health check handler that returns detailed health information
+async fn api_health_handler() -> axum::Json<serde_json::Value> {
+    axum::Json(serde_json::json!({
+        "status": "healthy",
+        "timestamp": chrono::Utc::now().to_rfc3339(),
+        "service": "rsketch",
+        "version": env!("CARGO_PKG_VERSION")
+    }))
+}
+
+/// Add health routes to the router
+///
+/// This function adds health check endpoints for API monitoring and readiness
+/// checks. It provides both simple health check and detailed health information
+/// endpoints.
+pub fn health_routes(router: Router) -> Router {
+    router
+        .route("/api/v1/health", get(api_health_handler))
+        .route("/api/health", get(api_health_handler))
+}
+
 #[cfg(test)]
 mod tests {
     use axum::{Json, routing::get};
@@ -171,10 +186,6 @@ mod tests {
             .with_env_filter("debug")
             .try_init();
     }
-
-    async fn hello_handler() -> Json<&'static str> { Json("Hello, World!") }
-
-    fn hello_routes(router: Router) -> Router { router.route("/api/v1/hello", get(hello_handler)) }
 
     /// Helper function to get an available port by binding to port 0
     async fn get_available_port() -> u16 {
@@ -193,7 +204,7 @@ mod tests {
             bind_address: format!("127.0.0.1:{}", port),
             ..RestServerConfig::default()
         };
-        let handlers: Vec<fn(Router) -> Router> = vec![hello_routes];
+        let handlers: Vec<fn(Router) -> Router> = vec![health_routes];
 
         let mut handler = start_rest_server(config, handlers).await.unwrap();
 
@@ -210,7 +221,7 @@ mod tests {
         assert_eq!(response.status(), 200);
 
         let response = client
-            .get(format!("http://127.0.0.1:{}/api/v1/hello", port))
+            .get(format!("http://127.0.0.1:{}/api/v1/health", port))
             .send()
             .await
             .unwrap();
@@ -231,7 +242,7 @@ mod tests {
             enable_cors: false,
             ..RestServerConfig::default()
         };
-        let handlers = vec![hello_routes];
+        let handlers = vec![health_routes];
 
         let mut handler = start_rest_server(config, handlers).await.unwrap();
         handler.wait_for_start().await.unwrap();
@@ -264,7 +275,7 @@ mod tests {
             bind_address: format!("127.0.0.1:{}", port),
             ..RestServerConfig::default()
         };
-        let handlers = vec![hello_routes, goodbye_routes];
+        let handlers = vec![health_routes, goodbye_routes];
 
         let mut handler = start_rest_server(config, handlers).await.unwrap();
         handler.wait_for_start().await.unwrap();
@@ -272,7 +283,7 @@ mod tests {
         // Test both routes
         let client = reqwest::Client::new();
         let response = client
-            .get(format!("http://127.0.0.1:{}/api/v1/hello", port))
+            .get(format!("http://127.0.0.1:{}/api/v1/health", port))
             .send()
             .await
             .unwrap();

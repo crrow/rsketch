@@ -42,5 +42,4 @@ Thumbs.db
 # Lima VM
 .lima/
 
-# Scripts
-scripts/
+tmp-*/

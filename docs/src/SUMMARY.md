@@ -6,3 +6,4 @@
 
 - [API Guide](api-guide.md)
 - [Buf Integration](buf-integration.md)
+- [OpenTelemetry Integration](opentelemetry.md)
