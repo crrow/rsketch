@@ -99,7 +99,7 @@ where
     // Build the router with middleware
     let mut router = Router::new()
         .route("/health", get(health_check))
-        .layer(OtelInResponseLayer::default())
+        .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())
         .layer(DefaultBodyLimit::max(
             config.max_body_size.as_bytes() as usize

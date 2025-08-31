@@ -1,0 +1,6 @@
+pyroscope:
+  persistence:
+    enabled: false
+  service:
+    type: ClusterIP
+    port: 4040
