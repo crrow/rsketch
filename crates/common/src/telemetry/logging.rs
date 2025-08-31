@@ -110,8 +110,6 @@ use crate::telemetry::tracing_sampler::{TracingSampleOptions, create_sampler};
 ///
 /// * `Ok(T)` - The deserialized value or default if string was empty
 /// * `Err(D::Error)` - Deserialization error if the string was invalid
-///
-/// ```
 pub fn empty_string_as_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
     D: Deserializer<'de>,

@@ -35,6 +35,7 @@ DISTRI_PLATFORM := "ubuntu"
 
 @lint:
     cargo clippy --workspace --all-targets --all-features --no-deps -- -D warnings
+    cargo doc --workspace --all-features --no-deps --document-private-items
     cd api && buf lint
     cd examples/goclient && golangci-lint run
 
