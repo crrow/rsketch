@@ -1,0 +1,78 @@
+# Consul configuration for development environment
+global:
+  # Consul datacenter name
+  datacenter: dc1
+  
+  # Enable ACLs (Access Control Lists) for security
+  acls:
+    manageSystemACLs: true
+    
+  # Gossip encryption for secure cluster communication
+  gossipEncryption:
+    autoGenerate: true
+
+# Server configuration
+server:
+  # Number of server replicas for development (use 3+ for production)
+  replicas: 1
+  
+  # Bootstrap ACLs automatically
+  bootstrapExpect: 1
+  
+  # Storage configuration
+  storage: 1Gi
+  storageClass: null  # Use default storage class
+  
+  # Resource limits for development
+  resources:
+    requests:
+      memory: "100Mi"
+      cpu: "100m"
+    limits:
+      memory: "500Mi"
+      cpu: "500m"
+
+# Client configuration
+client:
+  enabled: true
+  grpc: true
+  
+  # Resource limits for clients
+  resources:
+    requests:
+      memory: "50Mi"
+      cpu: "50m"
+    limits:
+      memory: "200Mi"
+      cpu: "200m"
+
+# UI configuration
+ui:
+  enabled: true
+  service:
+    type: ClusterIP
+    port: 80
+
+# Connect service mesh (optional for future use)
+connectInject:
+  enabled: false  # Disable for now, can enable later for service mesh
+
+# Sync catalog between Consul and Kubernetes
+syncCatalog:
+  enabled: true
+  default: true
+  toConsul: true
+  toK8S: true
+  k8sPrefix: null
+  consulPrefix: null
+
+# DNS configuration
+dns:
+  enabled: true
+  type: ClusterIP
+
+# Metrics and monitoring
+metrics:
+  enabled: true
+  enableAgentMetrics: true
+  agentMetricsRetentionTime: "1m"

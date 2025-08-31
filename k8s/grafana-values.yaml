@@ -15,3 +15,7 @@ datasources:
       type: pyroscope
       url: http://pyroscope:4040
       access: proxy
+    - name: Consul
+      type: prometheus
+      url: http://consul:8500/v1/agent/metrics?format=prometheus
+      access: proxy
