@@ -18,8 +18,24 @@ syntax = "proto3";
 
 package rsketch.hello.v1;
 
-import "google/protobuf/empty.proto";
+option go_package = "github.com/crrow/rsketch/pb/hello/v1;hellopb";
+option java_outer_classname = "HelloProto";
+option java_package = "com.rsketch.api.hello.v1";
 
-service Hello {
-  rpc Hello(google.protobuf.Empty) returns (google.protobuf.Empty);
+// HelloRequest represents a hello request message
+message HelloRequest {
+  // name is the name to greet
+  string name = 1;
+}
+
+// HelloResponse represents a hello response message
+message HelloResponse {
+  // message is the greeting message
+  string message = 1;
+}
+
+// HelloService provides greeting functionality
+service HelloService {
+  // Hello greets the caller with a personalized message
+  rpc Hello(HelloRequest) returns (HelloResponse);
 }

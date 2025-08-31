@@ -15,11 +15,13 @@
 use axum::{
     Router, extract::DefaultBodyLimit, http::StatusCode, response::IntoResponse, routing::get,
 };
+use axum_tracing_opentelemetry::middleware::{OtelAxumLayer, OtelInResponseLayer};
 use rsketch_common::{
     error::{ParseAddressSnafu, Result},
     readable_size::ReadableSize,
 };
 use serde::{Deserialize, Serialize};
+use smart_default::SmartDefault;
 use snafu::ResultExt;
 use tokio::sync::oneshot;
 use tokio_util::sync::CancellationToken;
@@ -32,24 +34,17 @@ use super::ServiceHandler;
 pub const DEFAULT_MAX_HTTP_BODY_SIZE: ReadableSize = ReadableSize::mb(100);
 
 /// Configuration options for a REST server
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, bon::Builder)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, SmartDefault, bon::Builder)]
 pub struct RestServerConfig {
     /// The address to bind the REST server
+    #[default = "127.0.0.1:3000"]
     pub bind_address:  String,
     /// Maximum HTTP request body size
+    #[default(_code = "DEFAULT_MAX_HTTP_BODY_SIZE")]
     pub max_body_size: ReadableSize,
     /// Whether to enable CORS
+    #[default = true]
     pub enable_cors:   bool,
-}
-
-impl Default for RestServerConfig {
-    fn default() -> Self {
-        Self {
-            bind_address:  "127.0.0.1:3000".to_string(),
-            max_body_size: DEFAULT_MAX_HTTP_BODY_SIZE,
-            enable_cors:   true,
-        }
-    }
 }
 
 /// Starts the REST server and returns a handle for managing its lifecycle.
@@ -102,12 +97,13 @@ where
         })?;
 
     // Build the router with middleware
-    let mut router =
-        Router::new()
-            .route("/health", get(health_check))
-            .layer(DefaultBodyLimit::max(
-                config.max_body_size.as_bytes() as usize
-            ));
+    let mut router = Router::new()
+        .route("/health", get(health_check))
+        .layer(OtelInResponseLayer)
+        .layer(OtelAxumLayer::default())
+        .layer(DefaultBodyLimit::max(
+            config.max_body_size.as_bytes() as usize
+        ));
 
     // Add CORS if enabled
     if config.enable_cors {
@@ -160,6 +156,27 @@ where
 /// Health check endpoint for the REST server
 async fn health_check() -> impl IntoResponse { (StatusCode::OK, "OK") }
 
+/// Health check handler that returns detailed health information
+async fn api_health_handler() -> axum::Json<serde_json::Value> {
+    axum::Json(serde_json::json!({
+        "status": "healthy",
+        "timestamp": chrono::Utc::now().to_rfc3339(),
+        "service": "rsketch",
+        "version": env!("CARGO_PKG_VERSION")
+    }))
+}
+
+/// Add health routes to the router
+///
+/// This function adds health check endpoints for API monitoring and readiness
+/// checks. It provides both simple health check and detailed health information
+/// endpoints.
+pub fn health_routes(router: Router) -> Router {
+    router
+        .route("/api/v1/health", get(api_health_handler))
+        .route("/api/health", get(api_health_handler))
+}
+
 #[cfg(test)]
 mod tests {
     use axum::{Json, routing::get};
@@ -172,16 +189,24 @@ mod tests {
             .try_init();
     }
 
-    async fn hello_handler() -> Json<&'static str> { Json("Hello, World!") }
-
-    fn hello_routes(router: Router) -> Router { router.route("/api/v1/hello", get(hello_handler)) }
+    /// Helper function to get an available port by binding to port 0
+    async fn get_available_port() -> u16 {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = listener.local_addr().unwrap().port();
+        drop(listener); // Release the port
+        port
+    }
 
     #[tokio::test]
     async fn test_rest_server_lifecycle() {
         init_test_logging();
 
-        let config = RestServerConfig::default();
-        let handlers: Vec<fn(Router) -> Router> = vec![hello_routes];
+        let port = get_available_port().await;
+        let config = RestServerConfig {
+            bind_address: format!("127.0.0.1:{}", port),
+            ..RestServerConfig::default()
+        };
+        let handlers: Vec<fn(Router) -> Router> = vec![health_routes];
 
         let mut handler = start_rest_server(config, handlers).await.unwrap();
 
@@ -191,14 +216,14 @@ mod tests {
         // Test that the server is running by making a request
         let client = reqwest::Client::new();
         let response = client
-            .get("http://127.0.0.1:3000/health")
+            .get(format!("http://127.0.0.1:{}/health", port))
             .send()
             .await
             .unwrap();
         assert_eq!(response.status(), 200);
 
         let response = client
-            .get("http://127.0.0.1:3000/api/v1/hello")
+            .get(format!("http://127.0.0.1:{}/api/v1/health", port))
             .send()
             .await
             .unwrap();
@@ -213,8 +238,13 @@ mod tests {
     async fn test_rest_server_without_cors() {
         init_test_logging();
 
-        let config = RestServerConfig::default();
-        let handlers = vec![hello_routes];
+        let port = get_available_port().await;
+        let config = RestServerConfig {
+            bind_address: format!("127.0.0.1:{}", port),
+            enable_cors: false,
+            ..RestServerConfig::default()
+        };
+        let handlers = vec![health_routes];
 
         let mut handler = start_rest_server(config, handlers).await.unwrap();
         handler.wait_for_start().await.unwrap();
@@ -222,7 +252,7 @@ mod tests {
         // Test that the server is running
         let client = reqwest::Client::new();
         let response = client
-            .get("http://127.0.0.1:3000/health")
+            .get(format!("http://127.0.0.1:{}/health", port))
             .send()
             .await
             .unwrap();
@@ -242,8 +272,12 @@ mod tests {
             router.route("/api/v1/goodbye", get(goodbye_handler))
         }
 
-        let config = RestServerConfig::default();
-        let handlers = vec![hello_routes, goodbye_routes];
+        let port = get_available_port().await;
+        let config = RestServerConfig {
+            bind_address: format!("127.0.0.1:{}", port),
+            ..RestServerConfig::default()
+        };
+        let handlers = vec![health_routes, goodbye_routes];
 
         let mut handler = start_rest_server(config, handlers).await.unwrap();
         handler.wait_for_start().await.unwrap();
@@ -251,14 +285,14 @@ mod tests {
         // Test both routes
         let client = reqwest::Client::new();
         let response = client
-            .get("http://127.0.0.1:3000/api/v1/hello")
+            .get(format!("http://127.0.0.1:{}/api/v1/health", port))
             .send()
             .await
             .unwrap();
         assert_eq!(response.status(), 200);
 
         let response = client
-            .get("http://127.0.0.1:3000/api/v1/goodbye")
+            .get(format!("http://127.0.0.1:{}/api/v1/goodbye", port))
             .send()
             .await
             .unwrap();

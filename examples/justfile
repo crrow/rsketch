@@ -1,0 +1,59 @@
+# Examples justfile for rsketch project
+# Provides easy commands to run the hello server and client examples
+
+# List available commands
+@help:
+    just -l
+
+# Start the Rust gRPC hello server
+[working-directory: '..']
+@server:
+    echo "Starting Rust gRPC hello server on [::1]:50051..."
+    cargo run --example hello-server
+
+# Run the Go client (connects to the server)
+[working-directory: 'goclient']
+@client:
+    echo "Running Go client (connecting to [::1]:50051)..."
+    go run main.go
+
+# Build the Go client
+[working-directory: 'goclient']
+@build-client:
+    echo "Building Go client..."
+    go build -o client main.go
+
+# Run both server and client in parallel (server first, then client after 2s delay)
+@demo:
+    echo "Starting demo: server + client"
+    just server &
+    sleep 2
+    just client
+
+# Clean up built artifacts
+@clean:
+    echo "Cleaning up..."
+    just clean-client
+    just clean-server
+
+# Clean Go client artifacts
+[working-directory: 'goclient']
+@clean-client:
+    rm -f client
+
+# Clean Rust server artifacts
+[working-directory: '..']
+@clean-server:
+    cargo clean
+
+# Update Go dependencies for the client
+[working-directory: 'goclient']
+@update-deps:
+    echo "Updating Go dependencies..."
+    go mod tidy && go mod download
+
+# Run the client with verbose gRPC logging
+[working-directory: 'goclient']
+@client-verbose:
+    echo "Running Go client with verbose logging..."
+    GRPC_GO_LOG_VERBOSITY_LEVEL=99 GRPC_GO_LOG_SEVERITY_LEVEL=info go run main.go

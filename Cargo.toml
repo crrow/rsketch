@@ -3,18 +3,19 @@ version = "0.1.0"
 edition = "2024"
 license = "Apache-2.0"
 authors = ["crrow"]
-
-# [[example]]
-# name = "hello-world"
-# path = "examples/hello_world.rs"
+repository = "https://github.com/crrow/rsketch"
+homepage = "https://github.com/crrow/rsketch"
+rust-version = "1.89.0"
 
 [workspace]
 resolver = "2"
 members = [
-    "crates/api",
+    "api",
+    "crates/app",
     "crates/cmd",
     "crates/common",
     "crates/server",
+    "examples",
 ]
 
 exclude = [
@@ -22,43 +23,65 @@ exclude = [
 ]
 
 [workspace.dependencies]
-actix = "^0.13.5"
-async-trait = "^0.1.88"
-axum = "^0.8.4"
-bon = "^3.6.4"
-defer = "^0.2.1"
-futures = "^0.3.31"
-prost = "^0.14.1"
-protobuf = "^3.7.2"
-serde = { version = "^1.0.219", features = ["derive"] }
-snafu = "^0.8.6"
-strum = "^0.27.1"
-strum_macros = "^0.27.1"
-tokio = { version = "^1.45.1", features = ["full", "tracing"] }
-tokio-util = "^0.7.15"
+actix = "^0.13"
+async-trait = "^0.1"
+axum = "^0.8"
+axum-tracing-opentelemetry = "0.17.0"
+bon = "^3.6"
+chrono = "^0.4"
+defer = "^0.2"
+derive_more = { version = "2.0", features = ["full"] }
+futures = "^0.3"
+prost = "^0.14"
+protobuf = "^3.7"
+serde = { version = "^1.0", features = ["derive"] }
+serde_json = "1.0.143"
+smart-default = "0.7"
+snafu = "^0.8"
+strum = "^0.27"
+strum_macros = "^0.27"
+tokio = { version = "^1.45", features = ["full", "tracing"] }
+tokio-util = "^0.7"
 tonic = "^0.14"
 tonic-build = "^0.14"
 tonic-health = "^0.14"
+tonic-prost = "0.14"
 tonic-prost-build = "0.14"
 tonic-reflection = "^0.14"
+tonic-tracing-opentelemetry = "0.29.1"
 tonic-web = "^0.14"
-tower = "^0.5.2"
-tower-http = { version = "^0.6.6", features = ["cors"] }
-tracing = "^0.1.41"
-tracing-subscriber = "^0.3.18"
+tower = "^0.5"
+tower-http = { version = "^0.6", features = ["cors"] }
+tracing = "^0.1"
+tracing-subscriber = "^0.3"
+validator = "0.20"
 
 # Config for 'cargo dist'
 [workspace.metadata.dist]
 # The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
-cargo-dist-version = "0.12.2"
+cargo-dist-version = "0.19.1"
 # CI backends to support
 ci = ["github"]
+# Hosting backends to support
+hosting = ["github"]
 # The installers to generate for each app
-installers = ["shell", "powershell"]
+installers = ["shell", "powershell", "msi"]
 # Target platforms to build apps for (Rust target-triple syntax)
-targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc"]
+targets = [
+    "aarch64-apple-darwin",
+    "x86_64-apple-darwin",
+    "x86_64-unknown-linux-gnu",
+    "x86_64-unknown-linux-musl",
+    "x86_64-pc-windows-msvc",
+]
+# The archive format to use for windows builds (defaults .zip)
+windows-archive = ".tar.gz"
+# The archive format to use for non-windows builds (defaults .tar.xz)
+unix-archive = ".tar.gz"
+# Path that installers should place binaries in
+install-path = "CARGO_HOME"
 # Publish jobs to run in CI
-pr-run-mode = "upload"
+pr-run-mode = "plan"
 # Whether to install an updater program
 install-updater = false
 
