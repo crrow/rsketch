@@ -42,7 +42,7 @@ public final class HelloProto {
         (com.google.protobuf.ExtensionRegistryLite) registry);
   }
   public interface HelloRequestOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:hello.v1.HelloRequest)
+      // @@protoc_insertion_point(interface_extends:rsketch.hello.v1.HelloRequest)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -70,11 +70,11 @@ public final class HelloProto {
    * HelloRequest represents a hello request message
    * </pre>
    *
-   * Protobuf type {@code hello.v1.HelloRequest}
+   * Protobuf type {@code rsketch.hello.v1.HelloRequest}
    */
   public static final class HelloRequest extends
       com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:hello.v1.HelloRequest)
+      // @@protoc_insertion_point(message_implements:rsketch.hello.v1.HelloRequest)
       HelloRequestOrBuilder {
   private static final long serialVersionUID = 0L;
     static {
@@ -96,13 +96,13 @@ public final class HelloProto {
 
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.rsketch.api.hello.v1.HelloProto.internal_static_hello_v1_HelloRequest_descriptor;
+      return com.rsketch.api.hello.v1.HelloProto.internal_static_rsketch_hello_v1_HelloRequest_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.rsketch.api.hello.v1.HelloProto.internal_static_hello_v1_HelloRequest_fieldAccessorTable
+      return com.rsketch.api.hello.v1.HelloProto.internal_static_rsketch_hello_v1_HelloRequest_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               com.rsketch.api.hello.v1.HelloProto.HelloRequest.class, com.rsketch.api.hello.v1.HelloProto.HelloRequest.Builder.class);
     }
@@ -315,21 +315,21 @@ public final class HelloProto {
      * HelloRequest represents a hello request message
      * </pre>
      *
-     * Protobuf type {@code hello.v1.HelloRequest}
+     * Protobuf type {@code rsketch.hello.v1.HelloRequest}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:hello.v1.HelloRequest)
+        // @@protoc_insertion_point(builder_implements:rsketch.hello.v1.HelloRequest)
         com.rsketch.api.hello.v1.HelloProto.HelloRequestOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return com.rsketch.api.hello.v1.HelloProto.internal_static_hello_v1_HelloRequest_descriptor;
+        return com.rsketch.api.hello.v1.HelloProto.internal_static_rsketch_hello_v1_HelloRequest_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return com.rsketch.api.hello.v1.HelloProto.internal_static_hello_v1_HelloRequest_fieldAccessorTable
+        return com.rsketch.api.hello.v1.HelloProto.internal_static_rsketch_hello_v1_HelloRequest_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
                 com.rsketch.api.hello.v1.HelloProto.HelloRequest.class, com.rsketch.api.hello.v1.HelloProto.HelloRequest.Builder.class);
       }
@@ -355,7 +355,7 @@ public final class HelloProto {
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return com.rsketch.api.hello.v1.HelloProto.internal_static_hello_v1_HelloRequest_descriptor;
+        return com.rsketch.api.hello.v1.HelloProto.internal_static_rsketch_hello_v1_HelloRequest_descriptor;
       }
 
       @java.lang.Override
@@ -544,10 +544,10 @@ public final class HelloProto {
         return this;
       }
 
-      // @@protoc_insertion_point(builder_scope:hello.v1.HelloRequest)
+      // @@protoc_insertion_point(builder_scope:rsketch.hello.v1.HelloRequest)
     }
 
-    // @@protoc_insertion_point(class_scope:hello.v1.HelloRequest)
+    // @@protoc_insertion_point(class_scope:rsketch.hello.v1.HelloRequest)
     private static final com.rsketch.api.hello.v1.HelloProto.HelloRequest DEFAULT_INSTANCE;
     static {
       DEFAULT_INSTANCE = new com.rsketch.api.hello.v1.HelloProto.HelloRequest();
@@ -596,7 +596,7 @@ public final class HelloProto {
   }
 
   public interface HelloResponseOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:hello.v1.HelloResponse)
+      // @@protoc_insertion_point(interface_extends:rsketch.hello.v1.HelloResponse)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -624,11 +624,11 @@ public final class HelloProto {
    * HelloResponse represents a hello response message
    * </pre>
    *
-   * Protobuf type {@code hello.v1.HelloResponse}
+   * Protobuf type {@code rsketch.hello.v1.HelloResponse}
    */
   public static final class HelloResponse extends
       com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:hello.v1.HelloResponse)
+      // @@protoc_insertion_point(message_implements:rsketch.hello.v1.HelloResponse)
       HelloResponseOrBuilder {
   private static final long serialVersionUID = 0L;
     static {
@@ -650,13 +650,13 @@ public final class HelloProto {
 
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.rsketch.api.hello.v1.HelloProto.internal_static_hello_v1_HelloResponse_descriptor;
+      return com.rsketch.api.hello.v1.HelloProto.internal_static_rsketch_hello_v1_HelloResponse_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.rsketch.api.hello.v1.HelloProto.internal_static_hello_v1_HelloResponse_fieldAccessorTable
+      return com.rsketch.api.hello.v1.HelloProto.internal_static_rsketch_hello_v1_HelloResponse_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               com.rsketch.api.hello.v1.HelloProto.HelloResponse.class, com.rsketch.api.hello.v1.HelloProto.HelloResponse.Builder.class);
     }
@@ -869,21 +869,21 @@ public final class HelloProto {
      * HelloResponse represents a hello response message
      * </pre>
      *
-     * Protobuf type {@code hello.v1.HelloResponse}
+     * Protobuf type {@code rsketch.hello.v1.HelloResponse}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:hello.v1.HelloResponse)
+        // @@protoc_insertion_point(builder_implements:rsketch.hello.v1.HelloResponse)
         com.rsketch.api.hello.v1.HelloProto.HelloResponseOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return com.rsketch.api.hello.v1.HelloProto.internal_static_hello_v1_HelloResponse_descriptor;
+        return com.rsketch.api.hello.v1.HelloProto.internal_static_rsketch_hello_v1_HelloResponse_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return com.rsketch.api.hello.v1.HelloProto.internal_static_hello_v1_HelloResponse_fieldAccessorTable
+        return com.rsketch.api.hello.v1.HelloProto.internal_static_rsketch_hello_v1_HelloResponse_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
                 com.rsketch.api.hello.v1.HelloProto.HelloResponse.class, com.rsketch.api.hello.v1.HelloProto.HelloResponse.Builder.class);
       }
@@ -909,7 +909,7 @@ public final class HelloProto {
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return com.rsketch.api.hello.v1.HelloProto.internal_static_hello_v1_HelloResponse_descriptor;
+        return com.rsketch.api.hello.v1.HelloProto.internal_static_rsketch_hello_v1_HelloResponse_descriptor;
       }
 
       @java.lang.Override
@@ -1098,10 +1098,10 @@ public final class HelloProto {
         return this;
       }
 
-      // @@protoc_insertion_point(builder_scope:hello.v1.HelloResponse)
+      // @@protoc_insertion_point(builder_scope:rsketch.hello.v1.HelloResponse)
     }
 
-    // @@protoc_insertion_point(class_scope:hello.v1.HelloResponse)
+    // @@protoc_insertion_point(class_scope:rsketch.hello.v1.HelloResponse)
     private static final com.rsketch.api.hello.v1.HelloProto.HelloResponse DEFAULT_INSTANCE;
     static {
       DEFAULT_INSTANCE = new com.rsketch.api.hello.v1.HelloProto.HelloResponse();
@@ -1150,15 +1150,15 @@ public final class HelloProto {
   }
 
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_hello_v1_HelloRequest_descriptor;
+    internal_static_rsketch_hello_v1_HelloRequest_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_hello_v1_HelloRequest_fieldAccessorTable;
+      internal_static_rsketch_hello_v1_HelloRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_hello_v1_HelloResponse_descriptor;
+    internal_static_rsketch_hello_v1_HelloResponse_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_hello_v1_HelloResponse_fieldAccessorTable;
+      internal_static_rsketch_hello_v1_HelloResponse_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -1168,31 +1168,32 @@ public final class HelloProto {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\024hello/v1/hello.proto\022\010hello.v1\"\"\n\014Hell" +
-      "oRequest\022\022\n\004name\030\001 \001(\tR\004name\")\n\rHelloRes" +
-      "ponse\022\030\n\007message\030\001 \001(\tR\007message2H\n\014Hello" +
-      "Service\0228\n\005Hello\022\026.hello.v1.HelloRequest" +
-      "\032\027.hello.v1.HelloResponseB\214\001\n\030com.rsketc" +
-      "h.api.hello.v1B\nHelloProtoZ0github.com/c" +
-      "rrow/rsketch/gen/go/hello/v1;hellopb\242\002\003H" +
-      "XX\312\002\010Hello\\V1\342\002\024Hello\\V1\\GPBMetadata\352\002\tH" +
-      "ello::V1b\006proto3"
+      "\n\024hello/v1/hello.proto\022\020rsketch.hello.v1" +
+      "\"\"\n\014HelloRequest\022\022\n\004name\030\001 \001(\tR\004name\")\n\r" +
+      "HelloResponse\022\030\n\007message\030\001 \001(\tR\007message2" +
+      "X\n\014HelloService\022H\n\005Hello\022\036.rsketch.hello" +
+      ".v1.HelloRequest\032\037.rsketch.hello.v1.Hell" +
+      "oResponseB\241\001\n\030com.rsketch.api.hello.v1B\n" +
+      "HelloProtoZ,github.com/crrow/rsketch/pb/" +
+      "hello/v1;hellopb\242\002\003RHX\312\002\020Rsketch\\Hello\\V" +
+      "1\342\002\034Rsketch\\Hello\\V1\\GPBMetadata\352\002\022Rsket" +
+      "ch::Hello::V1b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
         });
-    internal_static_hello_v1_HelloRequest_descriptor =
+    internal_static_rsketch_hello_v1_HelloRequest_descriptor =
       getDescriptor().getMessageTypes().get(0);
-    internal_static_hello_v1_HelloRequest_fieldAccessorTable = new
+    internal_static_rsketch_hello_v1_HelloRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_hello_v1_HelloRequest_descriptor,
+        internal_static_rsketch_hello_v1_HelloRequest_descriptor,
         new java.lang.String[] { "Name", });
-    internal_static_hello_v1_HelloResponse_descriptor =
+    internal_static_rsketch_hello_v1_HelloResponse_descriptor =
       getDescriptor().getMessageTypes().get(1);
-    internal_static_hello_v1_HelloResponse_fieldAccessorTable = new
+    internal_static_rsketch_hello_v1_HelloResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_hello_v1_HelloResponse_descriptor,
+        internal_static_rsketch_hello_v1_HelloResponse_descriptor,
         new java.lang.String[] { "Message", });
     descriptor.resolveAllFeaturesImmutable();
   }

@@ -28,6 +28,7 @@ use tokio_util::sync::CancellationToken;
 use tonic::{service::RoutesBuilder, transport::Server};
 use tonic_health::server::HealthReporter;
 use tonic_reflection::server::v1::{ServerReflection, ServerReflectionServer};
+use tonic_tracing_opentelemetry::middleware::server::OtelGrpcLayer;
 use tracing::info;
 
 use crate::ServiceHandler;
@@ -178,6 +179,7 @@ pub async fn start_grpc_server(
         let cancellation_token_clone = cancellation_token.clone();
         let join_handle = tokio::spawn(async move {
             let result = Server::builder()
+                .layer(OtelGrpcLayer::default())
                 .accept_http1(true)
                 .add_routes(routes_builder.routes())
                 .serve_with_shutdown(bind_addr, async move {

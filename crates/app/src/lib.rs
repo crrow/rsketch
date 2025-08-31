@@ -24,7 +24,7 @@ use rsketch_server::{
     http::{RestServerConfig, health_routes, start_rest_server},
 };
 use smart_default::SmartDefault;
-use snafu::Whatever;
+use snafu::{ResultExt, Whatever};
 use tokio::sync::oneshot;
 use tokio_util::sync::CancellationToken;
 use tracing::info;
@@ -121,11 +121,11 @@ impl App {
             vec![Arc::new(HelloService)],
         )
         .await
-        .unwrap();
+        .whatever_context("Failed to start gRPC server")?;
 
         let http_handle = start_rest_server(self.config.http_config.clone(), vec![health_routes])
             .await
-            .unwrap();
+            .whatever_context("Failed to start REST server")?;
 
         info!("Application started successfully");
 
