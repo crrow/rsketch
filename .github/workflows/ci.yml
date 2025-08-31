@@ -94,7 +94,7 @@ jobs:
 
       - name: Buf breaking change detection
         if: github.event_name == 'pull_request'
-        run: cd api && buf breaking --against '.git#branch=${{ github.base_ref }}'
+        run: cd api && buf breaking --against '../.git#branch=${{ github.base_ref }}'
 
   golangci-lint:
     name: GolangCI Lint
@@ -109,7 +109,7 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.59
+          version: latest
           working-directory: examples/goclient
 
   # Code quality checks (can run in parallel)
