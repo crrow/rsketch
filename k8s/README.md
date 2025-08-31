@@ -19,6 +19,19 @@ To deploy the services, run the following command:
 ./install.sh
 ```
 
+## Cleanup
+
+To remove all deployed services and clean up resources:
+
+```bash
+./cleanup.sh
+```
+
+This script will:
+- Uninstall all Helm releases (consul, localstack, pyroscope, tempo, grafana, loki)
+- Clean up persistent volume claims, secrets, and config maps
+- Report any remaining resources that need manual cleanup
+
 ## Accessing Services on Localhost
 
 After installation, you need to set up port forwarding to access the services from your localhost:
