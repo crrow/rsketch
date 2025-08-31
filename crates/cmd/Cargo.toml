@@ -6,6 +6,11 @@ license.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+# Binary definition for cargo-dist
+[[bin]]
+name = "rsketch"
+path = "src/main.rs"
+
 [dependencies]
 clap = { version = "4.4.16", features = ["derive"] }
 const_format = "0.2.32"
