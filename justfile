@@ -44,7 +44,7 @@ DISTRI_PLATFORM := "ubuntu"
     buf generate
 
 # Documentation
-@docs-serve:
+@book:
     mdbook serve docs
 
 @docs-build:
