@@ -35,11 +35,12 @@
 #include <grpcpp/server_context.h>
 #include <grpcpp/impl/service_type.h>
 #include <grpcpp/support/sync_stream.h>
+namespace rsketch {
 namespace hello {
 namespace v1 {
 
 static const char* HelloService_method_names[] = {
-  "/hello.v1.HelloService/Hello",
+  "/rsketch.hello.v1.HelloService/Hello",
 };
 
 std::unique_ptr< HelloService::Stub> HelloService::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -52,23 +53,23 @@ HelloService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& chann
   : channel_(channel), rpcmethod_Hello_(HelloService_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
-::grpc::Status HelloService::Stub::Hello(::grpc::ClientContext* context, const ::hello::v1::HelloRequest& request, ::hello::v1::HelloResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::hello::v1::HelloRequest, ::hello::v1::HelloResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_Hello_, context, request, response);
+::grpc::Status HelloService::Stub::Hello(::grpc::ClientContext* context, const ::rsketch::hello::v1::HelloRequest& request, ::rsketch::hello::v1::HelloResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::rsketch::hello::v1::HelloRequest, ::rsketch::hello::v1::HelloResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_Hello_, context, request, response);
 }
 
-void HelloService::Stub::async::Hello(::grpc::ClientContext* context, const ::hello::v1::HelloRequest* request, ::hello::v1::HelloResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::hello::v1::HelloRequest, ::hello::v1::HelloResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Hello_, context, request, response, std::move(f));
+void HelloService::Stub::async::Hello(::grpc::ClientContext* context, const ::rsketch::hello::v1::HelloRequest* request, ::rsketch::hello::v1::HelloResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::rsketch::hello::v1::HelloRequest, ::rsketch::hello::v1::HelloResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Hello_, context, request, response, std::move(f));
 }
 
-void HelloService::Stub::async::Hello(::grpc::ClientContext* context, const ::hello::v1::HelloRequest* request, ::hello::v1::HelloResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+void HelloService::Stub::async::Hello(::grpc::ClientContext* context, const ::rsketch::hello::v1::HelloRequest* request, ::rsketch::hello::v1::HelloResponse* response, ::grpc::ClientUnaryReactor* reactor) {
   ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_Hello_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncResponseReader< ::hello::v1::HelloResponse>* HelloService::Stub::PrepareAsyncHelloRaw(::grpc::ClientContext* context, const ::hello::v1::HelloRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::hello::v1::HelloResponse, ::hello::v1::HelloRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_Hello_, context, request);
+::grpc::ClientAsyncResponseReader< ::rsketch::hello::v1::HelloResponse>* HelloService::Stub::PrepareAsyncHelloRaw(::grpc::ClientContext* context, const ::rsketch::hello::v1::HelloRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::rsketch::hello::v1::HelloResponse, ::rsketch::hello::v1::HelloRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_Hello_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< ::hello::v1::HelloResponse>* HelloService::Stub::AsyncHelloRaw(::grpc::ClientContext* context, const ::hello::v1::HelloRequest& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::rsketch::hello::v1::HelloResponse>* HelloService::Stub::AsyncHelloRaw(::grpc::ClientContext* context, const ::rsketch::hello::v1::HelloRequest& request, ::grpc::CompletionQueue* cq) {
   auto* result =
     this->PrepareAsyncHelloRaw(context, request, cq);
   result->StartCall();
@@ -79,11 +80,11 @@ HelloService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       HelloService_method_names[0],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< HelloService::Service, ::hello::v1::HelloRequest, ::hello::v1::HelloResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< HelloService::Service, ::rsketch::hello::v1::HelloRequest, ::rsketch::hello::v1::HelloResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](HelloService::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::hello::v1::HelloRequest* req,
-             ::hello::v1::HelloResponse* resp) {
+             const ::rsketch::hello::v1::HelloRequest* req,
+             ::rsketch::hello::v1::HelloResponse* resp) {
                return service->Hello(ctx, req, resp);
              }, this)));
 }
@@ -91,7 +92,7 @@ HelloService::Service::Service() {
 HelloService::Service::~Service() {
 }
 
-::grpc::Status HelloService::Service::Hello(::grpc::ServerContext* context, const ::hello::v1::HelloRequest* request, ::hello::v1::HelloResponse* response) {
+::grpc::Status HelloService::Service::Hello(::grpc::ServerContext* context, const ::rsketch::hello::v1::HelloRequest* request, ::rsketch::hello::v1::HelloResponse* response) {
   (void) context;
   (void) request;
   (void) response;
@@ -99,6 +100,7 @@ HelloService::Service::~Service() {
 }
 
 
+}  // namespace rsketch
 }  // namespace hello
 }  // namespace v1
 

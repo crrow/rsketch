@@ -65,6 +65,7 @@ struct TableStruct_hello_2fv1_2fhello_2eproto {
 };
 extern const ::google::protobuf::internal::DescriptorTable
     descriptor_table_hello_2fv1_2fhello_2eproto;
+namespace rsketch {
 namespace hello {
 namespace v1 {
 class HelloRequest;
@@ -75,11 +76,13 @@ struct HelloResponseDefaultTypeInternal;
 extern HelloResponseDefaultTypeInternal _HelloResponse_default_instance_;
 }  // namespace v1
 }  // namespace hello
+}  // namespace rsketch
 namespace google {
 namespace protobuf {
 }  // namespace protobuf
 }  // namespace google
 
+namespace rsketch {
 namespace hello {
 namespace v1 {
 
@@ -89,7 +92,7 @@ namespace v1 {
 // -------------------------------------------------------------------
 
 class HelloResponse final : public ::google::protobuf::Message
-/* @@protoc_insertion_point(class_definition:hello.v1.HelloResponse) */ {
+/* @@protoc_insertion_point(class_definition:rsketch.hello.v1.HelloResponse) */ {
  public:
   inline HelloResponse() : HelloResponse(nullptr) {}
   ~HelloResponse() PROTOBUF_FINAL;
@@ -211,7 +214,7 @@ class HelloResponse final : public ::google::protobuf::Message
   void InternalSwap(HelloResponse* other);
  private:
   friend class ::google::protobuf::internal::AnyMetadata;
-  static ::absl::string_view FullMessageName() { return "hello.v1.HelloResponse"; }
+  static ::absl::string_view FullMessageName() { return "rsketch.hello.v1.HelloResponse"; }
 
  protected:
   explicit HelloResponse(::google::protobuf::Arena* arena);
@@ -247,13 +250,13 @@ class HelloResponse final : public ::google::protobuf::Message
   std::string* _internal_mutable_message();
 
   public:
-  // @@protoc_insertion_point(class_scope:hello.v1.HelloResponse)
+  // @@protoc_insertion_point(class_scope:rsketch.hello.v1.HelloResponse)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
       0, 1, 0,
-      38, 2>
+      46, 2>
       _table_;
 
   static constexpr const void* _raw_default_instance_ =
@@ -283,7 +286,7 @@ class HelloResponse final : public ::google::protobuf::Message
 // -------------------------------------------------------------------
 
 class HelloRequest final : public ::google::protobuf::Message
-/* @@protoc_insertion_point(class_definition:hello.v1.HelloRequest) */ {
+/* @@protoc_insertion_point(class_definition:rsketch.hello.v1.HelloRequest) */ {
  public:
   inline HelloRequest() : HelloRequest(nullptr) {}
   ~HelloRequest() PROTOBUF_FINAL;
@@ -405,7 +408,7 @@ class HelloRequest final : public ::google::protobuf::Message
   void InternalSwap(HelloRequest* other);
  private:
   friend class ::google::protobuf::internal::AnyMetadata;
-  static ::absl::string_view FullMessageName() { return "hello.v1.HelloRequest"; }
+  static ::absl::string_view FullMessageName() { return "rsketch.hello.v1.HelloRequest"; }
 
  protected:
   explicit HelloRequest(::google::protobuf::Arena* arena);
@@ -441,13 +444,13 @@ class HelloRequest final : public ::google::protobuf::Message
   std::string* _internal_mutable_name();
 
   public:
-  // @@protoc_insertion_point(class_scope:hello.v1.HelloRequest)
+  // @@protoc_insertion_point(class_scope:rsketch.hello.v1.HelloRequest)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
       0, 1, 0,
-      34, 2>
+      42, 2>
       _table_;
 
   static constexpr const void* _raw_default_instance_ =
@@ -498,7 +501,7 @@ inline void HelloRequest::clear_name() {
 }
 inline const std::string& HelloRequest::name() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:hello.v1.HelloRequest.name)
+  // @@protoc_insertion_point(field_get:rsketch.hello.v1.HelloRequest.name)
   return _internal_name();
 }
 template <typename Arg_, typename... Args_>
@@ -506,11 +509,11 @@ inline PROTOBUF_ALWAYS_INLINE void HelloRequest::set_name(Arg_&& arg,
                                                      Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:hello.v1.HelloRequest.name)
+  // @@protoc_insertion_point(field_set:rsketch.hello.v1.HelloRequest.name)
 }
 inline std::string* HelloRequest::mutable_name() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   std::string* _s = _internal_mutable_name();
-  // @@protoc_insertion_point(field_mutable:hello.v1.HelloRequest.name)
+  // @@protoc_insertion_point(field_mutable:rsketch.hello.v1.HelloRequest.name)
   return _s;
 }
 inline const std::string& HelloRequest::_internal_name() const {
@@ -527,7 +530,7 @@ inline std::string* HelloRequest::_internal_mutable_name() {
 }
 inline std::string* HelloRequest::release_name() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:hello.v1.HelloRequest.name)
+  // @@protoc_insertion_point(field_release:rsketch.hello.v1.HelloRequest.name)
   return _impl_.name_.Release();
 }
 inline void HelloRequest::set_allocated_name(std::string* value) {
@@ -538,7 +541,7 @@ inline void HelloRequest::set_allocated_name(std::string* value) {
           _impl_.name_.Set("", GetArena());
         }
   #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:hello.v1.HelloRequest.name)
+  // @@protoc_insertion_point(field_set_allocated:rsketch.hello.v1.HelloRequest.name)
 }
 
 // -------------------------------------------------------------------
@@ -552,7 +555,7 @@ inline void HelloResponse::clear_message() {
 }
 inline const std::string& HelloResponse::message() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:hello.v1.HelloResponse.message)
+  // @@protoc_insertion_point(field_get:rsketch.hello.v1.HelloResponse.message)
   return _internal_message();
 }
 template <typename Arg_, typename... Args_>
@@ -560,11 +563,11 @@ inline PROTOBUF_ALWAYS_INLINE void HelloResponse::set_message(Arg_&& arg,
                                                      Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.message_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:hello.v1.HelloResponse.message)
+  // @@protoc_insertion_point(field_set:rsketch.hello.v1.HelloResponse.message)
 }
 inline std::string* HelloResponse::mutable_message() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   std::string* _s = _internal_mutable_message();
-  // @@protoc_insertion_point(field_mutable:hello.v1.HelloResponse.message)
+  // @@protoc_insertion_point(field_mutable:rsketch.hello.v1.HelloResponse.message)
   return _s;
 }
 inline const std::string& HelloResponse::_internal_message() const {
@@ -581,7 +584,7 @@ inline std::string* HelloResponse::_internal_mutable_message() {
 }
 inline std::string* HelloResponse::release_message() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:hello.v1.HelloResponse.message)
+  // @@protoc_insertion_point(field_release:rsketch.hello.v1.HelloResponse.message)
   return _impl_.message_.Release();
 }
 inline void HelloResponse::set_allocated_message(std::string* value) {
@@ -592,7 +595,7 @@ inline void HelloResponse::set_allocated_message(std::string* value) {
           _impl_.message_.Set("", GetArena());
         }
   #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:hello.v1.HelloResponse.message)
+  // @@protoc_insertion_point(field_set_allocated:rsketch.hello.v1.HelloResponse.message)
 }
 
 #ifdef __GNUC__
@@ -602,6 +605,7 @@ inline void HelloResponse::set_allocated_message(std::string* value) {
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace v1
 }  // namespace hello
+}  // namespace rsketch
 
 
 // @@protoc_insertion_point(global_scope)

@@ -30,7 +30,7 @@ class HelloServiceStub(object):
             channel: A grpc.Channel.
         """
         self.Hello = channel.unary_unary(
-                '/hello.v1.HelloService/Hello',
+                '/rsketch.hello.v1.HelloService/Hello',
                 request_serializer=hello_dot_v1_dot_hello__pb2.HelloRequest.SerializeToString,
                 response_deserializer=hello_dot_v1_dot_hello__pb2.HelloResponse.FromString,
                 _registered_method=True)
@@ -57,9 +57,9 @@ def add_HelloServiceServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'hello.v1.HelloService', rpc_method_handlers)
+            'rsketch.hello.v1.HelloService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('hello.v1.HelloService', rpc_method_handlers)
+    server.add_registered_method_handlers('rsketch.hello.v1.HelloService', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
@@ -81,7 +81,7 @@ class HelloService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/hello.v1.HelloService/Hello',
+            '/rsketch.hello.v1.HelloService/Hello',
             hello_dot_v1_dot_hello__pb2.HelloRequest.SerializeToString,
             hello_dot_v1_dot_hello__pb2.HelloResponse.FromString,
             options,

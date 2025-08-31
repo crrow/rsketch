@@ -31,7 +31,7 @@ public final class HelloServiceGrpc {
 
   private HelloServiceGrpc() {}
 
-  public static final java.lang.String SERVICE_NAME = "hello.v1.HelloService";
+  public static final java.lang.String SERVICE_NAME = "rsketch.hello.v1.HelloService";
 
   // Static method descriptors that strictly reflect the proto.
   private static volatile io.grpc.MethodDescriptor<com.rsketch.api.hello.v1.HelloProto.HelloRequest,

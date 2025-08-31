@@ -9,6 +9,7 @@ path = "hello-server.rs"
 
 [dependencies]
 rsketch-api = { path = "../api" }
+rsketch-common = { path = "../crates/common" }
 rsketch-server = { path = "../crates/server" }
 tokio = { version = "1", features = ["full"] }
 tonic = { workspace = true }

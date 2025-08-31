@@ -38,18 +38,18 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14hello/v1/hello.proto\x12\x08hello.v1\"\"\n\x0cHelloRequest\x12\x12\n\x04name\x18\x01 \x01(\tR\x04name\")\n\rHelloResponse\x12\x18\n\x07message\x18\x01 \x01(\tR\x07message2H\n\x0cHelloService\x12\x38\n\x05Hello\x12\x16.hello.v1.HelloRequest\x1a\x17.hello.v1.HelloResponseB\x8c\x01\n\x18\x63om.rsketch.api.hello.v1B\nHelloProtoZ0github.com/crrow/rsketch/gen/go/hello/v1;hellopb\xa2\x02\x03HXX\xca\x02\x08Hello\\V1\xe2\x02\x14Hello\\V1\\GPBMetadata\xea\x02\tHello::V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14hello/v1/hello.proto\x12\x10rsketch.hello.v1\"\"\n\x0cHelloRequest\x12\x12\n\x04name\x18\x01 \x01(\tR\x04name\")\n\rHelloResponse\x12\x18\n\x07message\x18\x01 \x01(\tR\x07message2X\n\x0cHelloService\x12H\n\x05Hello\x12\x1e.rsketch.hello.v1.HelloRequest\x1a\x1f.rsketch.hello.v1.HelloResponseB\xa1\x01\n\x18\x63om.rsketch.api.hello.v1B\nHelloProtoZ,github.com/crrow/rsketch/pb/hello/v1;hellopb\xa2\x02\x03RHX\xca\x02\x10Rsketch\\Hello\\V1\xe2\x02\x1cRsketch\\Hello\\V1\\GPBMetadata\xea\x02\x12Rsketch::Hello::V1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'hello.v1.hello_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'\n\030com.rsketch.api.hello.v1B\nHelloProtoZ0github.com/crrow/rsketch/gen/go/hello/v1;hellopb\242\002\003HXX\312\002\010Hello\\V1\342\002\024Hello\\V1\\GPBMetadata\352\002\tHello::V1'
-  _globals['_HELLOREQUEST']._serialized_start=34
-  _globals['_HELLOREQUEST']._serialized_end=68
-  _globals['_HELLORESPONSE']._serialized_start=70
-  _globals['_HELLORESPONSE']._serialized_end=111
-  _globals['_HELLOSERVICE']._serialized_start=113
-  _globals['_HELLOSERVICE']._serialized_end=185
+  _globals['DESCRIPTOR']._serialized_options = b'\n\030com.rsketch.api.hello.v1B\nHelloProtoZ,github.com/crrow/rsketch/pb/hello/v1;hellopb\242\002\003RHX\312\002\020Rsketch\\Hello\\V1\342\002\034Rsketch\\Hello\\V1\\GPBMetadata\352\002\022Rsketch::Hello::V1'
+  _globals['_HELLOREQUEST']._serialized_start=42
+  _globals['_HELLOREQUEST']._serialized_end=76
+  _globals['_HELLORESPONSE']._serialized_start=78
+  _globals['_HELLORESPONSE']._serialized_end=119
+  _globals['_HELLOSERVICE']._serialized_start=121
+  _globals['_HELLOSERVICE']._serialized_end=209
 # @@protoc_insertion_point(module_scope)

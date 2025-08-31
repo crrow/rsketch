@@ -39,6 +39,7 @@ PROTOBUF_PRAGMA_INIT_SEG
 namespace _pb = ::google::protobuf;
 namespace _pbi = ::google::protobuf::internal;
 namespace _fl = ::google::protobuf::internal::field_layout;
+namespace rsketch {
 namespace hello {
 namespace v1 {
 
@@ -97,6 +98,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 HelloRequestDefaultTypeInternal _HelloRequest_default_instance_;
 }  // namespace v1
 }  // namespace hello
+}  // namespace rsketch
 static constexpr const ::_pb::EnumDescriptor**
     file_level_enum_descriptors_hello_2fv1_2fhello_2eproto = nullptr;
 static constexpr const ::_pb::ServiceDescriptor**
@@ -105,51 +107,52 @@ const ::uint32_t
     TableStruct_hello_2fv1_2fhello_2eproto::offsets[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
         protodesc_cold) = {
         ~0u,  // no _has_bits_
-        PROTOBUF_FIELD_OFFSET(::hello::v1::HelloRequest, _internal_metadata_),
+        PROTOBUF_FIELD_OFFSET(::rsketch::hello::v1::HelloRequest, _internal_metadata_),
         ~0u,  // no _extensions_
         ~0u,  // no _oneof_case_
         ~0u,  // no _weak_field_map_
         ~0u,  // no _inlined_string_donated_
         ~0u,  // no _split_
         ~0u,  // no sizeof(Split)
-        PROTOBUF_FIELD_OFFSET(::hello::v1::HelloRequest, _impl_.name_),
+        PROTOBUF_FIELD_OFFSET(::rsketch::hello::v1::HelloRequest, _impl_.name_),
         ~0u,  // no _has_bits_
-        PROTOBUF_FIELD_OFFSET(::hello::v1::HelloResponse, _internal_metadata_),
+        PROTOBUF_FIELD_OFFSET(::rsketch::hello::v1::HelloResponse, _internal_metadata_),
         ~0u,  // no _extensions_
         ~0u,  // no _oneof_case_
         ~0u,  // no _weak_field_map_
         ~0u,  // no _inlined_string_donated_
         ~0u,  // no _split_
         ~0u,  // no sizeof(Split)
-        PROTOBUF_FIELD_OFFSET(::hello::v1::HelloResponse, _impl_.message_),
+        PROTOBUF_FIELD_OFFSET(::rsketch::hello::v1::HelloResponse, _impl_.message_),
 };
 
 static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-        {0, -1, -1, sizeof(::hello::v1::HelloRequest)},
-        {9, -1, -1, sizeof(::hello::v1::HelloResponse)},
+        {0, -1, -1, sizeof(::rsketch::hello::v1::HelloRequest)},
+        {9, -1, -1, sizeof(::rsketch::hello::v1::HelloResponse)},
 };
 static const ::_pb::Message* const file_default_instances[] = {
-    &::hello::v1::_HelloRequest_default_instance_._instance,
-    &::hello::v1::_HelloResponse_default_instance_._instance,
+    &::rsketch::hello::v1::_HelloRequest_default_instance_._instance,
+    &::rsketch::hello::v1::_HelloResponse_default_instance_._instance,
 };
 const char descriptor_table_protodef_hello_2fv1_2fhello_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
-    "\n\024hello/v1/hello.proto\022\010hello.v1\"\"\n\014Hell"
-    "oRequest\022\022\n\004name\030\001 \001(\tR\004name\")\n\rHelloRes"
-    "ponse\022\030\n\007message\030\001 \001(\tR\007message2H\n\014Hello"
-    "Service\0228\n\005Hello\022\026.hello.v1.HelloRequest"
-    "\032\027.hello.v1.HelloResponseB\214\001\n\030com.rsketc"
-    "h.api.hello.v1B\nHelloProtoZ0github.com/c"
-    "rrow/rsketch/gen/go/hello/v1;hellopb\242\002\003H"
-    "XX\312\002\010Hello\\V1\342\002\024Hello\\V1\\GPBMetadata\352\002\tH"
-    "ello::V1b\006proto3"
+    "\n\024hello/v1/hello.proto\022\020rsketch.hello.v1"
+    "\"\"\n\014HelloRequest\022\022\n\004name\030\001 \001(\tR\004name\")\n\r"
+    "HelloResponse\022\030\n\007message\030\001 \001(\tR\007message2"
+    "X\n\014HelloService\022H\n\005Hello\022\036.rsketch.hello"
+    ".v1.HelloRequest\032\037.rsketch.hello.v1.Hell"
+    "oResponseB\241\001\n\030com.rsketch.api.hello.v1B\n"
+    "HelloProtoZ,github.com/crrow/rsketch/pb/"
+    "hello/v1;hellopb\242\002\003RHX\312\002\020Rsketch\\Hello\\V"
+    "1\342\002\034Rsketch\\Hello\\V1\\GPBMetadata\352\002\022Rsket"
+    "ch::Hello::V1b\006proto3"
 };
 static ::absl::once_flag descriptor_table_hello_2fv1_2fhello_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_hello_2fv1_2fhello_2eproto = {
     false,
     false,
-    336,
+    381,
     descriptor_table_protodef_hello_2fv1_2fhello_2eproto,
     "hello/v1/hello.proto",
     &descriptor_table_hello_2fv1_2fhello_2eproto_once,
@@ -162,6 +165,7 @@ PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_hello_2fv1_2fh
     file_level_enum_descriptors_hello_2fv1_2fhello_2eproto,
     file_level_service_descriptors_hello_2fv1_2fhello_2eproto,
 };
+namespace rsketch {
 namespace hello {
 namespace v1 {
 // ===================================================================
@@ -177,11 +181,11 @@ HelloRequest::HelloRequest(::google::protobuf::Arena* arena)
     : ::google::protobuf::Message(arena) {
 #endif  // PROTOBUF_CUSTOM_VTABLE
   SharedCtor(arena);
-  // @@protoc_insertion_point(arena_constructor:hello.v1.HelloRequest)
+  // @@protoc_insertion_point(arena_constructor:rsketch.hello.v1.HelloRequest)
 }
 inline PROTOBUF_NDEBUG_INLINE HelloRequest::Impl_::Impl_(
     ::google::protobuf::internal::InternalVisibility visibility, ::google::protobuf::Arena* arena,
-    const Impl_& from, const ::hello::v1::HelloRequest& from_msg)
+    const Impl_& from, const ::rsketch::hello::v1::HelloRequest& from_msg)
       : name_(arena, from.name_),
         _cached_size_{0} {}
 
@@ -199,7 +203,7 @@ HelloRequest::HelloRequest(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
 
-  // @@protoc_insertion_point(copy_constructor:hello.v1.HelloRequest)
+  // @@protoc_insertion_point(copy_constructor:rsketch.hello.v1.HelloRequest)
 }
 inline PROTOBUF_NDEBUG_INLINE HelloRequest::Impl_::Impl_(
     ::google::protobuf::internal::InternalVisibility visibility,
@@ -211,7 +215,7 @@ inline void HelloRequest::SharedCtor(::_pb::Arena* arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
 }
 HelloRequest::~HelloRequest() {
-  // @@protoc_insertion_point(destructor:hello.v1.HelloRequest)
+  // @@protoc_insertion_point(destructor:rsketch.hello.v1.HelloRequest)
   _internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
   SharedDtor();
 }
@@ -250,7 +254,7 @@ const ::google::protobuf::MessageLite::ClassData* HelloRequest::GetClassData() c
   return _class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<0, 1, 0, 34, 2> HelloRequest::_table_ = {
+const ::_pbi::TcParseTable<0, 1, 0, 42, 2> HelloRequest::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
@@ -265,7 +269,7 @@ const ::_pbi::TcParseTable<0, 1, 0, 34, 2> HelloRequest::_table_ = {
     nullptr,  // post_loop_handler
     ::_pbi::TcParser::GenericFallback,  // fallback
     #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
-    ::_pbi::TcParser::GetTable<::hello::v1::HelloRequest>(),  // to_prefetch
+    ::_pbi::TcParser::GetTable<::rsketch::hello::v1::HelloRequest>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
     // string name = 1 [json_name = "name"];
@@ -280,14 +284,14 @@ const ::_pbi::TcParseTable<0, 1, 0, 34, 2> HelloRequest::_table_ = {
   }},
   // no aux_entries
   {{
-    "\25\4\0\0\0\0\0\0"
-    "hello.v1.HelloRequest"
+    "\35\4\0\0\0\0\0\0"
+    "rsketch.hello.v1.HelloRequest"
     "name"
   }},
 };
 
 PROTOBUF_NOINLINE void HelloRequest::Clear() {
-// @@protoc_insertion_point(message_clear_start:hello.v1.HelloRequest)
+// @@protoc_insertion_point(message_clear_start:rsketch.hello.v1.HelloRequest)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   ::uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
@@ -308,7 +312,7 @@ PROTOBUF_NOINLINE void HelloRequest::Clear() {
             ::google::protobuf::io::EpsCopyOutputStream* stream) const {
           const HelloRequest& this_ = *this;
 #endif  // PROTOBUF_CUSTOM_VTABLE
-          // @@protoc_insertion_point(serialize_to_array_start:hello.v1.HelloRequest)
+          // @@protoc_insertion_point(serialize_to_array_start:rsketch.hello.v1.HelloRequest)
           ::uint32_t cached_has_bits = 0;
           (void)cached_has_bits;
 
@@ -316,7 +320,7 @@ PROTOBUF_NOINLINE void HelloRequest::Clear() {
           if (!this_._internal_name().empty()) {
             const std::string& _s = this_._internal_name();
             ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-                _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "hello.v1.HelloRequest.name");
+                _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "rsketch.hello.v1.HelloRequest.name");
             target = stream->WriteStringMaybeAliased(1, _s, target);
           }
 
@@ -325,7 +329,7 @@ PROTOBUF_NOINLINE void HelloRequest::Clear() {
                 ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
                     this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
           }
-          // @@protoc_insertion_point(serialize_to_array_end:hello.v1.HelloRequest)
+          // @@protoc_insertion_point(serialize_to_array_end:rsketch.hello.v1.HelloRequest)
           return target;
         }
 
@@ -336,7 +340,7 @@ PROTOBUF_NOINLINE void HelloRequest::Clear() {
         ::size_t HelloRequest::ByteSizeLong() const {
           const HelloRequest& this_ = *this;
 #endif  // PROTOBUF_CUSTOM_VTABLE
-          // @@protoc_insertion_point(message_byte_size_start:hello.v1.HelloRequest)
+          // @@protoc_insertion_point(message_byte_size_start:rsketch.hello.v1.HelloRequest)
           ::size_t total_size = 0;
 
           ::uint32_t cached_has_bits = 0;
@@ -357,7 +361,7 @@ PROTOBUF_NOINLINE void HelloRequest::Clear() {
 void HelloRequest::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
   auto* const _this = static_cast<HelloRequest*>(&to_msg);
   auto& from = static_cast<const HelloRequest&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:hello.v1.HelloRequest)
+  // @@protoc_insertion_point(class_specific_merge_from_start:rsketch.hello.v1.HelloRequest)
   ABSL_DCHECK_NE(&from, _this);
   ::uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
@@ -369,7 +373,7 @@ void HelloRequest::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::go
 }
 
 void HelloRequest::CopyFrom(const HelloRequest& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:hello.v1.HelloRequest)
+// @@protoc_insertion_point(class_specific_copy_from_start:rsketch.hello.v1.HelloRequest)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -400,11 +404,11 @@ HelloResponse::HelloResponse(::google::protobuf::Arena* arena)
     : ::google::protobuf::Message(arena) {
 #endif  // PROTOBUF_CUSTOM_VTABLE
   SharedCtor(arena);
-  // @@protoc_insertion_point(arena_constructor:hello.v1.HelloResponse)
+  // @@protoc_insertion_point(arena_constructor:rsketch.hello.v1.HelloResponse)
 }
 inline PROTOBUF_NDEBUG_INLINE HelloResponse::Impl_::Impl_(
     ::google::protobuf::internal::InternalVisibility visibility, ::google::protobuf::Arena* arena,
-    const Impl_& from, const ::hello::v1::HelloResponse& from_msg)
+    const Impl_& from, const ::rsketch::hello::v1::HelloResponse& from_msg)
       : message_(arena, from.message_),
         _cached_size_{0} {}
 
@@ -422,7 +426,7 @@ HelloResponse::HelloResponse(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
 
-  // @@protoc_insertion_point(copy_constructor:hello.v1.HelloResponse)
+  // @@protoc_insertion_point(copy_constructor:rsketch.hello.v1.HelloResponse)
 }
 inline PROTOBUF_NDEBUG_INLINE HelloResponse::Impl_::Impl_(
     ::google::protobuf::internal::InternalVisibility visibility,
@@ -434,7 +438,7 @@ inline void HelloResponse::SharedCtor(::_pb::Arena* arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
 }
 HelloResponse::~HelloResponse() {
-  // @@protoc_insertion_point(destructor:hello.v1.HelloResponse)
+  // @@protoc_insertion_point(destructor:rsketch.hello.v1.HelloResponse)
   _internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
   SharedDtor();
 }
@@ -473,7 +477,7 @@ const ::google::protobuf::MessageLite::ClassData* HelloResponse::GetClassData() 
   return _class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<0, 1, 0, 38, 2> HelloResponse::_table_ = {
+const ::_pbi::TcParseTable<0, 1, 0, 46, 2> HelloResponse::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
@@ -488,7 +492,7 @@ const ::_pbi::TcParseTable<0, 1, 0, 38, 2> HelloResponse::_table_ = {
     nullptr,  // post_loop_handler
     ::_pbi::TcParser::GenericFallback,  // fallback
     #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
-    ::_pbi::TcParser::GetTable<::hello::v1::HelloResponse>(),  // to_prefetch
+    ::_pbi::TcParser::GetTable<::rsketch::hello::v1::HelloResponse>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
     // string message = 1 [json_name = "message"];
@@ -503,14 +507,14 @@ const ::_pbi::TcParseTable<0, 1, 0, 38, 2> HelloResponse::_table_ = {
   }},
   // no aux_entries
   {{
-    "\26\7\0\0\0\0\0\0"
-    "hello.v1.HelloResponse"
+    "\36\7\0\0\0\0\0\0"
+    "rsketch.hello.v1.HelloResponse"
     "message"
   }},
 };
 
 PROTOBUF_NOINLINE void HelloResponse::Clear() {
-// @@protoc_insertion_point(message_clear_start:hello.v1.HelloResponse)
+// @@protoc_insertion_point(message_clear_start:rsketch.hello.v1.HelloResponse)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   ::uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
@@ -531,7 +535,7 @@ PROTOBUF_NOINLINE void HelloResponse::Clear() {
             ::google::protobuf::io::EpsCopyOutputStream* stream) const {
           const HelloResponse& this_ = *this;
 #endif  // PROTOBUF_CUSTOM_VTABLE
-          // @@protoc_insertion_point(serialize_to_array_start:hello.v1.HelloResponse)
+          // @@protoc_insertion_point(serialize_to_array_start:rsketch.hello.v1.HelloResponse)
           ::uint32_t cached_has_bits = 0;
           (void)cached_has_bits;
 
@@ -539,7 +543,7 @@ PROTOBUF_NOINLINE void HelloResponse::Clear() {
           if (!this_._internal_message().empty()) {
             const std::string& _s = this_._internal_message();
             ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-                _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "hello.v1.HelloResponse.message");
+                _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "rsketch.hello.v1.HelloResponse.message");
             target = stream->WriteStringMaybeAliased(1, _s, target);
           }
 
@@ -548,7 +552,7 @@ PROTOBUF_NOINLINE void HelloResponse::Clear() {
                 ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
                     this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
           }
-          // @@protoc_insertion_point(serialize_to_array_end:hello.v1.HelloResponse)
+          // @@protoc_insertion_point(serialize_to_array_end:rsketch.hello.v1.HelloResponse)
           return target;
         }
 
@@ -559,7 +563,7 @@ PROTOBUF_NOINLINE void HelloResponse::Clear() {
         ::size_t HelloResponse::ByteSizeLong() const {
           const HelloResponse& this_ = *this;
 #endif  // PROTOBUF_CUSTOM_VTABLE
-          // @@protoc_insertion_point(message_byte_size_start:hello.v1.HelloResponse)
+          // @@protoc_insertion_point(message_byte_size_start:rsketch.hello.v1.HelloResponse)
           ::size_t total_size = 0;
 
           ::uint32_t cached_has_bits = 0;
@@ -580,7 +584,7 @@ PROTOBUF_NOINLINE void HelloResponse::Clear() {
 void HelloResponse::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::google::protobuf::MessageLite& from_msg) {
   auto* const _this = static_cast<HelloResponse*>(&to_msg);
   auto& from = static_cast<const HelloResponse&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:hello.v1.HelloResponse)
+  // @@protoc_insertion_point(class_specific_merge_from_start:rsketch.hello.v1.HelloResponse)
   ABSL_DCHECK_NE(&from, _this);
   ::uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
@@ -592,7 +596,7 @@ void HelloResponse::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::g
 }
 
 void HelloResponse::CopyFrom(const HelloResponse& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:hello.v1.HelloResponse)
+// @@protoc_insertion_point(class_specific_copy_from_start:rsketch.hello.v1.HelloResponse)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -613,6 +617,7 @@ void HelloResponse::InternalSwap(HelloResponse* PROTOBUF_RESTRICT other) {
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace v1
 }  // namespace hello
+}  // namespace rsketch
 namespace google {
 namespace protobuf {
 }  // namespace protobuf

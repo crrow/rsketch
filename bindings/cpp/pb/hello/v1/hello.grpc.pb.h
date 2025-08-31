@@ -57,6 +57,7 @@
 #include <grpcpp/support/stub_options.h>
 #include <grpcpp/support/sync_stream.h>
 
+namespace rsketch {
 namespace hello {
 namespace v1 {
 
@@ -64,48 +65,48 @@ namespace v1 {
 class HelloService final {
  public:
   static constexpr char const* service_full_name() {
-    return "hello.v1.HelloService";
+    return "rsketch.hello.v1.HelloService";
   }
   class StubInterface {
    public:
     virtual ~StubInterface() {}
     // Hello greets the caller with a personalized message
-    virtual ::grpc::Status Hello(::grpc::ClientContext* context, const ::hello::v1::HelloRequest& request, ::hello::v1::HelloResponse* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hello::v1::HelloResponse>> AsyncHello(::grpc::ClientContext* context, const ::hello::v1::HelloRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hello::v1::HelloResponse>>(AsyncHelloRaw(context, request, cq));
+    virtual ::grpc::Status Hello(::grpc::ClientContext* context, const ::rsketch::hello::v1::HelloRequest& request, ::rsketch::hello::v1::HelloResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rsketch::hello::v1::HelloResponse>> AsyncHello(::grpc::ClientContext* context, const ::rsketch::hello::v1::HelloRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rsketch::hello::v1::HelloResponse>>(AsyncHelloRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hello::v1::HelloResponse>> PrepareAsyncHello(::grpc::ClientContext* context, const ::hello::v1::HelloRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::hello::v1::HelloResponse>>(PrepareAsyncHelloRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rsketch::hello::v1::HelloResponse>> PrepareAsyncHello(::grpc::ClientContext* context, const ::rsketch::hello::v1::HelloRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::rsketch::hello::v1::HelloResponse>>(PrepareAsyncHelloRaw(context, request, cq));
     }
     class async_interface {
      public:
       virtual ~async_interface() {}
       // Hello greets the caller with a personalized message
-      virtual void Hello(::grpc::ClientContext* context, const ::hello::v1::HelloRequest* request, ::hello::v1::HelloResponse* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void Hello(::grpc::ClientContext* context, const ::hello::v1::HelloRequest* request, ::hello::v1::HelloResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void Hello(::grpc::ClientContext* context, const ::rsketch::hello::v1::HelloRequest* request, ::rsketch::hello::v1::HelloResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void Hello(::grpc::ClientContext* context, const ::rsketch::hello::v1::HelloRequest* request, ::rsketch::hello::v1::HelloResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
     };
     typedef class async_interface experimental_async_interface;
     virtual class async_interface* async() { return nullptr; }
     class async_interface* experimental_async() { return async(); }
    private:
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::hello::v1::HelloResponse>* AsyncHelloRaw(::grpc::ClientContext* context, const ::hello::v1::HelloRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::hello::v1::HelloResponse>* PrepareAsyncHelloRaw(::grpc::ClientContext* context, const ::hello::v1::HelloRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::rsketch::hello::v1::HelloResponse>* AsyncHelloRaw(::grpc::ClientContext* context, const ::rsketch::hello::v1::HelloRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::rsketch::hello::v1::HelloResponse>* PrepareAsyncHelloRaw(::grpc::ClientContext* context, const ::rsketch::hello::v1::HelloRequest& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
     Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
-    ::grpc::Status Hello(::grpc::ClientContext* context, const ::hello::v1::HelloRequest& request, ::hello::v1::HelloResponse* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hello::v1::HelloResponse>> AsyncHello(::grpc::ClientContext* context, const ::hello::v1::HelloRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hello::v1::HelloResponse>>(AsyncHelloRaw(context, request, cq));
+    ::grpc::Status Hello(::grpc::ClientContext* context, const ::rsketch::hello::v1::HelloRequest& request, ::rsketch::hello::v1::HelloResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rsketch::hello::v1::HelloResponse>> AsyncHello(::grpc::ClientContext* context, const ::rsketch::hello::v1::HelloRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rsketch::hello::v1::HelloResponse>>(AsyncHelloRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hello::v1::HelloResponse>> PrepareAsyncHello(::grpc::ClientContext* context, const ::hello::v1::HelloRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::hello::v1::HelloResponse>>(PrepareAsyncHelloRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rsketch::hello::v1::HelloResponse>> PrepareAsyncHello(::grpc::ClientContext* context, const ::rsketch::hello::v1::HelloRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::rsketch::hello::v1::HelloResponse>>(PrepareAsyncHelloRaw(context, request, cq));
     }
     class async final :
       public StubInterface::async_interface {
      public:
-      void Hello(::grpc::ClientContext* context, const ::hello::v1::HelloRequest* request, ::hello::v1::HelloResponse* response, std::function<void(::grpc::Status)>) override;
-      void Hello(::grpc::ClientContext* context, const ::hello::v1::HelloRequest* request, ::hello::v1::HelloResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void Hello(::grpc::ClientContext* context, const ::rsketch::hello::v1::HelloRequest* request, ::rsketch::hello::v1::HelloResponse* response, std::function<void(::grpc::Status)>) override;
+      void Hello(::grpc::ClientContext* context, const ::rsketch::hello::v1::HelloRequest* request, ::rsketch::hello::v1::HelloResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
      private:
       friend class Stub;
       explicit async(Stub* stub): stub_(stub) { }
@@ -117,8 +118,8 @@ class HelloService final {
    private:
     std::shared_ptr< ::grpc::ChannelInterface> channel_;
     class async async_stub_{this};
-    ::grpc::ClientAsyncResponseReader< ::hello::v1::HelloResponse>* AsyncHelloRaw(::grpc::ClientContext* context, const ::hello::v1::HelloRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::hello::v1::HelloResponse>* PrepareAsyncHelloRaw(::grpc::ClientContext* context, const ::hello::v1::HelloRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::rsketch::hello::v1::HelloResponse>* AsyncHelloRaw(::grpc::ClientContext* context, const ::rsketch::hello::v1::HelloRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::rsketch::hello::v1::HelloResponse>* PrepareAsyncHelloRaw(::grpc::ClientContext* context, const ::rsketch::hello::v1::HelloRequest& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_Hello_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
@@ -128,7 +129,7 @@ class HelloService final {
     Service();
     virtual ~Service();
     // Hello greets the caller with a personalized message
-    virtual ::grpc::Status Hello(::grpc::ServerContext* context, const ::hello::v1::HelloRequest* request, ::hello::v1::HelloResponse* response);
+    virtual ::grpc::Status Hello(::grpc::ServerContext* context, const ::rsketch::hello::v1::HelloRequest* request, ::rsketch::hello::v1::HelloResponse* response);
   };
   template <class BaseClass>
   class WithAsyncMethod_Hello : public BaseClass {
@@ -142,11 +143,11 @@ class HelloService final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Hello(::grpc::ServerContext* /*context*/, const ::hello::v1::HelloRequest* /*request*/, ::hello::v1::HelloResponse* /*response*/) override {
+    ::grpc::Status Hello(::grpc::ServerContext* /*context*/, const ::rsketch::hello::v1::HelloRequest* /*request*/, ::rsketch::hello::v1::HelloResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestHello(::grpc::ServerContext* context, ::hello::v1::HelloRequest* request, ::grpc::ServerAsyncResponseWriter< ::hello::v1::HelloResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestHello(::grpc::ServerContext* context, ::rsketch::hello::v1::HelloRequest* request, ::grpc::ServerAsyncResponseWriter< ::rsketch::hello::v1::HelloResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
@@ -158,25 +159,25 @@ class HelloService final {
    public:
     WithCallbackMethod_Hello() {
       ::grpc::Service::MarkMethodCallback(0,
-          new ::grpc::internal::CallbackUnaryHandler< ::hello::v1::HelloRequest, ::hello::v1::HelloResponse>(
+          new ::grpc::internal::CallbackUnaryHandler< ::rsketch::hello::v1::HelloRequest, ::rsketch::hello::v1::HelloResponse>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::hello::v1::HelloRequest* request, ::hello::v1::HelloResponse* response) { return this->Hello(context, request, response); }));}
+                   ::grpc::CallbackServerContext* context, const ::rsketch::hello::v1::HelloRequest* request, ::rsketch::hello::v1::HelloResponse* response) { return this->Hello(context, request, response); }));}
     void SetMessageAllocatorFor_Hello(
-        ::grpc::MessageAllocator< ::hello::v1::HelloRequest, ::hello::v1::HelloResponse>* allocator) {
+        ::grpc::MessageAllocator< ::rsketch::hello::v1::HelloRequest, ::rsketch::hello::v1::HelloResponse>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(0);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::hello::v1::HelloRequest, ::hello::v1::HelloResponse>*>(handler)
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::rsketch::hello::v1::HelloRequest, ::rsketch::hello::v1::HelloResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
     ~WithCallbackMethod_Hello() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Hello(::grpc::ServerContext* /*context*/, const ::hello::v1::HelloRequest* /*request*/, ::hello::v1::HelloResponse* /*response*/) override {
+    ::grpc::Status Hello(::grpc::ServerContext* /*context*/, const ::rsketch::hello::v1::HelloRequest* /*request*/, ::rsketch::hello::v1::HelloResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     virtual ::grpc::ServerUnaryReactor* Hello(
-      ::grpc::CallbackServerContext* /*context*/, const ::hello::v1::HelloRequest* /*request*/, ::hello::v1::HelloResponse* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::rsketch::hello::v1::HelloRequest* /*request*/, ::rsketch::hello::v1::HelloResponse* /*response*/)  { return nullptr; }
   };
   typedef WithCallbackMethod_Hello<Service > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
@@ -192,7 +193,7 @@ class HelloService final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Hello(::grpc::ServerContext* /*context*/, const ::hello::v1::HelloRequest* /*request*/, ::hello::v1::HelloResponse* /*response*/) override {
+    ::grpc::Status Hello(::grpc::ServerContext* /*context*/, const ::rsketch::hello::v1::HelloRequest* /*request*/, ::rsketch::hello::v1::HelloResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -209,7 +210,7 @@ class HelloService final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Hello(::grpc::ServerContext* /*context*/, const ::hello::v1::HelloRequest* /*request*/, ::hello::v1::HelloResponse* /*response*/) override {
+    ::grpc::Status Hello(::grpc::ServerContext* /*context*/, const ::rsketch::hello::v1::HelloRequest* /*request*/, ::rsketch::hello::v1::HelloResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -232,7 +233,7 @@ class HelloService final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Hello(::grpc::ServerContext* /*context*/, const ::hello::v1::HelloRequest* /*request*/, ::hello::v1::HelloResponse* /*response*/) override {
+    ::grpc::Status Hello(::grpc::ServerContext* /*context*/, const ::rsketch::hello::v1::HelloRequest* /*request*/, ::rsketch::hello::v1::HelloResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -247,10 +248,10 @@ class HelloService final {
     WithStreamedUnaryMethod_Hello() {
       ::grpc::Service::MarkMethodStreamed(0,
         new ::grpc::internal::StreamedUnaryHandler<
-          ::hello::v1::HelloRequest, ::hello::v1::HelloResponse>(
+          ::rsketch::hello::v1::HelloRequest, ::rsketch::hello::v1::HelloResponse>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
-                     ::hello::v1::HelloRequest, ::hello::v1::HelloResponse>* streamer) {
+                     ::rsketch::hello::v1::HelloRequest, ::rsketch::hello::v1::HelloResponse>* streamer) {
                        return this->StreamedHello(context,
                          streamer);
                   }));
@@ -259,12 +260,12 @@ class HelloService final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status Hello(::grpc::ServerContext* /*context*/, const ::hello::v1::HelloRequest* /*request*/, ::hello::v1::HelloResponse* /*response*/) override {
+    ::grpc::Status Hello(::grpc::ServerContext* /*context*/, const ::rsketch::hello::v1::HelloRequest* /*request*/, ::rsketch::hello::v1::HelloResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedHello(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::hello::v1::HelloRequest,::hello::v1::HelloResponse>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedHello(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::rsketch::hello::v1::HelloRequest,::rsketch::hello::v1::HelloResponse>* server_unary_streamer) = 0;
   };
   typedef WithStreamedUnaryMethod_Hello<Service > StreamedUnaryService;
   typedef Service SplitStreamedService;
@@ -273,6 +274,7 @@ class HelloService final {
 
 }  // namespace v1
 }  // namespace hello
+}  // namespace rsketch
 
 
 #endif  // GRPC_hello_2fv1_2fhello_2eproto__INCLUDED

@@ -323,7 +323,7 @@ pub struct TracingOptions {
     /// address where the tokio-console server should listen. Tokio-console
     /// provides real-time debugging of async Rust applications.
     ///
-    /// Example: `"127.0.0.1:6669"` or `"0.0.0.0:6669"`
+    /// Example: `"127.0.0.1:6669"` or `"0.0.0.0:6669"
     ///
     /// Only available when compiled with the `tokio-console` feature flag.
     #[cfg(feature = "tokio-console")]
@@ -498,6 +498,8 @@ pub fn init_global_logging(
                         .json()
                         .with_writer(writer)
                         .with_ansi(std::io::stdout().is_terminal())
+                        .with_current_span(true)
+                        .with_span_list(true)
                         .boxed(),
                 )
             } else {
@@ -533,6 +535,8 @@ pub fn init_global_logging(
                         .json()
                         .with_writer(writer)
                         .with_ansi(false)
+                        .with_current_span(true)
+                        .with_span_list(true)
                         .boxed(),
                 )
             } else {
@@ -604,9 +608,12 @@ pub fn init_global_logging(
                 &tracing_opts.tokio_console_addr
             {
                 let addr: std::net::SocketAddr = tokio_console_addr.parse().unwrap_or_else(|e| {
-                    panic!("Invalid binding address '{tokio_console_addr}' for tokio-console: {e}");
+                    panic!(
+                        "Invalid binding address '{}' for tokio-console: {}",
+                        tokio_console_addr, e
+                    );
                 });
-                println!("tokio-console listening on {addr}");
+                println!("tokio-console listening on {{addr}}");
 
                 Some(
                     console_subscriber::ConsoleLayer::builder()
