@@ -176,11 +176,23 @@ mod tests {
 
     fn hello_routes(router: Router) -> Router { router.route("/api/v1/hello", get(hello_handler)) }
 
+    /// Helper function to get an available port by binding to port 0
+    async fn get_available_port() -> u16 {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = listener.local_addr().unwrap().port();
+        drop(listener); // Release the port
+        port
+    }
+
     #[tokio::test]
     async fn test_rest_server_lifecycle() {
         init_test_logging();
 
-        let config = RestServerConfig::default();
+        let port = get_available_port().await;
+        let config = RestServerConfig {
+            bind_address: format!("127.0.0.1:{}", port),
+            ..RestServerConfig::default()
+        };
         let handlers: Vec<fn(Router) -> Router> = vec![hello_routes];
 
         let mut handler = start_rest_server(config, handlers).await.unwrap();
@@ -191,14 +203,14 @@ mod tests {
         // Test that the server is running by making a request
         let client = reqwest::Client::new();
         let response = client
-            .get("http://127.0.0.1:3000/health")
+            .get(format!("http://127.0.0.1:{}/health", port))
             .send()
             .await
             .unwrap();
         assert_eq!(response.status(), 200);
 
         let response = client
-            .get("http://127.0.0.1:3000/api/v1/hello")
+            .get(format!("http://127.0.0.1:{}/api/v1/hello", port))
             .send()
             .await
             .unwrap();
@@ -213,7 +225,12 @@ mod tests {
     async fn test_rest_server_without_cors() {
         init_test_logging();
 
-        let config = RestServerConfig::default();
+        let port = get_available_port().await;
+        let config = RestServerConfig {
+            bind_address: format!("127.0.0.1:{}", port),
+            enable_cors: false,
+            ..RestServerConfig::default()
+        };
         let handlers = vec![hello_routes];
 
         let mut handler = start_rest_server(config, handlers).await.unwrap();
@@ -222,7 +239,7 @@ mod tests {
         // Test that the server is running
         let client = reqwest::Client::new();
         let response = client
-            .get("http://127.0.0.1:3000/health")
+            .get(format!("http://127.0.0.1:{}/health", port))
             .send()
             .await
             .unwrap();
@@ -242,7 +259,11 @@ mod tests {
             router.route("/api/v1/goodbye", get(goodbye_handler))
         }
 
-        let config = RestServerConfig::default();
+        let port = get_available_port().await;
+        let config = RestServerConfig {
+            bind_address: format!("127.0.0.1:{}", port),
+            ..RestServerConfig::default()
+        };
         let handlers = vec![hello_routes, goodbye_routes];
 
         let mut handler = start_rest_server(config, handlers).await.unwrap();
@@ -251,14 +272,14 @@ mod tests {
         // Test both routes
         let client = reqwest::Client::new();
         let response = client
-            .get("http://127.0.0.1:3000/api/v1/hello")
+            .get(format!("http://127.0.0.1:{}/api/v1/hello", port))
             .send()
             .await
             .unwrap();
         assert_eq!(response.status(), 200);
 
         let response = client
-            .get("http://127.0.0.1:3000/api/v1/goodbye")
+            .get(format!("http://127.0.0.1:{}/api/v1/goodbye", port))
             .send()
             .await
             .unwrap();

@@ -263,39 +263,53 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-  mdbook:
-    name: MDBook
+  web:
+    name: Build and deploy site and docs
     runs-on: ubuntu-latest
-    needs: validate
-    if: github.ref == 'refs/heads/main'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@master
+      # Setup
+      - uses: actions/checkout@v5
         with:
-          toolchain: ${{ needs.validate.outputs.rust-version }}
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
 
-      - name: Install mdbook
-        uses: taiki-e/install-action@v2
+      # Install mdbook plugins
+      - name: Install mdbook plugins
+        run: |
+          cargo install --locked mdbook-toc@0.11.2
+          cargo install --locked mdbook-linkcheck@0.7.7
+
+      # Install and run oranda (and mdbook)
+      # This will write all output to ./public/ (including copying mdbook's output to there)
+      - name: Install and run oranda
+        run: |
+          cargo install oranda --locked --profile=dist
+          oranda build
+
+      # Deploy to our gh-pages branch (creating it if it doesn't exist)
+      # the "public" dir that oranda made above will become the root dir
+      # of this branch.
+      #
+      # Note that once the gh-pages branch exists, you must
+      # go into repo's settings > pages and set "deploy from branch: gh-pages"
+      # the other defaults work fine.
+      - name: Deploy to Github Pages
+        uses: JamesIves/github-pages-deploy-action@v4.4.1
+        # ONLY if we're on main (so no PRs or feature branches allowed!)
+        # if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/topic/') }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         with:
-          tool: mdbook
-
-      - name: Build book
-        run: mdbook build docs
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: docs/book
-
+          branch: gh-pages
+          # Gotta tell the action where to find oranda's output
+          folder: public
+          token: ${{ secrets.GITHUB_TOKEN }}
+          single-commit: true
   # Final validation - all checks must pass
   ci-success:
     name: CI Success
     runs-on: ubuntu-latest
-    needs: [validate, buf-lint, clippy, docs, test, mdbook, golangci-lint]
+    needs: [validate, buf-lint, clippy, docs, test, web, golangci-lint]
     if: always()
     steps:
       - name: Check all jobs status
