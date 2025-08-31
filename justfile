@@ -30,6 +30,7 @@ DISTRI_PLATFORM := "ubuntu"
 
 @lint:
     cargo clippy --all --tests --all-features
+    cd api && buf lint
 
 # Protobuf/gRPC operations with Buf
 [working-directory: 'api']

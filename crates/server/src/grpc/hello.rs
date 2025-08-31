@@ -15,7 +15,7 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use rsketch_api::pb::hello::v1::hello_server;
+use rsketch_api::pb::hello::v1::{HelloRequest, HelloResponse, hello_service_server};
 use tokio_util::sync::CancellationToken;
 use tonic::service::RoutesBuilder;
 use tonic_health::server::HealthReporter;
@@ -26,23 +26,32 @@ use crate::grpc::GrpcServiceHandler;
 pub struct HelloService;
 
 #[async_trait]
-impl hello_server::Hello for HelloService {
+impl hello_service_server::HelloService for HelloService {
     async fn hello(
         &self,
-        _request: tonic::Request<()>,
-    ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
-        Ok(tonic::Response::new(()))
+        request: tonic::Request<HelloRequest>,
+    ) -> std::result::Result<tonic::Response<HelloResponse>, tonic::Status> {
+        let name = request.into_inner().name;
+        let message = if name.is_empty() {
+            "Hello, World!".to_string()
+        } else {
+            format!("Hello, {}!", name)
+        };
+
+        Ok(tonic::Response::new(HelloResponse { message }))
     }
 }
 
 #[async_trait]
 impl GrpcServiceHandler for HelloService {
-    fn service_name(&self) -> &'static str { "Hello" }
+    fn service_name(&self) -> &'static str { "HelloService" }
 
     fn file_descriptor_set(&self) -> &'static [u8] { rsketch_api::pb::GRPC_DESC }
 
     fn register_service(self: &Arc<Self>, builder: &mut RoutesBuilder) {
-        builder.add_service(hello_server::HelloServer::from_arc(self.clone()));
+        builder.add_service(hello_service_server::HelloServiceServer::from_arc(
+            self.clone(),
+        ));
     }
 
     async fn readiness_reporting(
@@ -51,7 +60,7 @@ impl GrpcServiceHandler for HelloService {
         reporter: HealthReporter,
     ) {
         reporter
-            .set_serving::<hello_server::HelloServer<HelloService>>()
+            .set_serving::<hello_service_server::HelloServiceServer<HelloService>>()
             .await;
     }
 }
