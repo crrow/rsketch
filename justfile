@@ -66,7 +66,7 @@ alias c := check
 
 alias t := test
 @test:
-    cargo nextest run --verbose
+    cargo nextest run --workspace --all-features
 
 # Docker
 @build-docker:
