@@ -3,10 +3,9 @@ version = "0.1.0"
 edition = "2024"
 license = "Apache-2.0"
 authors = ["crrow"]
-
-# [[example]]
-# name = "hello-world"
-# path = "examples/hello_world.rs"
+repository = "https://github.com/crrow/rsketch"
+homepage = "https://github.com/crrow/rsketch"
+rust-version = "1.89.0"
 
 [workspace]
 resolver = "2"
