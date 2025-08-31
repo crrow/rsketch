@@ -1,0 +1,72 @@
+name: Web
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_call:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+jobs:
+  # Build and deploy site and docs
+  build-deploy:
+    name: Build and Deploy Site
+    runs-on: ubuntu-latest
+    # Only deploy on main branch pushes, but build on PRs to check for issues
+    steps:
+      # Setup
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          shared-key: "web"
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      # Install mdbook plugins
+      - name: Install mdbook plugins
+        run: |
+          cargo install --locked mdbook-toc@0.11.2
+          cargo install --locked mdbook-linkcheck@0.7.7
+
+      # Install and run oranda (and mdbook)
+      # This will write all output to ./public/ (including copying mdbook's output to there)
+      - name: Install and run oranda
+        run: |
+          cargo install oranda --locked --profile=dist
+          oranda build
+
+      # Only deploy to GitHub Pages on main branch pushes
+      - name: Deploy to Github Pages
+        uses: JamesIves/github-pages-deploy-action@v4.4.1
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          branch: gh-pages
+          # Tell the action where to find oranda's output
+          folder: public
+          token: ${{ secrets.GITHUB_TOKEN }}
+          single-commit: true
+
+      # For PRs, just verify the build succeeded
+      - name: Verify build (PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "✅ Web build completed successfully for PR"
+          ls -la public/
