@@ -59,9 +59,7 @@ jobs:
         with:
           submodules: recursive
       - name: Install cargo-dist
-        run: cargo install cargo-dist
-      - name: Install cargo-insta
-        run: cargo install cargo-insta
+        run: "curl --proto '=https' --tlsv1.2 -LsSf https://github.com/axodotdev/cargo-dist/releases/download/v0.12.2/cargo-dist-installer.sh | sh"
       # sure would be cool if github gave us proper conditionals...
       # so here's a doubly-nested ternary-via-truthiness to try to provide the best possible
       # functionality based on whether this is a pull_request, and whether it's from a fork.

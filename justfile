@@ -23,6 +23,7 @@ DISTRI_PLATFORM := "ubuntu"
 
 [working-directory: 'examples/goclient']
 @fmt-go:
+    go mod tidy
     go fmt ./...
 
 # Calculate code
@@ -76,6 +77,10 @@ alias t := test
         --file docker/Dockerfile \
         --output type=docker \
         .
+
+# Update dependencies interactively (with prompts)
+@deps-update:
+    ./scripts/update-deps.sh
 
 # GitHub Actions (local execution with act)
 # Run comprehensive CI checks locally using act
