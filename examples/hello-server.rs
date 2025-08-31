@@ -19,7 +19,7 @@ fn main() {
     let rt = Runtime::new().unwrap();
     rt.block_on(async {
         let addr = "[::1]:50051".parse().unwrap();
-        let server = HelloService::default();
+        let server = HelloService;
 
         println!("Hello server listening on {}", addr);
 

@@ -14,12 +14,16 @@ DISTRI_PLATFORM := "ubuntu"
 @help:
     just -l
 
-@fmt:
+@fmt: fmt-go
     cargo +nightly fmt --all
     taplo format
     taplo format --check
     hawkeye format
     cd api && buf format -w
+
+[working-directory: 'examples/goclient']
+@fmt-go:
+    go fmt ./...
 
 # Calculate code
 @cloc:
@@ -29,8 +33,9 @@ DISTRI_PLATFORM := "ubuntu"
     cargo clean
 
 @lint:
-    cargo clippy --all --tests --all-features
+    cargo clippy --workspace --all-targets --all-features --no-deps -- -D warnings
     cd api && buf lint
+    cd examples/goclient && golangci-lint run
 
 # Protobuf/gRPC operations with Buf
 [working-directory: 'api']
