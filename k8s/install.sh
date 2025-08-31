@@ -21,6 +21,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 helm repo add grafana https://grafana.github.io/helm-charts
 # Add the LocalStack Helm repository
 helm repo add localstack https://localstack.github.io/helm-charts
+# Add the HashiCorp Helm repository for Consul
+helm repo add hashicorp https://helm.releases.hashicorp.com
 
 helm repo update
 
@@ -38,3 +40,6 @@ helm upgrade --install pyroscope grafana/pyroscope --values "${SCRIPT_DIR}/pyros
 
 # Install the LocalStack Helm chart
 helm upgrade --install localstack localstack/localstack --values "${SCRIPT_DIR}/localstack.yaml"
+
+# Install Consul for configuration management
+helm upgrade --install consul hashicorp/consul --values "${SCRIPT_DIR}/consul-values.yaml"
