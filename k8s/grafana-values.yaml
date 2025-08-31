@@ -9,7 +9,7 @@ datasources:
       isDefault: true
     - name: Tempo
       type: tempo
-      url: http://tempo:9411
+      url: http://tempo:3200
       access: proxy
     - name: Pyroscope
       type: pyroscope

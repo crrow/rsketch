@@ -77,6 +77,7 @@ use std::{
     sync::{Arc, Mutex, Once},
 };
 
+use bon::Builder;
 use once_cell::sync::{Lazy, OnceCell};
 use opentelemetry::{KeyValue, global, trace::TracerProvider};
 use opentelemetry_otlp::{Protocol, SpanExporter, WithExportConfig, WithHttpConfig};
@@ -166,7 +167,7 @@ pub static RELOAD_HANDLE: OnceCell<tracing_subscriber::reload::Handle<filter::Ta
 /// This structure contains all the configuration parameters needed to set up
 /// the logging infrastructure, including output destinations, formats,
 /// OpenTelemetry integration, and performance tuning options.
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, SmartDefault)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, SmartDefault, Builder)]
 #[serde(default)]
 pub struct LoggingOptions {
     /// Directory path for storing log files.
