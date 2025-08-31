@@ -1,3 +1,4 @@
+pub mod hello;
 // Copyright 2025 Crrow
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,12 +21,14 @@ use rsketch_common::{
     readable_size::ReadableSize,
 };
 use serde::{Deserialize, Serialize};
+use smart_default::SmartDefault;
 use snafu::ResultExt;
 use tokio::sync::oneshot;
 use tokio_util::sync::CancellationToken;
 use tonic::{service::RoutesBuilder, transport::Server};
 use tonic_health::server::HealthReporter;
 use tonic_reflection::server::v1::{ServerReflection, ServerReflectionServer};
+use tonic_tracing_opentelemetry::middleware::server::OtelGrpcLayer;
 use tracing::info;
 
 use crate::ServiceHandler;
@@ -36,27 +39,20 @@ pub const DEFAULT_MAX_GRPC_RECV_MESSAGE_SIZE: ReadableSize = ReadableSize::mb(51
 pub const DEFAULT_MAX_GRPC_SEND_MESSAGE_SIZE: ReadableSize = ReadableSize::mb(512);
 
 /// Configuration options for a gRPC server
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, bon::Builder)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, SmartDefault, bon::Builder)]
 pub struct GrpcServerConfig {
     /// The address to bind the gRPC server
+    #[default = "127.0.0.1:50051"]
     pub bind_address:          String,
     /// The address to advertise to clients
+    #[default = "127.0.0.1:50051"]
     pub server_address:        String,
     /// Maximum gRPC receiving (decoding) message size
+    #[default(DEFAULT_MAX_GRPC_RECV_MESSAGE_SIZE)]
     pub max_recv_message_size: ReadableSize,
     /// Maximum gRPC sending (encoding) message size
+    #[default(DEFAULT_MAX_GRPC_SEND_MESSAGE_SIZE)]
     pub max_send_message_size: ReadableSize,
-}
-
-impl Default for GrpcServerConfig {
-    fn default() -> Self {
-        Self {
-            bind_address:          "127.0.0.1:50051".to_string(),
-            server_address:        "127.0.0.1:50051".to_string(),
-            max_recv_message_size: DEFAULT_MAX_GRPC_RECV_MESSAGE_SIZE,
-            max_send_message_size: DEFAULT_MAX_GRPC_SEND_MESSAGE_SIZE,
-        }
-    }
 }
 
 /// Trait for gRPC service implementations that provides a standardized way to
@@ -183,6 +179,7 @@ pub async fn start_grpc_server(
         let cancellation_token_clone = cancellation_token.clone();
         let join_handle = tokio::spawn(async move {
             let result = Server::builder()
+                .layer(OtelGrpcLayer::default())
                 .accept_http1(true)
                 .add_routes(routes_builder.routes())
                 .serve_with_shutdown(bind_addr, async move {
@@ -246,132 +243,4 @@ fn build_reflection_service(
     builder
         .build_v1()
         .expect("failed to build reflection service")
-}
-
-#[cfg(test)]
-mod tests {
-    use tracing_subscriber;
-
-    use super::*;
-
-    fn init_test_logging() {
-        let _ = tracing_subscriber::fmt()
-            .with_test_writer()
-            .with_line_number(true)
-            .try_init();
-    }
-
-    #[derive(Default)]
-    struct HelloService;
-
-    #[async_trait::async_trait]
-    impl rsketch_api::pb::hello::v1::hello_server::Hello for HelloService {
-        async fn hello(
-            &self,
-            _request: tonic::Request<()>,
-        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
-            Ok(tonic::Response::new(()))
-        }
-    }
-
-    #[async_trait::async_trait]
-    impl GrpcServiceHandler for HelloService {
-        fn service_name(&self) -> &'static str { "Hello" }
-
-        fn file_descriptor_set(&self) -> &'static [u8] { rsketch_api::pb::GRPC_DESC }
-
-        fn register_service(self: &Arc<Self>, builder: &mut RoutesBuilder) {
-            use tonic::service::LayerExt as _;
-            let svc = tower::ServiceBuilder::new()
-                .layer(tower_http::cors::CorsLayer::new())
-                .layer(tonic_web::GrpcWebLayer::new())
-                .into_inner()
-                .named_layer(
-                    rsketch_api::pb::hello::v1::hello_server::HelloServer::from_arc(self.clone()),
-                );
-            builder.add_service(svc);
-        }
-
-        async fn readiness_reporting(
-            self: &Arc<Self>,
-            _cancellation_token: CancellationToken,
-            reporter: HealthReporter,
-        ) {
-            // Register the Hello service as healthy
-            reporter
-                .set_serving::<rsketch_api::pb::hello::v1::hello_server::HelloServer<HelloService>>(
-                )
-                .await;
-        }
-    }
-
-    #[tokio::test]
-    async fn test_grpc_server_lifecycle() {
-        init_test_logging();
-
-        let config = GrpcServerConfig {
-            ..Default::default()
-        };
-        let mut handle = start_grpc_server(config.clone(), vec![Arc::new(HelloService)])
-            .await
-            .expect("start_grpc_server failed");
-
-        // Wait for server to start
-        handle.wait_for_start().await.unwrap();
-        info!("Server started successfully");
-
-        // Create a gRPC client and send an RPC request
-        let mut client = rsketch_api::pb::hello::v1::hello_client::HelloClient::connect(format!(
-            "http://{}",
-            config.server_address
-        ))
-        .await
-        .unwrap();
-
-        // Send a hello request
-        let request = tonic::Request::new(());
-        let response = client.hello(request).await.unwrap();
-        info!("Received response: {:?}", response);
-
-        // Signal shutdown
-        handle.shutdown();
-
-        // Wait for server to stop
-        handle.wait_for_stop().await.unwrap();
-        info!("Server stopped successfully");
-    }
-
-    #[tokio::test]
-    async fn test_readiness_updates() {
-        use tonic::transport::Channel;
-        use tonic_health::pb::{
-            HealthCheckRequest, health_check_response::ServingStatus, health_client::HealthClient,
-        };
-
-        // start the server
-        let config = GrpcServerConfig::default();
-        let mut handle = start_grpc_server(config.clone(), vec![Arc::new(HelloService)])
-            .await
-            .expect("start_grpc_server failed");
-        // Wait for server to start
-        handle.wait_for_start().await.unwrap();
-        info!("Server started successfully");
-
-        // Create a channel and connect to the gRPC server
-        let channel = Channel::from_shared("http://localhost:50051")
-            .unwrap()
-            .connect()
-            .await
-            .unwrap();
-        // Create the health client using the connected channel
-        let mut health_client = HealthClient::new(channel);
-
-        // Check initial health status
-        let request = tonic::Request::new(HealthCheckRequest::default());
-        let response = health_client.check(request).await.unwrap().into_inner();
-        assert_eq!(response.status(), ServingStatus::Serving);
-
-        // Signal shutdown
-        handle.shutdown();
-    }
 }

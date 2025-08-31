@@ -1,0 +1,5 @@
+loki:
+  persistence:
+    enabled: false
+  storage:
+    type: 'filesystem'
