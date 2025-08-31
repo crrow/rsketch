@@ -58,6 +58,8 @@ validator = "0.20"
 cargo-dist-version = "0.12.2"
 # CI backends to support
 ci = ["github"]
+# Hosting backends to support
+hosting = ["github"]
 # The installers to generate for each app
 installers = ["shell", "powershell"]
 # Target platforms to build apps for (Rust target-triple syntax)
