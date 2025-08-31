@@ -38,7 +38,8 @@ func main() {
 	// Contact the server and print out its response.
 	_, err = c.Hello(context.Background(), &helloPB.HelloRequest{})
 	if err != nil {
-		log.Fatalf("could not greet: %v", err)
+		log.Printf("could not greet: %v", err)
+		return
 	}
 
 	log.Printf("Greeting: success")
