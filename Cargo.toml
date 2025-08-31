@@ -11,6 +11,7 @@ rust-version = "1.89.0"
 resolver = "2"
 members = [
     "api",
+    "crates/app",
     "crates/cmd",
     "crates/common",
     "crates/server",
@@ -25,13 +26,16 @@ exclude = [
 actix = "^0.13"
 async-trait = "^0.1"
 axum = "^0.8"
+axum-tracing-opentelemetry = "0.17.0"
 bon = "^3.6"
+chrono = "^0.4"
 defer = "^0.2"
-derive_more = "2.0"
+derive_more = { version = "2.0", features = ["full"] }
 futures = "^0.3"
 prost = "^0.14"
 protobuf = "^3.7"
 serde = { version = "^1.0", features = ["derive"] }
+serde_json = "1.0.143"
 smart-default = "0.7"
 snafu = "^0.8"
 strum = "^0.27"
@@ -44,6 +48,7 @@ tonic-health = "^0.14"
 tonic-prost = "0.14"
 tonic-prost-build = "0.14"
 tonic-reflection = "^0.14"
+tonic-tracing-opentelemetry = "0.29.1"
 tonic-web = "^0.14"
 tower = "^0.5"
 tower-http = { version = "^0.6", features = ["cors"] }
@@ -62,7 +67,13 @@ hosting = ["github"]
 # The installers to generate for each app
 installers = ["shell", "powershell", "msi"]
 # Target platforms to build apps for (Rust target-triple syntax)
-targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl", "x86_64-pc-windows-msvc"]
+targets = [
+    "aarch64-apple-darwin",
+    "x86_64-apple-darwin",
+    "x86_64-unknown-linux-gnu",
+    "x86_64-unknown-linux-musl",
+    "x86_64-pc-windows-msvc",
+]
 # The archive format to use for windows builds (defaults .zip)
 windows-archive = ".tar.gz"
 # The archive format to use for non-windows builds (defaults .tar.xz)

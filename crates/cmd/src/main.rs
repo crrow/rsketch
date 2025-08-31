@@ -14,7 +14,9 @@
 
 use clap::{Args, Parser, Subcommand};
 use snafu::Whatever;
+
 mod build_info;
+use rsketch_app::AppConfig;
 
 #[derive(Debug, Parser)]
 #[clap(
@@ -30,6 +32,7 @@ struct Cli {
 #[derive(Debug, Subcommand)]
 enum Commands {
     Hello(HelloArgs),
+    Server(ServerArgs),
 }
 
 #[derive(Debug, Clone, Args)]
@@ -40,6 +43,7 @@ Print hello.
 Examples:
 
 rsketch hello
+
 ")]
 struct HelloArgs {}
 
@@ -50,9 +54,34 @@ impl HelloArgs {
     }
 }
 
+#[derive(Debug, Clone, Args)]
+#[command(flatten_help = true)]
+#[command(long_about = r"
+
+Starts the rsketch server.
+Examples:
+
+rsketch server
+
+")]
+struct ServerArgs {}
+
+impl ServerArgs {
+    fn run(&self) -> Result<(), Whatever> {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async {
+            // Create and run the app
+            let app = AppConfig::default().open();
+
+            app.run().await
+        })
+    }
+}
+
 fn main() -> Result<(), Whatever> {
     let cli = Cli::parse();
     match cli.commands {
         Commands::Hello(ha) => ha.run(),
+        Commands::Server(sa) => sa.run(),
     }
 }

@@ -11,18 +11,24 @@ actix = { workspace = true }
 async-trait = { workspace = true }
 axum = { workspace = true }
 bon = { workspace = true }
+chrono = { workspace = true }
 defer = { workspace = true }
+derive_more = { workspace = true }
+smart-default = { workspace = true }
 # fastrace = { workspace = true }
+axum-tracing-opentelemetry = { workspace = true }
 futures = { workspace = true }
 rsketch-api = { path = "../../api" }
 rsketch-common = { path = "../common" }
 serde = { workspace = true }
+serde_json = { workspace = true }
 snafu = { workspace = true }
 tokio = { workspace = true }
 tokio-util = { workspace = true }
 tonic = { workspace = true }
 tonic-health = { workspace = true }
 tonic-reflection = { workspace = true }
+tonic-tracing-opentelemetry = { workspace = true }
 tonic-web = { workspace = true }
 tower = { workspace = true }
 tower-http = { workspace = true }

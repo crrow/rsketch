@@ -16,3 +16,4 @@ pub mod env;
 pub mod error;
 pub mod readable_size;
 pub mod runtime;
+pub mod telemetry;

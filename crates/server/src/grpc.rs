@@ -21,6 +21,7 @@ use rsketch_common::{
     readable_size::ReadableSize,
 };
 use serde::{Deserialize, Serialize};
+use smart_default::SmartDefault;
 use snafu::ResultExt;
 use tokio::sync::oneshot;
 use tokio_util::sync::CancellationToken;
@@ -37,27 +38,20 @@ pub const DEFAULT_MAX_GRPC_RECV_MESSAGE_SIZE: ReadableSize = ReadableSize::mb(51
 pub const DEFAULT_MAX_GRPC_SEND_MESSAGE_SIZE: ReadableSize = ReadableSize::mb(512);
 
 /// Configuration options for a gRPC server
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, bon::Builder)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, SmartDefault, bon::Builder)]
 pub struct GrpcServerConfig {
     /// The address to bind the gRPC server
+    #[default = "127.0.0.1:50051"]
     pub bind_address:          String,
     /// The address to advertise to clients
+    #[default = "127.0.0.1:50051"]
     pub server_address:        String,
     /// Maximum gRPC receiving (decoding) message size
+    #[default(DEFAULT_MAX_GRPC_RECV_MESSAGE_SIZE)]
     pub max_recv_message_size: ReadableSize,
     /// Maximum gRPC sending (encoding) message size
+    #[default(DEFAULT_MAX_GRPC_SEND_MESSAGE_SIZE)]
     pub max_send_message_size: ReadableSize,
-}
-
-impl Default for GrpcServerConfig {
-    fn default() -> Self {
-        Self {
-            bind_address:          "127.0.0.1:50051".to_string(),
-            server_address:        "127.0.0.1:50051".to_string(),
-            max_recv_message_size: DEFAULT_MAX_GRPC_RECV_MESSAGE_SIZE,
-            max_send_message_size: DEFAULT_MAX_GRPC_SEND_MESSAGE_SIZE,
-        }
-    }
 }
 
 /// Trait for gRPC service implementations that provides a standardized way to
