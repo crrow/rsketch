@@ -1,8 +1,16 @@
 [package]
 name = "rsketch-cmd"
+authors.workspace = true
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
+
+[package.metadata.wix]
+upgrade-guid = "3FAE8A69-CCE2-441B-81F1-C9E84D108D7C"
+path-guid = "802F55F4-8D88-4862-8DA2-F59A10E1BB35"
+license = false
+eula = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
