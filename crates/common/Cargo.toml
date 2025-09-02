@@ -15,7 +15,7 @@ deadlock_detection = ["parking_lot/deadlock_detection"]
 [dependencies]
 backtrace = "0.3"
 bon = { workspace = true }
-console-subscriber = { version = "0.1", optional = true }
+console-subscriber = { version = "0.4", optional = true }
 derive_more = { workspace = true }
 dotenvy = "0.15.7"
 humantime-serde = "1.1"
