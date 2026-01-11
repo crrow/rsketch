@@ -1,6 +1,6 @@
 [book]
 title = "rsketch"
-authors = ["Ryan Chan"]
+authors = ["crrow"]
 description = "Documentation for rsketch - A Rust project template with gRPC and multi-language code generation"
 src = "src"
 

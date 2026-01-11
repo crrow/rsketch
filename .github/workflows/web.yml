@@ -46,17 +46,22 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: swatinem/rust-cache@v2
 
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@main
+        env:
+          BINSTALL_VERSION: v1.16.6
+
       # Install mdbook plugins
       - name: Install mdbook plugins
         run: |
-          cargo install --locked mdbook-toc@0.11.2
-          cargo install --locked mdbook-linkcheck@0.7.7
+          cargo binstall --locked --no-confirm mdbook-toc@0.11.2
+          cargo binstall --locked --no-confirm mdbook-linkcheck@0.7.7
 
       # Install and run oranda (and mdbook)
       # This will write all output to ./public/ (including copying mdbook's output to there)
       - name: Install and run oranda
         run: |
-          cargo install oranda --locked --profile=dist
+          cargo binstall --locked --no-confirm oranda
           oranda build
 
       # Deploy to our gh-pages branch (making it if it doesn't exist)

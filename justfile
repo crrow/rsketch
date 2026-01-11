@@ -147,7 +147,7 @@ proto:
 [group("📚 Documentation")]
 book:
     @echo "📚 Serving documentation..."
-    mdbook serve docs
+    mdbook serve docs --port 13000
 
 [doc("build documentation with mdbook")]
 [group("📚 Documentation")]
