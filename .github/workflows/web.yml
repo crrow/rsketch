@@ -1,4 +1,4 @@
-# Workflow to build your docs with oranda (and mdbook)
+# Workflow to build your docs with mdbook
 # and deploy them to Github Pages
 name: Web
 
@@ -8,13 +8,12 @@ permissions:
 
 # What situations do we want to build docs in?
 # All of these work independently and can be removed / commented out
-# if you don't want oranda/mdbook running in that situation
+# if you don't want mdbook running in that situation
 on:
   workflow_dispatch:
   pull_request:
     paths:
       - docs/**
-      - oranda.toml
 
   # Whenever something gets pushed to main, update the docs!
   # This is great for getting docs changes live without cutting a full release.
@@ -33,7 +32,6 @@ on:
       - main
     paths:
       - docs/**
-      - oranda.toml
 
 # Alright, let's do it!
 jobs:
@@ -58,15 +56,12 @@ jobs:
         run: |
           cargo binstall --locked --no-confirm mdbook
           cargo binstall --locked --no-confirm mdbook-toc@0.11.2
+          cargo binstall --locked --no-confirm mdbook-mermaid@0.17.0
           cargo binstall --locked --no-confirm mdbook-linkcheck@0.7.7
 
-      # Install and run oranda (and mdbook)
-      # This will write all output to ./public/ (including copying mdbook's output to there)
-      - name: Install and run oranda
+      - name: Build mdbook
         run: |
-          cargo binstall --locked --no-confirm oranda
-          export PATH="$HOME/.cargo/bin:$PATH"
-          oranda build
+          mdbook build docs
 
       # Deploy to our gh-pages branch (making it if it doesn't exist)
       # the "public" dir that oranda made above will become the root dir
@@ -82,7 +77,7 @@ jobs:
         # if: ${{ github.ref == 'refs/heads/stable' || startsWith(github.ref, 'feat') }}
         with:
           branch: gh-pages
-          # Gotta tell the action where to find oranda's output
-          folder: public
+          # mdbook output directory
+          folder: docs/book
           token: ${{ secrets.GITHUB_TOKEN }}
           single-commit: true
