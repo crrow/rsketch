@@ -1,0 +1,19 @@
+[package]
+name = "rsketch-common-worker"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+bon.workspace = true
+lazy_static.workspace = true
+prometheus.workspace = true
+rsketch-common-runtime = { path = "../runtime" }
+snafu.workspace = true
+tokio.workspace = true
+tokio-util.workspace = true
+tracing.workspace = true

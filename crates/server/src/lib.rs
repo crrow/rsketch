@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+pub mod error;
 pub mod grpc;
 pub mod http;
 
 use futures::future::join_all;
-use rsketch_common::error::Result;
+use rsketch_error::Result;
 use tokio::{sync::oneshot::Receiver, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 

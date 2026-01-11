@@ -16,27 +16,13 @@ use snafu::Snafu;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-#[derive(Snafu, Debug)]
+#[derive(Debug, Snafu)]
 #[snafu(visibility(pub))]
 pub enum Error {
-    #[snafu(transparent)]
-    Network { source: NetworkError },
-}
-
-#[derive(Snafu, Debug)]
-#[snafu(visibility(pub))]
-pub enum NetworkError {
-    #[snafu(display("Failed to connect to {addr}"))]
-    ConnectionError {
-        addr:   String,
-        #[snafu(source)]
+    #[snafu(display("Failed to build tokio runtime"))]
+    Build {
         source: std::io::Error,
-    },
-
-    #[snafu(display("Failed to parse address {addr}"))]
-    ParseAddressError {
-        addr:   String,
-        #[snafu(source)]
-        source: std::net::AddrParseError,
+        #[snafu(implicit)]
+        loc:    snafu::Location,
     },
 }

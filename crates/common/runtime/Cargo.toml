@@ -1,0 +1,14 @@
+[package]
+name = "rsketch-common-runtime"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+bon.workspace = true
+once_cell.workspace = true
+smart-default.workspace = true
+snafu.workspace = true
+tokio.workspace = true

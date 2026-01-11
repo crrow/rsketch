@@ -16,10 +16,8 @@ use axum::{
     Router, extract::DefaultBodyLimit, http::StatusCode, response::IntoResponse, routing::get,
 };
 use axum_tracing_opentelemetry::middleware::{OtelAxumLayer, OtelInResponseLayer};
-use rsketch_common::{
-    error::{ParseAddressSnafu, Result},
-    readable_size::ReadableSize,
-};
+use rsketch_base::readable_size::ReadableSize;
+use rsketch_error::{ParseAddressSnafu, Result};
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 use snafu::ResultExt;

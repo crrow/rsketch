@@ -162,7 +162,7 @@ fn sample_based_on_probability(prob: f64, trace_id: TraceId) -> SamplingDecision
 mod test {
     use std::collections::HashSet;
 
-    use crate::telemetry::tracing_sampler::TracingSampleRule;
+    use crate::tracing_sampler::TracingSampleRule;
 
     #[test]
     fn test_rule() {

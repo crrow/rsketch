@@ -12,8 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-fn main() {
-    shadow_rs::ShadowBuilder::builder()
-        .build()
-        .expect("Failed to acquire build-time information");
-}
+mod config;
+mod context;
+mod err;
+mod manager;
+mod metrics;
+mod worker;
+
+// Public API
+pub use config::WorkerConfig;
+pub use context::WorkerContext;
+pub use err::{Error, Result};
+pub use manager::Manager;
+pub use worker::{Trigger, Worker, WorkerHandle};

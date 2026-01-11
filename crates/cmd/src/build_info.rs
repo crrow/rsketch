@@ -12,30 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Generated build information from built.rs
-mod built {
-    include!(concat!(env!("OUT_DIR"), "/built.rs"));
-}
+use shadow_rs::shadow;
+
+shadow!(build);
 
 /// Package author information from Cargo.toml
-pub const AUTHOR: &str = built::PKG_AUTHORS;
+pub const AUTHOR: &str = env!("CARGO_PKG_AUTHORS");
 
 /// Returns true if this is an official release build (KISEKI_RELEASE env var is
 /// set)
 const fn is_official_release() -> bool { option_env!("KISEKI_RELEASE").is_some() }
 
-/// Extract commit hash as a const string, defaulting to empty string if
-/// unavailable
-const COMMIT_HASH: &str = match built::GIT_COMMIT_HASH_SHORT {
-    Some(hash) => hash,
-    None => "",
-};
-
-/// Extract dirty status as a const string suffix
-const DIRTY_SUFFIX: &str = match built::GIT_DIRTY {
-    Some(true) => "-dirty",
-    _ => "",
-};
+/// Dirty status suffix derived from git state
+const DIRTY_SUFFIX: &str = if build::GIT_CLEAN { "" } else { "-dirty" };
 
 /// Full version string with optional development suffix
 ///
@@ -45,16 +34,14 @@ const DIRTY_SUFFIX: &str = match built::GIT_DIRTY {
 #[allow(clippy::const_is_empty)]
 pub const FULL_VERSION: &str = {
     if is_official_release() {
-        built::PKG_VERSION
-    } else if COMMIT_HASH.is_empty() {
-        // No git info available
-        const_format::concatcp!(built::PKG_VERSION, "-unofficial")
+        build::PKG_VERSION
+    } else if build::SHORT_COMMIT.is_empty() {
+        shadow_rs::formatcp!("{}-unofficial", build::PKG_VERSION)
     } else {
-        // Git info available - include hash and dirty status
-        const_format::concatcp!(
-            built::PKG_VERSION,
-            "-unofficial+",
-            COMMIT_HASH,
+        shadow_rs::formatcp!(
+            "{}-unofficial+{}{}",
+            build::PKG_VERSION,
+            build::SHORT_COMMIT,
             DIRTY_SUFFIX
         )
     }

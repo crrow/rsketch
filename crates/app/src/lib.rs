@@ -18,7 +18,7 @@ use std::sync::{
 };
 
 use bon::Builder;
-use rsketch_common::telemetry;
+use rsketch_common_telemetry as telemetry;
 use rsketch_server::{
     grpc::{GrpcServerConfig, hello::HelloService, start_grpc_server},
     http::{RestServerConfig, health_routes, start_rest_server},

@@ -17,10 +17,13 @@ smart-default = { workspace = true }
 axum-tracing-opentelemetry = { workspace = true }
 futures = { workspace = true }
 rsketch-api = { path = "../../api" }
-rsketch-common = { path = "../common" }
+rsketch-base = { path = "../common/base" }
+rsketch-error = { path = "../common/error" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 snafu = { workspace = true }
+strum = { workspace = true }
+strum_macros = { workspace = true }
 tokio = { workspace = true }
 tokio-util = { workspace = true }
 tonic = { workspace = true }

@@ -12,8 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-fn main() {
-    shadow_rs::ShadowBuilder::builder()
-        .build()
-        .expect("Failed to acquire build-time information");
+use snafu::Snafu;
+
+pub type Result<T> = std::result::Result<T, Error>;
+
+#[derive(Debug, Snafu)]
+#[snafu(visibility(pub))]
+pub enum Error {
+    #[snafu(display("Failed to build tokio runtime"))]
+    Build {
+        source: std::io::Error,
+        #[snafu(implicit)]
+        loc:    snafu::Location,
+    },
 }

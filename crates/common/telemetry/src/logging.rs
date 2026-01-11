@@ -12,64 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! # Structured Logging System
-//!
-//! This module provides a comprehensive logging infrastructure for the rsketch
-//! application, supporting multiple output formats, file rotation,
-//! OpenTelemetry integration, and runtime configuration management.
-//!
-//! ## Overview
-//!
-//! The logging system is built on top of the `tracing` ecosystem and provides:
-//!
-//! - **Multiple Output Targets**: Simultaneous logging to stdout, files, and
-//!   error-specific files
-//! - **Flexible Formatting**: Support for both human-readable text and
-//!   machine-parseable JSON
-//! - **File Rotation**: Automatic hourly log rotation with configurable
-//!   retention policies
-//! - **OpenTelemetry Integration**: Native support for distributed tracing via
-//!   OTLP
-//! - **Runtime Reconfiguration**: Dynamic log level changes without application
-//!   restart
-//! - **Environment Integration**: Automatic configuration from environment
-//!   variables
-//!
-//! ## Configuration
-//!
-//! Uses environment variables RUST_LOG, UNITTEST_LOG_DIR, and
-//! UNITTEST_LOG_LEVEL for configuration. File logging creates hourly rotated
-//! files with separate error logs and configurable retention policies.
-//!
-//! ## OpenTelemetry Integration
-//!
-//! Supports both gRPC and HTTP OTLP export protocols with default endpoints
-//! and custom headers for authentication.
-//!
-//! ## Performance
-//!
-//! Uses non-blocking I/O to prevent thread blocking. Supports configurable
-//! sampling to reduce overhead in high-throughput scenarios.
-//!
-//! ## Runtime Management
-//!
-//! Supports dynamic log level changes via the RELOAD_HANDLE without
-//! application restart.
-//!
-//! ## Testing Support
-//!
-//! Provides `init_default_ut_logging` for unit test environments with
-//! dedicated log directories and appropriate filtering.
-//!
-//! ## Feature Integration
-//!
-//! Optional tokio-console integration for async runtime debugging when
-//! the feature flag is enabled.
-//!
-//! ## Security
-//!
-//! Ensure proper file permissions, use TLS for OTLP endpoints, secure token
-//! storage, and avoid logging sensitive information.
 use std::{
     collections::HashMap,
     env,
@@ -92,7 +34,7 @@ use tracing_appender::{
 use tracing_log::LogTracer;
 use tracing_subscriber::{EnvFilter, Registry, filter, layer::SubscriberExt, prelude::*};
 
-use crate::telemetry::tracing_sampler::{TracingSampleOptions, create_sampler};
+use crate::tracing_sampler::{TracingSampleOptions, create_sampler};
 
 /// Deserializes a string value, using `Default::default()` if the string is
 /// empty.

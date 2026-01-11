@@ -20,7 +20,10 @@ use tokio_util::sync::CancellationToken;
 use tonic::service::RoutesBuilder;
 use tonic_health::server::HealthReporter;
 
-use crate::grpc::GrpcServiceHandler;
+use crate::{
+    error::{ApiError, ApiResult},
+    grpc::GrpcServiceHandler,
+};
 
 #[derive(Default)]
 pub struct HelloService;
@@ -31,13 +34,26 @@ impl hello_service_server::HelloService for HelloService {
         &self,
         request: tonic::Request<HelloRequest>,
     ) -> std::result::Result<tonic::Response<HelloResponse>, tonic::Status> {
-        let name = request.into_inner().name;
-        let message = if name.is_empty() {
-            "Hello, World!".to_string()
-        } else {
-            format!("Hello, {}!", name)
-        };
+        let response = self
+            .hello_inner(request)
+            .await
+            .map_err(tonic::Status::from)?;
+        Ok(response)
+    }
+}
 
+impl HelloService {
+    async fn hello_inner(
+        &self,
+        request: tonic::Request<HelloRequest>,
+    ) -> ApiResult<tonic::Response<HelloResponse>> {
+        let name = request.into_inner().name;
+        if name.trim().is_empty() {
+            return Err(ApiError::InvalidArgument {
+                reason: "name must not be empty".to_string(),
+            });
+        }
+        let message = format!("Hello, {}!", name);
         Ok(tonic::Response::new(HelloResponse { message }))
     }
 }

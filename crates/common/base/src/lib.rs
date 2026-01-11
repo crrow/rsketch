@@ -12,8 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-fn main() {
-    shadow_rs::ShadowBuilder::builder()
-        .build()
-        .expect("Failed to acquire build-time information");
-}
+pub mod env;
+pub mod readable_size;

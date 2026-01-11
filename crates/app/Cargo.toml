@@ -9,7 +9,7 @@ repository.workspace = true
 [dependencies]
 bon = { workspace = true }
 derive_more = { workspace = true }
-rsketch-common = { path = "../common" }
+rsketch-common-telemetry = { path = "../common/telemetry" }
 rsketch-server = { path = "../server" }
 smart-default = { workspace = true }
 snafu = { workspace = true }

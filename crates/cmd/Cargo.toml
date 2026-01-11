@@ -22,13 +22,12 @@ path = "src/main.rs"
 [dependencies]
 chrono = { workspace = true }
 clap = { version = "4.4.16", features = ["derive"] }
-const_format = "0.2.32"
 ctrlc = "3.4.2"
 human-panic = "2.0.0"
 rsketch-app = { path = "../app" }
+shadow-rs = "1.2.1"
 snafu.workspace = true
 tokio = { workspace = true, features = ["signal", "rt-multi-thread", "macros"] }
 
 [build-dependencies]
-built = { version = "0.8.0", features = ["git2"] }
-const_format = "0.2.32"
+shadow-rs = "1.2.1"
