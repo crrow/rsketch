@@ -10,12 +10,9 @@ permissions:
 # All of these work independently and can be removed / commented out
 # if you don't want oranda/mdbook running in that situation
 on:
-  # Check that a PR didn't break docs!
-  #
-  # Note that the "Deploy to Github Pages" step won't run in this mode,
-  # so this won't have any side-effects. But it will tell you if a PR
-  # completely broke oranda/mdbook. Sadly we don't provide previews (yet)!
   pull_request:
+    paths:
+      - docs/**
 
   # Whenever something gets pushed to main, update the docs!
   # This is great for getting docs changes live without cutting a full release.
@@ -31,19 +28,9 @@ on:
   push:
     branches:
       - stable
-
-  # Whenever a workflow called "Release" completes, update the docs!
-  #
-  # If you're using dist, this is recommended, as it will ensure that
-  # oranda always sees the latest release right when it's available. Note
-  # however that Github's UI is wonky when you use workflow_run, and won't
-  # show this workflow as part of any commit. You have to go to the "actions"
-  # tab for your repo to see this one running (the gh-pages deploy will also
-  # only show up there).
-  workflow_run:
-    workflows: ["Release"]
-    types:
-      - completed
+      - main
+    paths:
+      - docs/**
 
 # Alright, let's do it!
 jobs:
@@ -80,6 +67,7 @@ jobs:
       # the other defaults work fine.
       - name: Deploy to Github Pages
         uses: JamesIves/github-pages-deploy-action@v4.7.6
+        if: ${{ github.event_name == 'push' }}
         # ONLY if we're on stable (so no PRs or feature branches allowed!)
         # if: ${{ github.ref == 'refs/heads/stable' || startsWith(github.ref, 'feat') }}
         with:
