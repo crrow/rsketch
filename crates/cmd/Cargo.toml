@@ -25,9 +25,9 @@ clap = { version = "4.4.16", features = ["derive"] }
 ctrlc = "3.4.2"
 human-panic = "2.0.0"
 rsketch-app = { path = "../app" }
+rsketch-common-runtime = { path = "../common/runtime" }
 shadow-rs = "1.2.1"
 snafu.workspace = true
-tokio = { workspace = true, features = ["signal", "rt-multi-thread", "macros"] }
 
 [build-dependencies]
 shadow-rs = "1.2.1"

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use clap::{Args, Parser, Subcommand};
+use rsketch_common_runtime::{GlobalRuntimeOptions, block_on_background, init_global_runtimes};
 use snafu::Whatever;
 
 mod build_info;
@@ -67,17 +68,17 @@ rsketch server
 struct ServerArgs {}
 
 impl ServerArgs {
-    async fn run(&self) -> Result<(), Whatever> {
+    fn run(&self) -> Result<(), Whatever> {
         let app = AppConfig::default().open();
-        app.run().await
+        init_global_runtimes(GlobalRuntimeOptions::default());
+        block_on_background(app.run())
     }
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Whatever> {
+fn main() -> Result<(), Whatever> {
     let cli = Cli::parse();
     match cli.commands {
         Commands::Hello(ha) => ha.run(),
-        Commands::Server(sa) => sa.run().await,
+        Commands::Server(sa) => sa.run(),
     }
 }
