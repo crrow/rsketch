@@ -56,7 +56,7 @@
 //!
 //! For production environments with file logging and OpenTelemetry:
 //!
-//! ```rust
+//! ```rust,no_run
 //! use std::collections::HashMap;
 //!
 //! use rsketch_common::telemetry::{

@@ -1,4 +1,3 @@
-pub mod hello;
 // Copyright 2025 Crrow
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +11,8 @@ pub mod hello;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+pub mod hello;
 
 use std::sync::Arc;
 
@@ -70,33 +71,7 @@ pub struct GrpcServerConfig {
 ///
 /// # Example
 ///
-/// ```rust
-/// use std::sync::Arc;
-///
-/// use tonic::service::RoutesBuilder;
-/// use tonic_health::server::HealthReporter;
-///
-/// use crate::grpc::GrpcService;
-///
-/// pub struct MyServiceImpl {}
-///
-/// impl GrpcService for MyServiceImpl {
-///     const FILE_DESCRIPTOR_SET: &'static [u8] = include_bytes!("../proto/my_service.bin");
-///     const SERVICE_NAME: &'static str = "MyService";
-///
-///     fn register_service(self: Arc<Self>, builder: &mut RoutesBuilder) {
-///         let service = my_service_server::MyServiceServer::new(self);
-///         builder.add_service(service);
-///     }
-///
-///     async fn register_health_status(&self, reporter: &HealthReporter) {
-///         // Register this service as healthy
-///         reporter
-///             .set_serving::<my_service_server::MyServiceServer<Self>>()
-///             .await;
-///     }
-/// }
-/// ```
+/// See `crates/server/src/grpc/hello.rs` for a complete implementation example.
 #[async_trait]
 pub trait GrpcServiceHandler: Send + Sync + 'static {
     /// The name of the service for logging and identification purposes

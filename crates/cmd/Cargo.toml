@@ -27,7 +27,7 @@ ctrlc = "3.4.2"
 human-panic = "2.0.0"
 rsketch-app = { path = "../app" }
 snafu.workspace = true
-tokio = { workspace = true, features = ["signal", "rt-multi-thread"] }
+tokio = { workspace = true, features = ["signal", "rt-multi-thread", "macros"] }
 
 [build-dependencies]
 built = { version = "0.8.0", features = ["git2"] }

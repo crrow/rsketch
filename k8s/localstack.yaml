@@ -1,4 +1,0 @@
-localstack:
-  services:
-    s3:
-      enabled: true

@@ -67,21 +67,17 @@ rsketch server
 struct ServerArgs {}
 
 impl ServerArgs {
-    fn run(&self) -> Result<(), Whatever> {
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(async {
-            // Create and run the app
-            let app = AppConfig::default().open();
-
-            app.run().await
-        })
+    async fn run(&self) -> Result<(), Whatever> {
+        let app = AppConfig::default().open();
+        app.run().await
     }
 }
 
-fn main() -> Result<(), Whatever> {
+#[tokio::main]
+async fn main() -> Result<(), Whatever> {
     let cli = Cli::parse();
     match cli.commands {
         Commands::Hello(ha) => ha.run(),
-        Commands::Server(sa) => sa.run(),
+        Commands::Server(sa) => sa.run().await,
     }
 }

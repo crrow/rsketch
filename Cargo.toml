@@ -5,7 +5,6 @@ license = "Apache-2.0"
 authors = ["crrow"]
 repository = "https://github.com/crrow/rsketch"
 homepage = "https://github.com/crrow/rsketch"
-rust-version = "1.89.0"
 
 [workspace]
 resolver = "2"
@@ -15,7 +14,6 @@ members = [
     "crates/cmd",
     "crates/common",
     "crates/server",
-    "examples",
 ]
 
 exclude = [
@@ -23,13 +21,11 @@ exclude = [
 ]
 
 [workspace.dependencies]
-actix = "^0.13"
 async-trait = "^0.1"
 axum = "^0.8"
 axum-tracing-opentelemetry = "0.32.0"
 bon = "^3.6"
 chrono = "^0.4"
-defer = "^0.2"
 derive_more = { version = "2.0", features = ["full"] }
 futures = "^0.3"
 prost = "^0.14"

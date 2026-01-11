@@ -36,7 +36,7 @@ env:
 
 [doc("run `cargo fmt` to format Rust code")]
 [group("👆 Code Quality")]
-fmt: fmt-go fmt-proto
+fmt: fmt-proto
     @echo "🔧 Formatting Rust code..."
     cargo +nightly fmt --all
     @echo "🔧 Formatting TOML files..."
@@ -44,14 +44,6 @@ fmt: fmt-go fmt-proto
     @echo "🔧 Formatting with hawkeye..."
     hawkeye format
     @echo "✅ All formatting complete!"
-
-[doc("format Go code in examples")]
-[group("👆 Code Quality")]
-[working-directory: 'examples/goclient']
-fmt-go:
-    @echo "🔧 Formatting Go code..."
-    go mod tidy
-    go fmt ./...
 
 [doc("format protobuf files")]
 [group("👆 Code Quality")]

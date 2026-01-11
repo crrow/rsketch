@@ -65,7 +65,7 @@ impl TracingContext {
 
     /// Attach a span as a child of this context.
     pub fn attach(&self, span: tracing::Span) -> tracing::Span {
-        span.set_parent(self.0.clone());
+        let _ = span.set_parent(self.0.clone());
         span
     }
 

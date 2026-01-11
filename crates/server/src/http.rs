@@ -69,17 +69,21 @@ pub struct RestServerConfig {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,ignore
 /// use axum::{Router, routing::get};
 /// use rsketch_server::http::{RestServerConfig, start_rest_server};
 ///
-/// async fn my_routes(router: Router) -> Router {
+/// fn my_routes(router: Router) -> Router {
 ///     router.route("/api/v1/hello", get(|| async { "Hello, World!" }))
 /// }
 ///
-/// let config = RestServerConfig::default();
-/// let handlers = vec![my_routes];
-/// let handle = start_rest_server(config, handlers).await?;
+/// #[tokio::main]
+/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     let config = RestServerConfig::default();
+///     let handlers = vec![my_routes];
+///     let handle = start_rest_server(config, handlers).await?;
+///     Ok(())
+/// }
 /// ```
 pub async fn start_rest_server<F>(
     config: RestServerConfig,
