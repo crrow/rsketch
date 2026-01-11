@@ -14,6 +14,7 @@ on:
   pull_request:
     paths:
       - docs/**
+      - oranda.toml
 
   # Whenever something gets pushed to main, update the docs!
   # This is great for getting docs changes live without cutting a full release.
@@ -32,6 +33,7 @@ on:
       - main
     paths:
       - docs/**
+      - oranda.toml
 
 # Alright, let's do it!
 jobs:
@@ -54,6 +56,7 @@ jobs:
       # Install mdbook plugins
       - name: Install mdbook plugins
         run: |
+          cargo binstall --locked --no-confirm mdbook
           cargo binstall --locked --no-confirm mdbook-toc@0.11.2
           cargo binstall --locked --no-confirm mdbook-linkcheck@0.7.7
 
