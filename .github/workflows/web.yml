@@ -65,6 +65,7 @@ jobs:
       - name: Install and run oranda
         run: |
           cargo binstall --locked --no-confirm oranda
+          export PATH="$HOME/.cargo/bin:$PATH"
           oranda build
 
       # Deploy to our gh-pages branch (making it if it doesn't exist)
