@@ -10,7 +10,7 @@ homepage.workspace = true
 [dependencies]
 async-trait.workspace = true
 chrono = "0.4"
-croner = "2"
+croner = "3"
 lazy_static.workspace = true
 prometheus.workspace = true
 rsketch-common-runtime = { path = "../runtime" }
