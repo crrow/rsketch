@@ -118,11 +118,15 @@ pub struct OnceHandle {
 }
 
 impl OnceHandle {
-    pub(crate) fn new(name: &'static str) -> Self { OnceHandle { name } }
+    pub(crate) fn new(name: &'static str) -> Self {
+        OnceHandle { name }
+    }
 }
 
 impl Handle for OnceHandle {
-    fn name(&self) -> &'static str { self.name }
+    fn name(&self) -> &'static str {
+        self.name
+    }
 }
 
 /// Handle for workers with `Trigger::Notify`.
@@ -131,7 +135,7 @@ impl Handle for OnceHandle {
 /// The worker will only run when explicitly notified.
 #[derive(Clone)]
 pub struct NotifyHandle {
-    name:   &'static str,
+    name: &'static str,
     notify: Arc<Notify>,
 }
 
@@ -142,11 +146,15 @@ impl NotifyHandle {
 }
 
 impl Handle for NotifyHandle {
-    fn name(&self) -> &'static str { self.name }
+    fn name(&self) -> &'static str {
+        self.name
+    }
 }
 
 impl Notifiable for NotifyHandle {
-    fn notify(&self) { self.notify.notify_one(); }
+    fn notify(&self) {
+        self.notify.notify_one();
+    }
 }
 
 /// Handle for workers with `Trigger::Interval`.
@@ -155,7 +163,7 @@ impl Notifiable for NotifyHandle {
 /// When paused, the timer stops; when resumed, it restarts.
 #[derive(Clone)]
 pub struct IntervalHandle {
-    name:   &'static str,
+    name: &'static str,
     notify: Arc<Notify>,
     paused: Arc<AtomicBool>,
 }
@@ -171,7 +179,9 @@ impl IntervalHandle {
 }
 
 impl Handle for IntervalHandle {
-    fn name(&self) -> &'static str { self.name }
+    fn name(&self) -> &'static str {
+        self.name
+    }
 }
 
 impl Pausable for IntervalHandle {
@@ -186,7 +196,9 @@ impl Pausable for IntervalHandle {
         WORKER_RESUMED.with_label_values(&[self.name]).inc();
     }
 
-    fn is_paused(&self) -> bool { self.paused.load(Ordering::Acquire) }
+    fn is_paused(&self) -> bool {
+        self.paused.load(Ordering::Acquire)
+    }
 }
 
 /// Handle for workers with `Trigger::Cron`.
@@ -195,7 +207,7 @@ impl Pausable for IntervalHandle {
 /// When paused, no cron triggers fire; when resumed, scheduling continues.
 #[derive(Clone)]
 pub struct CronHandle {
-    name:   &'static str,
+    name: &'static str,
     notify: Arc<Notify>,
     paused: Arc<AtomicBool>,
 }
@@ -211,7 +223,9 @@ impl CronHandle {
 }
 
 impl Handle for CronHandle {
-    fn name(&self) -> &'static str { self.name }
+    fn name(&self) -> &'static str {
+        self.name
+    }
 }
 
 impl Pausable for CronHandle {
@@ -226,7 +240,9 @@ impl Pausable for CronHandle {
         WORKER_RESUMED.with_label_values(&[self.name]).inc();
     }
 
-    fn is_paused(&self) -> bool { self.paused.load(Ordering::Acquire) }
+    fn is_paused(&self) -> bool {
+        self.paused.load(Ordering::Acquire)
+    }
 }
 
 /// Handle for workers with `Trigger::IntervalOrNotify`.
@@ -237,7 +253,7 @@ impl Pausable for CronHandle {
 /// timer.
 #[derive(Clone)]
 pub struct IntervalOrNotifyHandle {
-    name:   &'static str,
+    name: &'static str,
     notify: Arc<Notify>,
     paused: Arc<AtomicBool>,
 }
@@ -253,7 +269,9 @@ impl IntervalOrNotifyHandle {
 }
 
 impl Handle for IntervalOrNotifyHandle {
-    fn name(&self) -> &'static str { self.name }
+    fn name(&self) -> &'static str {
+        self.name
+    }
 }
 
 impl Pausable for IntervalOrNotifyHandle {
@@ -268,11 +286,15 @@ impl Pausable for IntervalOrNotifyHandle {
         WORKER_RESUMED.with_label_values(&[self.name]).inc();
     }
 
-    fn is_paused(&self) -> bool { self.paused.load(Ordering::Acquire) }
+    fn is_paused(&self) -> bool {
+        self.paused.load(Ordering::Acquire)
+    }
 }
 
 impl Notifiable for IntervalOrNotifyHandle {
-    fn notify(&self) { self.notify.notify_one(); }
+    fn notify(&self) {
+        self.notify.notify_one();
+    }
 }
 
 /// Handle for workers with `Trigger::CronOrNotify`.
@@ -283,7 +305,7 @@ impl Notifiable for IntervalOrNotifyHandle {
 /// only triggers an immediate one-time execution.
 #[derive(Clone)]
 pub struct CronOrNotifyHandle {
-    name:   &'static str,
+    name: &'static str,
     notify: Arc<Notify>,
     paused: Arc<AtomicBool>,
 }
@@ -299,7 +321,9 @@ impl CronOrNotifyHandle {
 }
 
 impl Handle for CronOrNotifyHandle {
-    fn name(&self) -> &'static str { self.name }
+    fn name(&self) -> &'static str {
+        self.name
+    }
 }
 
 impl Pausable for CronOrNotifyHandle {
@@ -314,9 +338,13 @@ impl Pausable for CronOrNotifyHandle {
         WORKER_RESUMED.with_label_values(&[self.name]).inc();
     }
 
-    fn is_paused(&self) -> bool { self.paused.load(Ordering::Acquire) }
+    fn is_paused(&self) -> bool {
+        self.paused.load(Ordering::Acquire)
+    }
 }
 
 impl Notifiable for CronOrNotifyHandle {
-    fn notify(&self) { self.notify.notify_one(); }
+    fn notify(&self) {
+        self.notify.notify_one();
+    }
 }

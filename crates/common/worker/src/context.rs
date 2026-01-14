@@ -58,19 +58,19 @@ use tokio_util::sync::CancellationToken;
 /// # struct Database;
 /// ```
 pub struct WorkerContext<S = ()> {
-    state:             S,
-    cancel_token:      CancellationToken,
+    state: S,
+    cancel_token: CancellationToken,
     pub(crate) notify: Arc<Notify>,
-    worker_name:       &'static str,
+    worker_name: &'static str,
 }
 
 impl<S: Clone> Clone for WorkerContext<S> {
     fn clone(&self) -> Self {
         WorkerContext {
-            state:        self.state.clone(),
+            state: self.state.clone(),
             cancel_token: self.cancel_token.clone(),
-            notify:       self.notify.clone(),
-            worker_name:  self.worker_name,
+            notify: self.notify.clone(),
+            worker_name: self.worker_name,
         }
     }
 }
@@ -93,13 +93,17 @@ impl<S> WorkerContext<S> {
     /// Returns a reference to the shared state.
     ///
     /// The state is cloned for each worker execution from the Manager's state.
-    pub fn state(&self) -> &S { &self.state }
+    pub fn state(&self) -> &S {
+        &self.state
+    }
 
     /// Checks if cancellation has been requested.
     ///
     /// Returns `true` immediately if shutdown is in progress.
     /// Use this for non-blocking cancellation checks.
-    pub fn is_cancelled(&self) -> bool { self.cancel_token.is_cancelled() }
+    pub fn is_cancelled(&self) -> bool {
+        self.cancel_token.is_cancelled()
+    }
 
     /// Waits asynchronously until cancellation is requested.
     ///
@@ -115,23 +119,31 @@ impl<S> WorkerContext<S> {
     /// # }
     /// # async fn async_work() {}
     /// ```
-    pub async fn cancelled(&self) { self.cancel_token.cancelled().await }
+    pub async fn cancelled(&self) {
+        self.cancel_token.cancelled().await
+    }
 
     /// Waits asynchronously for a notify signal.
     ///
     /// Only relevant for workers with `Trigger::Notify` or hybrid triggers.
     /// The handle's `notify()` method will wake this future.
-    pub async fn notified(&self) { self.notify.notified().await }
+    pub async fn notified(&self) {
+        self.notify.notified().await
+    }
 
     /// Creates a child cancellation token for spawning sub-tasks.
     ///
     /// When the parent token is cancelled (during shutdown), all child tokens
     /// are also cancelled. Use this to propagate cancellation to spawned tasks.
-    pub fn child_token(&self) -> CancellationToken { self.cancel_token.child_token() }
+    pub fn child_token(&self) -> CancellationToken {
+        self.cancel_token.child_token()
+    }
 
     /// Returns the worker's name for logging and debugging.
     ///
     /// The name is set via `WorkerBuilder::name()` or defaults to
     /// "unnamed-worker".
-    pub fn name(&self) -> &'static str { self.worker_name }
+    pub fn name(&self) -> &'static str {
+        self.worker_name
+    }
 }

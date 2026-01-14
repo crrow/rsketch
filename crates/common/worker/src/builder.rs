@@ -84,11 +84,11 @@ pub struct TriggerCronOrNotify;
 /// let handle = builder.spawn(); // Returns IntervalHandle
 /// ```
 pub struct WorkerBuilder<'m, S, W, T> {
-    manager:  &'m mut Manager<S>,
-    worker:   W,
-    name:     Option<&'static str>,
+    manager: &'m mut Manager<S>,
+    worker: W,
+    name: Option<&'static str>,
     blocking: bool,
-    trigger:  Option<Trigger>,
+    trigger: Option<Trigger>,
     _phantom: PhantomData<T>,
 }
 
@@ -128,11 +128,11 @@ where
     pub fn once(mut self) -> WorkerBuilder<'m, S, W, TriggerOnce> {
         self.trigger = Some(Trigger::Once);
         WorkerBuilder {
-            manager:  self.manager,
-            worker:   self.worker,
-            name:     self.name,
+            manager: self.manager,
+            worker: self.worker,
+            name: self.name,
             blocking: self.blocking,
-            trigger:  self.trigger,
+            trigger: self.trigger,
             _phantom: PhantomData,
         }
     }
@@ -158,11 +158,11 @@ where
     pub fn on_notify(mut self) -> WorkerBuilder<'m, S, W, TriggerNotify> {
         self.trigger = Some(Trigger::Notify);
         WorkerBuilder {
-            manager:  self.manager,
-            worker:   self.worker,
-            name:     self.name,
+            manager: self.manager,
+            worker: self.worker,
+            name: self.name,
             blocking: self.blocking,
-            trigger:  self.trigger,
+            trigger: self.trigger,
             _phantom: PhantomData,
         }
     }
@@ -193,11 +193,11 @@ where
     pub fn interval(mut self, duration: Duration) -> WorkerBuilder<'m, S, W, TriggerInterval> {
         self.trigger = Some(Trigger::Interval(duration));
         WorkerBuilder {
-            manager:  self.manager,
-            worker:   self.worker,
-            name:     self.name,
+            manager: self.manager,
+            worker: self.worker,
+            name: self.name,
             blocking: self.blocking,
-            trigger:  self.trigger,
+            trigger: self.trigger,
             _phantom: PhantomData,
         }
     }
@@ -259,11 +259,11 @@ where
             .context(crate::err::InvalidExpressionSnafu)?;
         self.trigger = Some(Trigger::Cron(cron));
         Ok(WorkerBuilder {
-            manager:  self.manager,
-            worker:   self.worker,
-            name:     self.name,
+            manager: self.manager,
+            worker: self.worker,
+            name: self.name,
             blocking: self.blocking,
-            trigger:  self.trigger,
+            trigger: self.trigger,
             _phantom: PhantomData,
         })
     }
@@ -303,11 +303,11 @@ where
     ) -> WorkerBuilder<'m, S, W, TriggerIntervalOrNotify> {
         self.trigger = Some(Trigger::IntervalOrNotify(duration));
         WorkerBuilder {
-            manager:  self.manager,
-            worker:   self.worker,
-            name:     self.name,
+            manager: self.manager,
+            worker: self.worker,
+            name: self.name,
             blocking: self.blocking,
-            trigger:  self.trigger,
+            trigger: self.trigger,
             _phantom: PhantomData,
         }
     }
@@ -355,11 +355,11 @@ where
             .context(crate::err::InvalidExpressionSnafu)?;
         self.trigger = Some(Trigger::CronOrNotify(cron));
         Ok(WorkerBuilder {
-            manager:  self.manager,
-            worker:   self.worker,
-            name:     self.name,
+            manager: self.manager,
+            worker: self.worker,
+            name: self.name,
             blocking: self.blocking,
-            trigger:  self.trigger,
+            trigger: self.trigger,
             _phantom: PhantomData,
         })
     }

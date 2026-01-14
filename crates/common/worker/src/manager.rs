@@ -65,7 +65,7 @@ use crate::{
 /// ```
 #[derive(Debug, Clone, SmartDefault)]
 pub struct ManagerConfig {
-    pub runtime:          Option<Arc<Runtime>>,
+    pub runtime: Option<Arc<Runtime>>,
     #[default(Duration::from_secs(30))]
     pub shutdown_timeout: Duration,
 }
@@ -139,11 +139,11 @@ pub struct ManagerConfig {
 /// }
 /// ```
 pub struct Manager<S = ()> {
-    state:            S,
-    cancel_token:     CancellationToken,
-    runtime:          Option<Arc<Runtime>>,
+    state: S,
+    cancel_token: CancellationToken,
+    runtime: Option<Arc<Runtime>>,
     shutdown_timeout: Duration,
-    joins:            JoinSet<()>,
+    joins: JoinSet<()>,
 }
 
 impl Manager<()> {
@@ -151,7 +151,9 @@ impl Manager<()> {
     ///
     /// Workers will receive `WorkerContext<()>` with no accessible state.
     /// Uses default configuration (30s shutdown timeout).
-    pub fn new() -> Self { Self::with_config(ManagerConfig::default()) }
+    pub fn new() -> Self {
+        Self::with_config(ManagerConfig::default())
+    }
 
     /// Creates a new worker manager with custom configuration.
     ///
@@ -170,17 +172,19 @@ impl Manager<()> {
     /// ```
     pub fn with_config(config: ManagerConfig) -> Self {
         Manager {
-            state:            (),
-            cancel_token:     CancellationToken::new(),
-            runtime:          config.runtime,
+            state: (),
+            cancel_token: CancellationToken::new(),
+            runtime: config.runtime,
             shutdown_timeout: config.shutdown_timeout,
-            joins:            JoinSet::new(),
+            joins: JoinSet::new(),
         }
     }
 }
 
 impl Default for Manager<()> {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl<S: Clone + Send + Sync + 'static> Manager<S> {

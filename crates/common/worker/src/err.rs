@@ -40,6 +40,6 @@ pub enum CronParseError {
     InvalidExpression {
         source: croner::errors::CronError,
         #[snafu(implicit)]
-        loc:    snafu::Location,
+        loc: snafu::Location,
     },
 }

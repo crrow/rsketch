@@ -69,6 +69,7 @@
 //! - Handle traits: [`Handle`], [`Pausable`], [`Notifiable`] for runtime
 //!   control
 
+mod blocking;
 mod builder;
 mod context;
 mod driver;
@@ -80,6 +81,7 @@ mod trigger;
 mod worker;
 
 // Public API
+pub use blocking::BlockingWorker;
 pub use context::WorkerContext;
 pub use err::CronParseError;
 pub use handle::{
