@@ -14,6 +14,7 @@
 
 mod crc;
 
+pub mod appender;
 pub mod builder;
 pub mod config;
 pub mod error;
@@ -21,6 +22,7 @@ pub mod file;
 pub mod message;
 pub mod path;
 
+pub use appender::Appender;
 pub use builder::QueueBuilder;
 pub use config::{FlushMode, QueueConfig, RollStrategy};
 pub use error::{QueueError, Result};

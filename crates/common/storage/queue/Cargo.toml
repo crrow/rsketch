@@ -11,6 +11,7 @@ homepage.workspace = true
 bytes = "1.0"
 chrono = "0.4"
 crc = "3.0"
+crossbeam = "0.8"
 mmap-io = "0.9"
 thiserror = "2.0"
 
