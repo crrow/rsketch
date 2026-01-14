@@ -15,31 +15,41 @@
 use std::io;
 use std::path::PathBuf;
 
+/// Queue operation errors.
 #[derive(Debug, thiserror::Error)]
 pub enum QueueError {
+    /// Filesystem I/O failure.
     #[error("IO error: {0}")]
     Io(#[from] io::Error),
 
+    /// Failed to send message to IO worker.
     #[error("Channel send error")]
     ChannelSend,
 
+    /// Failed to receive from IO worker.
     #[error("Channel receive error")]
     ChannelRecv,
 
+    /// CRC mismatch detected during read.
     #[error("Corrupted message at sequence {0}")]
     CorruptedMessage(u64),
 
+    /// Invalid or inaccessible file path.
     #[error("Invalid file path: {0}")]
     InvalidPath(PathBuf),
 
+    /// Failed to roll to new data file.
     #[error("File rolling failed: {0}")]
     RollFileFailed(String),
 
+    /// Memory mapping operation failed.
     #[error("Mmap operation failed: {0}")]
     MmapFailed(String),
 
+    /// Index file read/write error.
     #[error("Index error: {0}")]
     IndexError(String),
 }
 
+/// Result type for queue operations.
 pub type Result<T> = std::result::Result<T, QueueError>;

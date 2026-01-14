@@ -15,13 +15,20 @@
 use std::path::PathBuf;
 use std::time::Duration;
 
+/// Configuration for the persistent queue.
 #[derive(Debug, Clone)]
 pub struct QueueConfig {
+    /// Root directory for queue data files.
     pub base_path: PathBuf,
+    /// Maximum size of each data file in bytes.
     pub file_size: u64,
+    /// Strategy for rolling to new data files.
     pub roll_strategy: RollStrategy,
+    /// How writes are flushed to disk.
     pub flush_mode: FlushMode,
+    /// Interval between index entries (every N messages).
     pub index_interval: u64,
+    /// Whether to verify data integrity on startup.
     pub verify_on_startup: bool,
 }
 
@@ -38,15 +45,21 @@ impl Default for QueueConfig {
     }
 }
 
+/// Strategy for rolling data files.
 #[derive(Debug, Clone)]
 pub enum RollStrategy {
+    /// Roll when file exceeds the given size in bytes.
     BySize(u64),
+    /// Roll when the given duration has elapsed.
     ByTime(Duration),
+    /// Roll after the given number of messages.
     ByCount(u64),
+    /// Roll when any of the contained strategies triggers.
     Combined(Vec<RollStrategy>),
 }
 
 impl RollStrategy {
+    /// Returns true if the file should be rolled based on current metrics.
     pub fn should_roll(&self, current_size: u64, elapsed: Duration, count: u64) -> bool {
         match self {
             RollStrategy::BySize(size) => current_size >= *size,
@@ -59,10 +72,14 @@ impl RollStrategy {
     }
 }
 
+/// Controls how writes are flushed to disk.
 #[derive(Debug, Clone)]
 pub enum FlushMode {
+    /// Flush asynchronously (OS decides when to flush).
     Async,
+    /// Flush synchronously after each write.
     Sync,
+    /// Flush after accumulating bytes or after interval elapses.
     Batch { bytes: usize, interval: Duration },
 }
 

@@ -16,11 +16,13 @@ use std::path::PathBuf;
 
 use crate::{FlushMode, Queue, QueueConfig, Result, RollStrategy};
 
+/// Builder for constructing a Queue with custom configuration.
 pub struct QueueBuilder {
     config: QueueConfig,
 }
 
 impl QueueBuilder {
+    /// Creates a new builder with the given base path.
     pub fn new<P: Into<PathBuf>>(base_path: P) -> Self {
         Self {
             config: QueueConfig {
@@ -30,31 +32,37 @@ impl QueueBuilder {
         }
     }
 
+    /// Sets the maximum file size in bytes.
     pub fn file_size(mut self, size: u64) -> Self {
         self.config.file_size = size;
         self
     }
 
+    /// Sets the strategy for rolling to new files.
     pub fn roll_strategy(mut self, strategy: RollStrategy) -> Self {
         self.config.roll_strategy = strategy;
         self
     }
 
+    /// Sets the flush mode for writes.
     pub fn flush_mode(mut self, mode: FlushMode) -> Self {
         self.config.flush_mode = mode;
         self
     }
 
+    /// Sets the interval between index entries.
     pub fn index_interval(mut self, interval: u64) -> Self {
         self.config.index_interval = interval;
         self
     }
 
+    /// Enables or disables integrity verification on startup.
     pub fn verify_on_startup(mut self, verify: bool) -> Self {
         self.config.verify_on_startup = verify;
         self
     }
 
+    /// Builds the Queue with the configured options.
     pub fn build(self) -> Result<Queue> {
         Queue::new(self.config)
     }

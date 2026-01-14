@@ -19,6 +19,7 @@ use crossbeam::channel::Sender;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
+/// Thread-safe handle for appending messages to the queue.
 #[derive(Clone)]
 pub struct Appender {
     tx: Sender<WriteEvent>,
@@ -30,6 +31,7 @@ impl Appender {
         Self { tx, sequence }
     }
 
+    /// Appends a single message. Returns the assigned sequence number.
     pub fn append(&self, data: impl Into<Bytes>) -> Result<u64> {
         let seq = self.sequence.fetch_add(1, Ordering::Relaxed);
 
@@ -44,6 +46,7 @@ impl Appender {
         Ok(seq)
     }
 
+    /// Appends multiple messages atomically. Returns their sequence numbers.
     pub fn append_batch<I>(&self, items: I) -> Result<Vec<u64>>
     where
         I: IntoIterator<Item = Bytes>,
@@ -58,6 +61,7 @@ impl Appender {
         Ok(sequences)
     }
 
+    /// Returns the next sequence number to be assigned.
     pub fn current_sequence(&self) -> u64 {
         self.sequence.load(Ordering::Relaxed)
     }

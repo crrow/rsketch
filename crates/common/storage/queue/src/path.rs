@@ -16,6 +16,7 @@ use crate::Result;
 use chrono::{DateTime, Datelike, Utc};
 use std::path::{Path, PathBuf};
 
+/// Creates a time-based directory path: `base/YYYY/MM/DD`.
 pub fn time_based_dir<P: AsRef<Path>>(base: P, time: DateTime<Utc>) -> PathBuf {
     let base = base.as_ref();
     base.join(format!("{:04}", time.year()))
@@ -23,6 +24,7 @@ pub fn time_based_dir<P: AsRef<Path>>(base: P, time: DateTime<Utc>) -> PathBuf {
         .join(format!("{:02}", time.day()))
 }
 
+/// Generates a data file name: `YYYYMMDD-NNNN.data`.
 pub fn data_file_name(time: DateTime<Utc>, sequence: u32) -> String {
     format!(
         "{:04}{:02}{:02}-{:04}.data",
@@ -33,6 +35,7 @@ pub fn data_file_name(time: DateTime<Utc>, sequence: u32) -> String {
     )
 }
 
+/// Generates an index file name: `YYYYMMDD-NNNN.index`.
 pub fn index_file_name(time: DateTime<Utc>, sequence: u32) -> String {
     format!(
         "{:04}{:02}{:02}-{:04}.index",
@@ -43,16 +46,19 @@ pub fn index_file_name(time: DateTime<Utc>, sequence: u32) -> String {
     )
 }
 
+/// Returns full path to a data file: `base/YYYY/MM/DD/YYYYMMDD-NNNN.data`.
 pub fn data_file_path<P: AsRef<Path>>(base: P, time: DateTime<Utc>, sequence: u32) -> PathBuf {
     let dir = time_based_dir(base, time);
     dir.join(data_file_name(time, sequence))
 }
 
+/// Returns full path to an index file: `base/YYYY/MM/DD/YYYYMMDD-NNNN.index`.
 pub fn index_file_path<P: AsRef<Path>>(base: P, time: DateTime<Utc>, sequence: u32) -> PathBuf {
     let dir = time_based_dir(base, time);
     dir.join(index_file_name(time, sequence))
 }
 
+/// Recursively scans for all `.data` files under the base directory.
 pub fn scan_data_files<P: AsRef<Path>>(base: P) -> Result<Vec<PathBuf>> {
     let mut files = Vec::new();
     scan_data_files_recursive(base.as_ref(), &mut files)?;

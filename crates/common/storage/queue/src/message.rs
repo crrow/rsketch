@@ -14,10 +14,14 @@
 
 use bytes::Bytes;
 
+/// A message read from the queue.
 #[derive(Debug)]
 pub struct Message<'a> {
+    /// Monotonically increasing sequence number.
     pub sequence: u64,
+    /// Unix timestamp in microseconds when the message was written.
     pub timestamp: u64,
+    /// Message payload bytes.
     pub payload: &'a [u8],
 }
 

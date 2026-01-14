@@ -12,6 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//! Persistent append-only queue with memory-mapped I/O.
+//!
+//! Features:
+//! - Memory-mapped files via mmap-io for efficient disk access
+//! - CRC64 checksums for data integrity
+//! - Time-based directory organization (YYYY/MM/DD)
+//! - Configurable file rolling strategies (size, time, count)
+//! - Thread-safe appender for concurrent writes
+
 mod crc;
 
 pub mod appender;
@@ -29,6 +38,7 @@ pub use error::{QueueError, Result};
 pub use file::{DataFile, ReadOnlyDataFile};
 pub use message::Message;
 
+/// Main queue handle (placeholder for future implementation).
 pub struct Queue {}
 
 impl Queue {
