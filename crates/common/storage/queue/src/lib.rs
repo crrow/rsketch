@@ -16,6 +16,7 @@ pub mod builder;
 pub mod config;
 pub mod error;
 pub mod file;
+pub mod path;
 
 pub use builder::QueueBuilder;
 pub use config::{FlushMode, QueueConfig, RollStrategy};

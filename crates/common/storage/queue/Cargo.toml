@@ -8,6 +8,7 @@ repository.workspace = true
 homepage.workspace = true
 
 [dependencies]
+chrono = "0.4"
 mmap-io = "0.9"
 thiserror = "2.0"
 
