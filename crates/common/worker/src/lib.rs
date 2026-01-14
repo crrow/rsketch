@@ -12,16 +12,80 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-mod config;
+//! Worker abstraction for task scheduling and execution.
+//!
+//! This crate provides a flexible worker system with:
+//! - **Multiple trigger types**: Once, Notify, Interval, Cron, and hybrid
+//!   triggers
+//! - **Type-safe builder API**: Compile-time guarantees for trigger
+//!   configuration
+//! - **Shared state**: Generic state support with Clone constraint
+//! - **Lifecycle hooks**: on_start, work, on_shutdown
+//! - **Graceful shutdown**: Coordinated cancellation with timeout
+//! - **Pause/Resume/Notify**: Runtime control via handle traits
+//!
+//! # Quick Start
+//!
+//! ```rust,no_run
+//! use std::time::Duration;
+//!
+//! use rsketch_common_worker::{Manager, Pausable, Worker, WorkerContext};
+//!
+//! struct MyWorker;
+//!
+//! #[async_trait::async_trait]
+//! impl Worker for MyWorker {
+//!     async fn work<S: Clone + Send + Sync>(&mut self, ctx: WorkerContext<S>) {
+//!         println!("Worker {} executed", ctx.name());
+//!     }
+//! }
+//!
+//! #[tokio::main]
+//! async fn main() {
+//!     let mut manager = Manager::new();
+//!
+//!     // Spawn an interval worker
+//!     let handle = manager
+//!         .worker(MyWorker)
+//!         .name("my-worker")
+//!         .interval(Duration::from_secs(5))
+//!         .spawn();
+//!
+//!     // Pause/resume control
+//!     handle.pause();
+//!     handle.resume();
+//!
+//!     // Graceful shutdown
+//!     manager.shutdown().await;
+//! }
+//! ```
+//!
+//! # Architecture
+//!
+//! - [`Worker`]: Trait defining work logic with lifecycle hooks
+//! - [`Manager`]: Orchestrates worker lifecycle and shared state
+//! - [`WorkerContext`]: Execution context with state, cancellation, and notify
+//! - [`Trigger`]: Execution schedule (Once, Notify, Interval, Cron, etc.)
+//! - Handle traits: [`Handle`], [`Pausable`], [`Notifiable`] for runtime
+//!   control
+
+mod builder;
 mod context;
+mod driver;
 mod err;
+mod handle;
 mod manager;
 mod metrics;
+mod trigger;
 mod worker;
 
 // Public API
-pub use config::WorkerConfig;
 pub use context::WorkerContext;
-pub use err::{Error, Result};
-pub use manager::Manager;
-pub use worker::{Trigger, Worker, WorkerHandle};
+pub use err::CronParseError;
+pub use handle::{
+    CronHandle, CronOrNotifyHandle, Handle, IntervalHandle, IntervalOrNotifyHandle, Notifiable,
+    NotifyHandle, OnceHandle, Pausable,
+};
+pub use manager::{Manager, ManagerConfig};
+pub use trigger::Trigger;
+pub use worker::Worker;

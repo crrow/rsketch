@@ -14,14 +14,31 @@
 
 use snafu::Snafu;
 
-pub type Result<T> = std::result::Result<T, Error>;
-
+/// Errors that can occur when parsing cron expressions.
+///
+/// # Example
+///
+/// ```rust
+/// use rsketch_common_worker::CronParseError;
+///
+/// let result = croner::Cron::new("invalid cron").parse();
+/// match result {
+///     Ok(cron) => println!("Valid cron"),
+///     Err(e) => println!("Invalid cron: {}", e),
+/// }
+/// ```
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub))]
-pub enum Error {
-    #[snafu(display("Failed to build tokio runtime"))]
-    Build {
-        source: std::io::Error,
+pub enum CronParseError {
+    /// The cron expression could not be parsed.
+    ///
+    /// This typically occurs when:
+    /// - Invalid syntax (e.g., "60 * * * *" for minute)
+    /// - Wrong number of fields (expects 5: minute hour day month weekday)
+    /// - Invalid range values
+    #[snafu(display("Failed to parse cron expression: {source}"))]
+    InvalidExpression {
+        source: croner::errors::CronError,
         #[snafu(implicit)]
         loc:    snafu::Location,
     },

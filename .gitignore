@@ -15,6 +15,7 @@ Cargo.lock
 
 # Act local environment file
 .env.local
+.env
 
 # Act artifacts directory
 /tmp/act-artifacts

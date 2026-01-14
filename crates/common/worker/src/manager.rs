@@ -12,104 +12,278 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::sync::{
-    Arc,
-    atomic::{AtomicBool, Ordering},
+use std::{
+    sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+    },
+    time::{Duration, Instant},
 };
 
 use rsketch_common_runtime::Runtime;
+use smart_default::SmartDefault;
 use tokio::{sync::Notify, task::JoinSet};
 use tokio_util::sync::CancellationToken;
 use tracing::{error, info};
 
 use crate::{
-    config::WorkerConfig,
+    builder::{SpawnResult, TriggerNotSet, WorkerBuilder},
     context::WorkerContext,
-    err::Result,
+    driver::{
+        CronDriver, CronOrNotifyDriver, IntervalDriver, IntervalOrNotifyDriver, NotifyDriver,
+        OnceDriver, TriggerDriverEnum,
+    },
     metrics::{
-        WORKER_ACTIVE, WORKER_ERRORS, WORKER_EXECUTION_DURATION_SECONDS, WORKER_EXECUTION_ERRORS,
-        WORKER_EXECUTIONS, WORKER_SHUTDOWN_ERRORS, WORKER_START_ERRORS, WORKER_STARTED,
+        WORKER_ACTIVE, WORKER_EXECUTION_DURATION_SECONDS, WORKER_EXECUTIONS, WORKER_STARTED,
         WORKER_STOPPED,
     },
-    worker::{Trigger, Worker, WorkerHandle},
+    trigger::Trigger,
+    worker::Worker,
 };
 
-/// Manages lifecycle of multiple background workers.
-pub struct Manager {
-    cancel_token:     CancellationToken,
-    runtime:          Option<Arc<Runtime>>,
-    shutdown_timeout: std::time::Duration,
-    joins:            JoinSet<Result<()>>,
+/// Configuration options for the worker manager.
+///
+/// # Fields
+///
+/// - `runtime`: Optional custom Tokio runtime for worker execution.
+///   If `None`, uses the global background runtime.
+/// - `shutdown_timeout`: Maximum time to wait for workers to finish during shutdown.
+///   Defaults to 30 seconds.
+///
+/// # Example
+///
+/// ```rust
+/// use rsketch_common_worker::{Manager, ManagerConfig};
+/// use std::time::Duration;
+///
+/// let config = ManagerConfig {
+///     runtime: None,
+///     shutdown_timeout: Duration::from_secs(60),
+/// };
+/// let manager = Manager::with_config(config);
+/// ```
+#[derive(Debug, Clone, SmartDefault)]
+pub struct ManagerConfig {
+    pub runtime:          Option<Arc<Runtime>>,
+    #[default(Duration::from_secs(30))]
+    pub shutdown_timeout: Duration,
 }
 
-impl Manager {
-    /// Create a new worker manager.
-    pub fn start(config: WorkerConfig) -> Result<Self> {
-        Ok(Manager {
+/// Orchestrates lifecycle and execution of multiple background workers.
+///
+/// The Manager is generic over a shared state type `S` that is cloned and passed to
+/// each worker execution via [`WorkerContext`]. For stateless workers, use `Manager<()>`.
+///
+/// # Lifecycle
+///
+/// 1. Create manager with `new()` or `with_state()`
+/// 2. Configure and spawn workers using the builder API
+/// 3. Workers run in background according to their triggers
+/// 4. Call `shutdown()` for graceful termination
+///
+/// # State Management
+///
+/// State must implement `Clone`. For expensive types, wrap in `Arc<T>`:
+///
+/// ```rust
+/// use rsketch_common_worker::Manager;
+/// use std::sync::Arc;
+///
+/// #[derive(Clone)]
+/// struct AppState {
+///     db: Arc<Database>,  // Expensive, wrapped in Arc
+///     config: String,     // Cheap to clone
+/// }
+/// # struct Database;
+///
+/// let state = AppState { db: Arc::new(Database), config: "prod".into() };
+/// let manager = Manager::with_state(state);
+/// ```
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use rsketch_common_worker::{Manager, Worker, WorkerContext};
+/// use std::time::Duration;
+///
+/// struct MyWorker;
+///
+/// #[async_trait::async_trait]
+/// impl Worker for MyWorker {
+///     async fn work<S: Clone + Send + Sync>(&mut self, ctx: WorkerContext<S>) {
+///         println!("Working...");
+///     }
+/// }
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let mut manager = Manager::new();
+///     
+///     // Spawn multiple workers with different triggers
+///     let h1 = manager.worker(MyWorker).name("w1").once().spawn();
+///     let h2 = manager.worker(MyWorker).name("w2").interval(Duration::from_secs(10)).spawn();
+///     
+///     // Graceful shutdown with timeout
+///     manager.shutdown().await;
+/// }
+/// ```
+pub struct Manager<S = ()> {
+    state:            S,
+    cancel_token:     CancellationToken,
+    runtime:          Option<Arc<Runtime>>,
+    shutdown_timeout: Duration,
+    joins:            JoinSet<()>,
+}
+
+impl Manager<()> {
+    /// Creates a new worker manager without shared state.
+    ///
+    /// Workers will receive `WorkerContext<()>` with no accessible state.
+    /// Uses default configuration (30s shutdown timeout).
+    pub fn new() -> Self { Self::with_config(ManagerConfig::default()) }
+
+    /// Creates a new worker manager with custom configuration.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use rsketch_common_worker::{Manager, ManagerConfig};
+    /// use std::time::Duration;
+    ///
+    /// let config = ManagerConfig {
+    ///     runtime: None,
+    ///     shutdown_timeout: Duration::from_secs(60),
+    /// };
+    /// let manager = Manager::with_config(config);
+    /// ```
+    pub fn with_config(config: ManagerConfig) -> Self {
+        Manager {
+            state:            (),
             cancel_token:     CancellationToken::new(),
-            runtime:          config.runtime(),
-            shutdown_timeout: config.shutdown_timeout(),
+            runtime:          config.runtime,
+            shutdown_timeout: config.shutdown_timeout,
             joins:            JoinSet::new(),
-        })
+        }
+    }
+}
+
+impl Default for Manager<()> {
+    fn default() -> Self { Self::new() }
+}
+
+impl<S: Clone + Send + Sync + 'static> Manager<S> {
+    /// Creates a worker manager with custom shared state.
+    ///
+    /// The state will be cloned for each worker execution and passed via `WorkerContext`.
+    /// For expensive-to-clone types, wrap them in `Arc<T>` before passing.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use rsketch_common_worker::Manager;
+    /// use std::sync::Arc;
+    ///
+    /// #[derive(Clone)]
+    /// struct Config {
+    ///     db_url: String,
+    /// }
+    ///
+    /// let config = Config { db_url: "postgres://...".into() };
+    /// let manager = Manager::with_state(config);
+    /// ```
+    pub fn with_state(state: S) -> Self {
+        Self::with_state_and_config(state, ManagerConfig::default())
     }
 
-    /// Register a new worker and return its handle.
+    /// Create a new worker manager with custom state and configuration.
+    pub fn with_state_and_config(state: S, config: ManagerConfig) -> Self {
+        Manager {
+            state,
+            cancel_token: CancellationToken::new(),
+            runtime: config.runtime,
+            shutdown_timeout: config.shutdown_timeout,
+            joins: JoinSet::new(),
+        }
+    }
+
+    /// Starts building a worker configuration.
     ///
-    /// The worker starts immediately in a background task.
-    pub fn register<W>(&mut self, mut worker: W) -> WorkerHandle
+    /// Returns a builder in the initial state. You must chain methods to:
+    /// 1. Optionally set a name with `.name("worker-name")`
+    /// 2. Optionally mark as blocking with `.blocking()`
+    /// 3. **Required**: Set a trigger (`.once()`, `.on_notify()`, `.interval()`, etc.)
+    /// 4. **Required**: Call `.spawn()` to actually start the worker
+    ///
+    /// The type system ensures you can't spawn without setting a trigger.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use rsketch_common_worker::{Manager, Worker, WorkerContext};
+    /// # use std::time::Duration;
+    /// # struct MyWorker;
+    /// # #[async_trait::async_trait]
+    /// # impl Worker for MyWorker {
+    /// #     async fn work<S: Clone + Send + Sync>(&mut self, ctx: WorkerContext<S>) {}
+    /// # }
+    /// # let mut manager = Manager::new();
+    /// let handle = manager
+    ///     .worker(MyWorker)
+    ///     .name("my-worker")       // Optional
+    ///     .blocking()              // Optional - runs on blocking thread pool
+    ///     .interval(Duration::from_secs(5))  // Required trigger
+    ///     .spawn();                // Required to start
+    /// ```
+    pub fn worker<W: Worker>(&mut self, worker: W) -> WorkerBuilder<'_, S, W, TriggerNotSet> {
+        WorkerBuilder::new(self, worker)
+    }
+
+    /// Internal method to spawn a worker with a specific trigger.
+    pub(crate) fn spawn_worker<W, H>(
+        &mut self,
+        worker: W,
+        name: &'static str,
+        blocking: bool,
+        trigger: Trigger,
+    ) -> H
     where
         W: Worker,
+        H: SpawnResult,
+        S: Clone,
     {
-        let name = W::name();
-        let trigger = W::trigger();
         let notify = Arc::new(Notify::new());
         let paused = Arc::new(AtomicBool::new(false));
-        let ctx = WorkerContext::new(self.cancel_token.child_token(), notify.clone());
+        let ctx = WorkerContext::new(
+            self.state.clone(),
+            self.cancel_token.child_token(),
+            notify.clone(),
+            name,
+        );
+
+        let driver = match trigger {
+            Trigger::Once => TriggerDriverEnum::Once(OnceDriver::new()),
+            Trigger::Notify => TriggerDriverEnum::Notify(NotifyDriver::new()),
+            Trigger::Interval(duration) => {
+                TriggerDriverEnum::Interval(IntervalDriver::new(duration))
+            }
+            Trigger::Cron(cron) => TriggerDriverEnum::Cron(CronDriver::new(cron)),
+            Trigger::IntervalOrNotify(duration) => {
+                TriggerDriverEnum::IntervalOrNotify(IntervalOrNotifyDriver::new(duration))
+            }
+            Trigger::CronOrNotify(cron) => {
+                TriggerDriverEnum::CronOrNotify(CronOrNotifyDriver::new(cron))
+            }
+        };
 
         let paused_clone = paused.clone();
-        let task = async move {
-            info!(worker = name, trigger = ?trigger, "Worker starting");
-            WORKER_STARTED.with_label_values(&[name]).inc();
-            WORKER_ACTIVE.with_label_values(&[name]).set(1);
-
-            // Call on_start hook
-            if let Err(e) = worker.on_start(&ctx).await {
-                error!(worker = name, error = ?e, "Worker failed during on_start");
-                WORKER_START_ERRORS.with_label_values(&[name]).inc();
-                WORKER_ACTIVE.with_label_values(&[name]).set(0);
-                return Err(e);
-            }
-
-            let result = Self::run_loop(&mut worker, &ctx, &paused_clone, trigger, name).await;
-
-            // Always call on_shutdown, even if work failed
-            if let Err(e) = worker.on_shutdown(&ctx).await {
-                error!(worker = name, error = ?e, "Worker failed during on_shutdown");
-                WORKER_SHUTDOWN_ERRORS.with_label_values(&[name]).inc();
-            }
-
-            match &result {
-                Ok(_) => {
-                    info!(worker = name, "Worker stopped gracefully");
-                    WORKER_STOPPED.with_label_values(&[name]).inc();
-                }
-                Err(e) => {
-                    error!(worker = name, error = ?e, "Worker failed");
-                    WORKER_ERRORS.with_label_values(&[name]).inc();
-                }
-            }
-            WORKER_ACTIVE.with_label_values(&[name]).set(0);
-            result
-        };
+        let task = run_worker(worker, ctx, paused_clone, driver, name);
 
         let runtime = self
             .runtime
             .clone()
             .unwrap_or_else(rsketch_common_runtime::background_runtime);
 
-        if W::is_blocking() {
-            // For blocking workers, spawn on blocking thread pool and block_on the async
-            // task
+        if blocking {
             let handle = runtime.handle().clone();
             self.joins
                 .spawn_blocking_on(move || handle.block_on(task), runtime.handle());
@@ -117,95 +291,55 @@ impl Manager {
             self.joins.spawn_on(task, runtime.handle());
         }
 
-        WorkerHandle::new(name, notify, paused)
+        H::from_parts(name, notify, paused)
     }
 
-    async fn run_loop<W>(
-        worker: &mut W,
-        ctx: &WorkerContext,
-        paused: &Arc<AtomicBool>,
-        trigger: crate::worker::Trigger,
-        name: &'static str,
-    ) -> Result<()>
-    where
-        W: Worker,
-    {
-        match trigger {
-            Trigger::Once => {
-                worker.work(ctx).await?;
-                WORKER_EXECUTIONS.with_label_values(&[name]).inc();
-            }
-            Trigger::Notify => loop {
-                tokio::select! {
-                    _ = ctx.notified() => {
-                        // Check if paused
-                        if paused.load(Ordering::Acquire) {
-                            continue; // Skip execution if paused
-                        }
-
-                        let start = std::time::Instant::now();
-                        match worker.work(ctx).await {
-                            Ok(_) => {
-                                WORKER_EXECUTIONS.with_label_values(&[name]).inc();
-                                WORKER_EXECUTION_DURATION_SECONDS
-                                    .with_label_values(&[name])
-                                    .observe(start.elapsed().as_secs_f64());
-                            }
-                            Err(e) => {
-                                error!(worker = name, error = ?e, "Worker execution failed");
-                                WORKER_EXECUTION_ERRORS.with_label_values(&[name]).inc();
-                                return Err(e);
-                            }
-                        }
-                    }
-                    _ = ctx.cancelled() => {
-                        break;
-                    }
-                }
-            },
-            Trigger::Interval(duration) => {
-                let mut interval = tokio::time::interval(duration);
-                interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
-
-                loop {
-                    tokio::select! {
-                        _ = interval.tick() => {
-                            // Check if paused
-                            if paused.load(Ordering::Acquire) {
-                                continue; // Skip execution if paused
-                            }
-
-                            let start = std::time::Instant::now();
-                            match worker.work(ctx).await {
-                                Ok(_) => {
-                                    WORKER_EXECUTIONS.with_label_values(&[name]).inc();
-                                    WORKER_EXECUTION_DURATION_SECONDS
-                                        .with_label_values(&[name])
-                                        .observe(start.elapsed().as_secs_f64());
-                                }
-                                Err(e) => {
-                                    error!(worker = name, error = ?e, "Worker execution failed");
-                                    WORKER_EXECUTION_ERRORS.with_label_values(&[name]).inc();
-                                    return Err(e);
-                                }
-                            }
-                        }
-                        _ = ctx.cancelled() => {
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        Ok(())
-    }
-
-    /// Gracefully shutdown all workers.
+    /// Initiates graceful shutdown of all workers and waits for them to complete.
     ///
-    /// Cancels all workers and waits for them to finish within the configured
-    /// timeout. Workers not responding in time will be aborted.
-    pub async fn shutdown(mut self) -> Result<()> {
+    /// This method:
+    /// 1. Sends cancellation signal to all workers via their contexts
+    /// 2. Waits for workers to finish their current execution and cleanup
+    /// 3. Returns when all workers have stopped OR timeout is reached
+    /// 4. Aborts any remaining workers if timeout expires
+    ///
+    /// Workers should check `ctx.is_cancelled()` or await `ctx.cancelled()` to
+    /// respond to shutdown requests quickly.
+    ///
+    /// # Timeout Behavior
+    ///
+    /// - Default timeout: 30 seconds (configurable via [`ManagerConfig`])
+    /// - If workers don't finish within timeout, they are forcefully aborted
+    /// - Aborted workers may not run their `on_shutdown` hooks
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use rsketch_common_worker::{Manager, Worker, WorkerContext};
+    /// # use std::time::Duration;
+    /// # struct MyWorker;
+    /// # #[async_trait::async_trait]
+    /// # impl Worker for MyWorker {
+    /// #     async fn work<S: Clone + Send + Sync>(&mut self, ctx: WorkerContext<S>) {
+    /// #         loop {
+    /// #             if ctx.is_cancelled() {
+    /// #                 break;  // Respond to shutdown
+    /// #             }
+    /// #             tokio::time::sleep(Duration::from_secs(1)).await;
+    /// #         }
+    /// #     }
+    /// # }
+    /// # #[tokio::main]
+    /// # async fn main() {
+    /// let mut manager = Manager::new();
+    /// manager.worker(MyWorker).interval(Duration::from_secs(10)).spawn();
+    ///
+    /// // ... application runs ...
+    ///
+    /// // Graceful shutdown
+    /// manager.shutdown().await;
+    /// # }
+    /// ```
+    pub async fn shutdown(&mut self) {
         info!("Shutting down worker manager");
         self.cancel_token.cancel();
 
@@ -219,12 +353,8 @@ impl Manager {
             tokio::select! {
                 result = self.joins.join_next() => {
                     match result {
-                        Some(Ok(Ok(()))) => {
+                        Some(Ok(())) => {
                             total_count += 1;
-                        }
-                        Some(Ok(Err(e))) => {
-                            total_count += 1;
-                            error!(error = ?e, "Worker error during shutdown");
                         }
                         Some(Err(e)) => {
                             total_count += 1;
@@ -251,8 +381,10 @@ impl Manager {
                     // Drain remaining join handles
                     while let Some(result) = self.joins.join_next().await {
                         total_count += 1;
-                        if let Err(e) = result && e.is_cancelled() {
-                            aborted_count += 1;
+                        if let Err(e) = result {
+                            if e.is_cancelled() {
+                                aborted_count += 1;
+                            }
                         }
                     }
                     break;
@@ -269,7 +401,46 @@ impl Manager {
         } else {
             info!(stopped = total_count, "Worker manager shutdown complete");
         }
-
-        Ok(())
     }
+}
+
+/// Unified execution loop for all worker types.
+async fn run_worker<S: Clone + Send + Sync, W: Worker>(
+    mut worker: W,
+    ctx: WorkerContext<S>,
+    paused: Arc<AtomicBool>,
+    mut driver: TriggerDriverEnum,
+    name: &'static str,
+) {
+    let span = tracing::info_span!("worker", name);
+    let _guard = span.enter();
+
+    info!("Worker starting");
+    WORKER_STARTED.with_label_values(&[name]).inc();
+    WORKER_ACTIVE.with_label_values(&[name]).set(1);
+
+    // Call on_start hook
+    worker.on_start(ctx.clone()).await;
+
+    // Main execution loop
+    while driver.wait_next(&ctx).await {
+        if paused.load(Ordering::Acquire) {
+            continue;
+        }
+
+        let start = Instant::now();
+        worker.work(ctx.clone()).await;
+
+        WORKER_EXECUTIONS.with_label_values(&[name]).inc();
+        WORKER_EXECUTION_DURATION_SECONDS
+            .with_label_values(&[name])
+            .observe(start.elapsed().as_secs_f64());
+    }
+
+    // Call on_shutdown hook
+    worker.on_shutdown(ctx.clone()).await;
+
+    info!("Worker stopped");
+    WORKER_STOPPED.with_label_values(&[name]).inc();
+    WORKER_ACTIVE.with_label_values(&[name]).set(0);
 }
