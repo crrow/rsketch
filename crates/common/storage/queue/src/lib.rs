@@ -12,10 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+pub mod builder;
 pub mod config;
 pub mod error;
 
+pub use builder::QueueBuilder;
 pub use config::{FlushMode, QueueConfig, RollStrategy};
 pub use error::{QueueError, Result};
 
 pub struct Queue {}
+
+impl Queue {
+    pub(crate) fn new(_config: QueueConfig) -> Result<Self> {
+        Ok(Queue {})
+    }
+}
