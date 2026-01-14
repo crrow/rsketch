@@ -16,16 +16,18 @@ use std::time::Duration;
 
 /// Defines when and how a worker should be executed.
 ///
-/// Triggers control the scheduling strategy for worker execution. Each trigger type
-/// returns a different handle type with appropriate control capabilities.
+/// Triggers control the scheduling strategy for worker execution. Each trigger
+/// type returns a different handle type with appropriate control capabilities.
 ///
 /// # Trigger Types
 ///
 /// - **`Once`**: Runs immediately once at startup, then stops
 /// - **`Notify`**: Runs only when explicitly triggered via handle
 /// - **`Interval`**: Runs periodically at fixed intervals
-/// - **`Cron`**: Runs on a cron schedule (e.g., "0 0 * * *" for daily at midnight)
-/// - **`IntervalOrNotify`**: Hybrid - runs on interval OR when notified (timer resets)
+/// - **`Cron`**: Runs on a cron schedule (e.g., "0 0 * * *" for daily at
+///   midnight)
+/// - **`IntervalOrNotify`**: Hybrid - runs on interval OR when notified (timer
+///   resets)
 /// - **`CronOrNotify`**: Hybrid - runs on cron schedule OR when notified
 ///
 /// # Handle Mapping
@@ -44,8 +46,9 @@ use std::time::Duration;
 /// # Examples
 ///
 /// ```rust
-/// use rsketch_common_worker::Trigger;
 /// use std::time::Duration;
+///
+/// use rsketch_common_worker::Trigger;
 ///
 /// // Run every 5 seconds
 /// let trigger = Trigger::Interval(Duration::from_secs(5));
@@ -73,8 +76,8 @@ pub enum Trigger {
 
     /// Execute at fixed intervals.
     ///
-    /// Returns [`IntervalHandle`](crate::IntervalHandle) with pause/resume methods.
-    /// The interval starts immediately and repeats continuously.
+    /// Returns [`IntervalHandle`](crate::IntervalHandle) with pause/resume
+    /// methods. The interval starts immediately and repeats continuously.
     Interval(Duration),
 
     /// Execute on a cron schedule.
@@ -86,13 +89,15 @@ pub enum Trigger {
 
     /// Execute at intervals OR when manually notified.
     ///
-    /// Returns [`IntervalOrNotifyHandle`](crate::IntervalOrNotifyHandle) with pause/resume and notify methods.
-    /// When notified, the worker runs immediately and the interval timer resets.
+    /// Returns [`IntervalOrNotifyHandle`](crate::IntervalOrNotifyHandle) with
+    /// pause/resume and notify methods. When notified, the worker runs
+    /// immediately and the interval timer resets.
     IntervalOrNotify(Duration),
 
     /// Execute on cron schedule OR when manually notified.
     ///
-    /// Returns [`CronOrNotifyHandle`](crate::CronOrNotifyHandle) with pause/resume and notify methods.
-    /// Manual notifications trigger immediate execution without affecting the cron schedule.
+    /// Returns [`CronOrNotifyHandle`](crate::CronOrNotifyHandle) with
+    /// pause/resume and notify methods. Manual notifications trigger
+    /// immediate execution without affecting the cron schedule.
     CronOrNotify(croner::Cron),
 }

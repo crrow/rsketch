@@ -45,19 +45,20 @@ use crate::{
 ///
 /// # Fields
 ///
-/// - `runtime`: Optional custom Tokio runtime for worker execution.
-///   If `None`, uses the global background runtime.
-/// - `shutdown_timeout`: Maximum time to wait for workers to finish during shutdown.
-///   Defaults to 30 seconds.
+/// - `runtime`: Optional custom Tokio runtime for worker execution. If `None`,
+///   uses the global background runtime.
+/// - `shutdown_timeout`: Maximum time to wait for workers to finish during
+///   shutdown. Defaults to 30 seconds.
 ///
 /// # Example
 ///
 /// ```rust
-/// use rsketch_common_worker::{Manager, ManagerConfig};
 /// use std::time::Duration;
 ///
+/// use rsketch_common_worker::{Manager, ManagerConfig};
+///
 /// let config = ManagerConfig {
-///     runtime: None,
+///     runtime:          None,
 ///     shutdown_timeout: Duration::from_secs(60),
 /// };
 /// let manager = Manager::with_config(config);
@@ -71,8 +72,9 @@ pub struct ManagerConfig {
 
 /// Orchestrates lifecycle and execution of multiple background workers.
 ///
-/// The Manager is generic over a shared state type `S` that is cloned and passed to
-/// each worker execution via [`WorkerContext`]. For stateless workers, use `Manager<()>`.
+/// The Manager is generic over a shared state type `S` that is cloned and
+/// passed to each worker execution via [`WorkerContext`]. For stateless
+/// workers, use `Manager<()>`.
 ///
 /// # Lifecycle
 ///
@@ -86,25 +88,30 @@ pub struct ManagerConfig {
 /// State must implement `Clone`. For expensive types, wrap in `Arc<T>`:
 ///
 /// ```rust
-/// use rsketch_common_worker::Manager;
 /// use std::sync::Arc;
+///
+/// use rsketch_common_worker::Manager;
 ///
 /// #[derive(Clone)]
 /// struct AppState {
-///     db: Arc<Database>,  // Expensive, wrapped in Arc
-///     config: String,     // Cheap to clone
+///     db:     Arc<Database>, // Expensive, wrapped in Arc
+///     config: String,        // Cheap to clone
 /// }
 /// # struct Database;
 ///
-/// let state = AppState { db: Arc::new(Database), config: "prod".into() };
+/// let state = AppState {
+///     db:     Arc::new(Database),
+///     config: "prod".into(),
+/// };
 /// let manager = Manager::with_state(state);
 /// ```
 ///
 /// # Example
 ///
 /// ```rust,no_run
-/// use rsketch_common_worker::{Manager, Worker, WorkerContext};
 /// use std::time::Duration;
+///
+/// use rsketch_common_worker::{Manager, Worker, WorkerContext};
 ///
 /// struct MyWorker;
 ///
@@ -118,11 +125,15 @@ pub struct ManagerConfig {
 /// #[tokio::main]
 /// async fn main() {
 ///     let mut manager = Manager::new();
-///     
+///
 ///     // Spawn multiple workers with different triggers
 ///     let h1 = manager.worker(MyWorker).name("w1").once().spawn();
-///     let h2 = manager.worker(MyWorker).name("w2").interval(Duration::from_secs(10)).spawn();
-///     
+///     let h2 = manager
+///         .worker(MyWorker)
+///         .name("w2")
+///         .interval(Duration::from_secs(10))
+///         .spawn();
+///
 ///     // Graceful shutdown with timeout
 ///     manager.shutdown().await;
 /// }
@@ -147,11 +158,12 @@ impl Manager<()> {
     /// # Example
     ///
     /// ```rust
-    /// use rsketch_common_worker::{Manager, ManagerConfig};
     /// use std::time::Duration;
     ///
+    /// use rsketch_common_worker::{Manager, ManagerConfig};
+    ///
     /// let config = ManagerConfig {
-    ///     runtime: None,
+    ///     runtime:          None,
     ///     shutdown_timeout: Duration::from_secs(60),
     /// };
     /// let manager = Manager::with_config(config);
@@ -174,21 +186,25 @@ impl Default for Manager<()> {
 impl<S: Clone + Send + Sync + 'static> Manager<S> {
     /// Creates a worker manager with custom shared state.
     ///
-    /// The state will be cloned for each worker execution and passed via `WorkerContext`.
-    /// For expensive-to-clone types, wrap them in `Arc<T>` before passing.
+    /// The state will be cloned for each worker execution and passed via
+    /// `WorkerContext`. For expensive-to-clone types, wrap them in `Arc<T>`
+    /// before passing.
     ///
     /// # Example
     ///
     /// ```rust
-    /// use rsketch_common_worker::Manager;
     /// use std::sync::Arc;
+    ///
+    /// use rsketch_common_worker::Manager;
     ///
     /// #[derive(Clone)]
     /// struct Config {
     ///     db_url: String,
     /// }
     ///
-    /// let config = Config { db_url: "postgres://...".into() };
+    /// let config = Config {
+    ///     db_url: "postgres://...".into(),
+    /// };
     /// let manager = Manager::with_state(config);
     /// ```
     pub fn with_state(state: S) -> Self {
@@ -211,7 +227,8 @@ impl<S: Clone + Send + Sync + 'static> Manager<S> {
     /// Returns a builder in the initial state. You must chain methods to:
     /// 1. Optionally set a name with `.name("worker-name")`
     /// 2. Optionally mark as blocking with `.blocking()`
-    /// 3. **Required**: Set a trigger (`.once()`, `.on_notify()`, `.interval()`, etc.)
+    /// 3. **Required**: Set a trigger (`.once()`, `.on_notify()`,
+    ///    `.interval()`, etc.)
     /// 4. **Required**: Call `.spawn()` to actually start the worker
     ///
     /// The type system ensures you can't spawn without setting a trigger.
@@ -232,7 +249,7 @@ impl<S: Clone + Send + Sync + 'static> Manager<S> {
     ///     .name("my-worker")       // Optional
     ///     .blocking()              // Optional - runs on blocking thread pool
     ///     .interval(Duration::from_secs(5))  // Required trigger
-    ///     .spawn();                // Required to start
+    ///     .spawn(); // Required to start
     /// ```
     pub fn worker<W: Worker>(&mut self, worker: W) -> WorkerBuilder<'_, S, W, TriggerNotSet> {
         WorkerBuilder::new(self, worker)
@@ -294,7 +311,8 @@ impl<S: Clone + Send + Sync + 'static> Manager<S> {
         H::from_parts(name, notify, paused)
     }
 
-    /// Initiates graceful shutdown of all workers and waits for them to complete.
+    /// Initiates graceful shutdown of all workers and waits for them to
+    /// complete.
     ///
     /// This method:
     /// 1. Sends cancellation signal to all workers via their contexts
@@ -331,7 +349,10 @@ impl<S: Clone + Send + Sync + 'static> Manager<S> {
     /// # #[tokio::main]
     /// # async fn main() {
     /// let mut manager = Manager::new();
-    /// manager.worker(MyWorker).interval(Duration::from_secs(10)).spawn();
+    /// manager
+    ///     .worker(MyWorker)
+    ///     .interval(Duration::from_secs(10))
+    ///     .spawn();
     ///
     /// // ... application runs ...
     ///
@@ -381,10 +402,10 @@ impl<S: Clone + Send + Sync + 'static> Manager<S> {
                     // Drain remaining join handles
                     while let Some(result) = self.joins.join_next().await {
                         total_count += 1;
-                        if let Err(e) = result {
-                            if e.is_cancelled() {
-                                aborted_count += 1;
-                            }
+                        if let Err(e) = result
+                            && e.is_cancelled()
+                        {
+                            aborted_count += 1;
                         }
                     }
                     break;

@@ -78,10 +78,10 @@ pub struct TriggerCronOrNotify;
 /// # }
 /// # let mut manager = Manager::new();
 /// // Type-state progression:
-/// let builder = manager.worker(MyWorker);  // TriggerNotSet
-/// let builder = builder.name("my-worker");  // Still TriggerNotSet  
-/// let builder = builder.interval(Duration::from_secs(5));  // Now TriggerInterval
-/// let handle = builder.spawn();  // Returns IntervalHandle
+/// let builder = manager.worker(MyWorker); // TriggerNotSet
+/// let builder = builder.name("my-worker"); // Still TriggerNotSet  
+/// let builder = builder.interval(Duration::from_secs(5)); // Now TriggerInterval
+/// let handle = builder.spawn(); // Returns IntervalHandle
 /// ```
 pub struct WorkerBuilder<'m, S, W, T> {
     manager:  &'m mut Manager<S>,
@@ -110,7 +110,8 @@ where
 
     /// Configures the worker to run once immediately on startup, then stop.
     ///
-    /// Returns a builder in `TriggerOnce` state, which can spawn an [`OnceHandle`].
+    /// Returns a builder in `TriggerOnce` state, which can spawn an
+    /// [`OnceHandle`].
     ///
     /// # Example
     ///
@@ -138,8 +139,8 @@ where
 
     /// Configures the worker to run only when explicitly notified.
     ///
-    /// Returns a builder in `TriggerNotify` state, which can spawn a [`NotifyHandle`].
-    /// Use `handle.notify()` to trigger execution.
+    /// Returns a builder in `TriggerNotify` state, which can spawn a
+    /// [`NotifyHandle`]. Use `handle.notify()` to trigger execution.
     ///
     /// # Example
     ///
@@ -152,7 +153,7 @@ where
     /// # }
     /// # let mut manager = Manager::new();
     /// let handle = manager.worker(EventWorker).on_notify().spawn();
-    /// handle.notify();  // Trigger execution
+    /// handle.notify(); // Trigger execution
     /// ```
     pub fn on_notify(mut self) -> WorkerBuilder<'m, S, W, TriggerNotify> {
         self.trigger = Some(Trigger::Notify);
@@ -168,8 +169,9 @@ where
 
     /// Configures the worker to run at fixed intervals.
     ///
-    /// Returns a builder in `TriggerInterval` state, which can spawn an [`IntervalHandle`].
-    /// The worker runs repeatedly with the specified delay between executions.
+    /// Returns a builder in `TriggerInterval` state, which can spawn an
+    /// [`IntervalHandle`]. The worker runs repeatedly with the specified
+    /// delay between executions.
     ///
     /// # Example
     ///
@@ -185,7 +187,7 @@ where
     /// let handle = manager.worker(PeriodicWorker)
     ///     .interval(Duration::from_secs(60))  // Every minute
     ///     .spawn();
-    /// handle.pause();  // Stop the timer
+    /// handle.pause(); // Stop the timer
     /// handle.resume(); // Restart the timer
     /// ```
     pub fn interval(mut self, duration: Duration) -> WorkerBuilder<'m, S, W, TriggerInterval> {
@@ -202,8 +204,9 @@ where
 
     /// Configures the worker to run on a cron schedule.
     ///
-    /// Returns a builder in `TriggerCron` state, which can spawn a [`CronHandle`].
-    /// Uses standard 5-field cron format: `minute hour day month weekday`.
+    /// Returns a builder in `TriggerCron` state, which can spawn a
+    /// [`CronHandle`]. Uses standard 5-field cron format: `minute hour day
+    /// month weekday`.
     ///
     /// # Cron Format
     ///
@@ -223,13 +226,25 @@ where
     /// # }
     /// # let mut manager = Manager::new();
     /// // Every day at midnight
-    /// manager.worker(CronWorker).cron("0 0 * * *").unwrap().spawn();
+    /// manager
+    ///     .worker(CronWorker)
+    ///     .cron("0 0 * * *")
+    ///     .unwrap()
+    ///     .spawn();
     ///
     /// // Every 15 minutes
-    /// manager.worker(CronWorker).cron("*/15 * * * *").unwrap().spawn();
+    /// manager
+    ///     .worker(CronWorker)
+    ///     .cron("*/15 * * * *")
+    ///     .unwrap()
+    ///     .spawn();
     ///
     /// // Every weekday at 9 AM
-    /// manager.worker(CronWorker).cron("0 9 * * 1-5").unwrap().spawn();
+    /// manager
+    ///     .worker(CronWorker)
+    ///     .cron("0 9 * * 1-5")
+    ///     .unwrap()
+    ///     .spawn();
     /// ```
     ///
     /// # Errors
@@ -256,10 +271,11 @@ where
     /// Configures the worker to run on an interval OR when manually notified.
     ///
     /// Returns a builder in `TriggerIntervalOrNotify` state, which can spawn an
-    /// [`IntervalOrNotifyHandle`]. This hybrid trigger combines periodic execution
-    /// with on-demand triggering.
+    /// [`IntervalOrNotifyHandle`]. This hybrid trigger combines periodic
+    /// execution with on-demand triggering.
     ///
-    /// When `notify()` is called, the worker runs immediately and the interval timer resets.
+    /// When `notify()` is called, the worker runs immediately and the interval
+    /// timer resets.
     ///
     /// # Example
     ///
@@ -276,10 +292,10 @@ where
     ///     .interval_or_notify(Duration::from_secs(300))  // Every 5 minutes
     ///     .spawn();
     ///
-    /// handle.notify();  // Run immediately, reset timer
-    /// handle.pause();   // Stop the interval
-    /// handle.notify();  // Still works when paused
-    /// handle.resume();  // Restart the interval
+    /// handle.notify(); // Run immediately, reset timer
+    /// handle.pause(); // Stop the interval
+    /// handle.notify(); // Still works when paused
+    /// handle.resume(); // Restart the interval
     /// ```
     pub fn interval_or_notify(
         mut self,
@@ -296,14 +312,15 @@ where
         }
     }
 
-    /// Configures the worker to run on a cron schedule OR when manually notified.
+    /// Configures the worker to run on a cron schedule OR when manually
+    /// notified.
     ///
     /// Returns a builder in `TriggerCronOrNotify` state, which can spawn a
     /// [`CronOrNotifyHandle`]. This hybrid trigger combines cron scheduling
     /// with on-demand triggering.
     ///
-    /// Unlike `interval_or_notify`, calling `notify()` does NOT reset the cron schedule.
-    /// It only triggers an immediate one-time execution.
+    /// Unlike `interval_or_notify`, calling `notify()` does NOT reset the cron
+    /// schedule. It only triggers an immediate one-time execution.
     ///
     /// # Example
     ///
@@ -316,7 +333,8 @@ where
     /// # }
     /// # let mut manager = Manager::new();
     /// // Daily at 2 AM, but can also trigger on demand
-    /// let handle = manager.worker(ReportWorker)
+    /// let handle = manager
+    ///     .worker(ReportWorker)
     ///     .cron_or_notify("0 2 * * *")
     ///     .unwrap()
     ///     .spawn();

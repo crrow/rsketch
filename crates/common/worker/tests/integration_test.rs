@@ -97,7 +97,7 @@ async fn test_interval_trigger() {
 
     let count = counter.load(Ordering::SeqCst);
     assert!(
-        count >= 2 && count <= 3,
+        (2..=3).contains(&count),
         "Expected 2-3 executions, got {}",
         count
     );

@@ -91,8 +91,6 @@ lint:
     cargo doc --workspace --all-features --no-deps --document-private-items
     @echo "🔍 Linting protobuf..."
     cd api && buf lint
-    @echo "🔍 Linting Go code..."
-    cd examples/goclient && golangci-lint run
     @echo "✅ All linting checks passed!"
 
 [doc("run `fmt` `clippy` `check` `test` at once")]

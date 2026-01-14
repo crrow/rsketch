@@ -23,8 +23,8 @@ use crate::metrics::{WORKER_PAUSED, WORKER_RESUMED};
 
 /// Base trait for all worker handles, providing access to the worker's name.
 ///
-/// All handles implement this trait and are `Clone`, `Send`, and `Sync` to allow
-/// sharing across threads and async tasks.
+/// All handles implement this trait and are `Clone`, `Send`, and `Sync` to
+/// allow sharing across threads and async tasks.
 pub trait Handle: Clone + Send + Sync {
     /// Returns the worker's name for identification and logging.
     fn name(&self) -> &'static str;
@@ -32,8 +32,9 @@ pub trait Handle: Clone + Send + Sync {
 
 /// Handle trait for workers that can be paused and resumed.
 ///
-/// Implemented by handles for time-based triggers (Interval, Cron, and their hybrids).
-/// Pausing stops the trigger from firing but doesn't cancel the worker - it can be resumed later.
+/// Implemented by handles for time-based triggers (Interval, Cron, and their
+/// hybrids). Pausing stops the trigger from firing but doesn't cancel the
+/// worker - it can be resumed later.
 ///
 /// # Example
 ///
@@ -48,11 +49,15 @@ pub trait Handle: Clone + Send + Sync {
 /// # #[tokio::main]
 /// # async fn main() {
 /// let mut manager = Manager::new();
-/// let handle = manager.worker(MyWorker).interval(Duration::from_secs(1)).spawn();
+/// let handle = manager
+///     .worker(MyWorker)
+///     .interval(Duration::from_secs(1))
+///     .spawn();
 ///
-/// handle.pause();  // Stop the interval timer
+/// handle.pause(); // Stop the interval timer
 /// // ... do something ...
 /// handle.resume(); // Restart the interval timer
+/// //
 /// # }
 /// ```
 pub trait Pausable: Handle {
@@ -73,8 +78,8 @@ pub trait Pausable: Handle {
 
 /// Handle trait for workers that can be manually triggered.
 ///
-/// Implemented by handles for notify-based triggers (Notify and hybrid triggers).
-/// Calling `notify()` will trigger an immediate execution.
+/// Implemented by handles for notify-based triggers (Notify and hybrid
+/// triggers). Calling `notify()` will trigger an immediate execution.
 ///
 /// # Example
 ///
@@ -91,13 +96,15 @@ pub trait Pausable: Handle {
 /// let handle = manager.worker(MyWorker).on_notify().spawn();
 ///
 /// handle.notify(); // Trigger immediate execution
+/// //
 /// # }
 /// ```
 pub trait Notifiable: Handle {
     /// Triggers an immediate execution of the worker.
     ///
-    /// For hybrid triggers (IntervalOrNotify, CronOrNotify), this resets the timer.
-    /// Multiple `notify()` calls may be coalesced if the worker is still executing.
+    /// For hybrid triggers (IntervalOrNotify, CronOrNotify), this resets the
+    /// timer. Multiple `notify()` calls may be coalesced if the worker is
+    /// still executing.
     fn notify(&self);
 }
 
@@ -226,7 +233,8 @@ impl Pausable for CronHandle {
 ///
 /// Hybrid handle combining pause/resume and manual notification.
 /// The worker runs on an interval schedule OR when explicitly notified.
-/// Calling `notify()` triggers immediate execution and resets the interval timer.
+/// Calling `notify()` triggers immediate execution and resets the interval
+/// timer.
 #[derive(Clone)]
 pub struct IntervalOrNotifyHandle {
     name:   &'static str,
@@ -271,8 +279,8 @@ impl Notifiable for IntervalOrNotifyHandle {
 ///
 /// Hybrid handle combining pause/resume and manual notification.
 /// The worker runs on a cron schedule OR when explicitly notified.
-/// Unlike IntervalOrNotify, `notify()` doesn't reset the cron schedule - it only triggers
-/// an immediate one-time execution.
+/// Unlike IntervalOrNotify, `notify()` doesn't reset the cron schedule - it
+/// only triggers an immediate one-time execution.
 #[derive(Clone)]
 pub struct CronOrNotifyHandle {
     name:   &'static str,
