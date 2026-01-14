@@ -15,10 +15,12 @@
 pub mod builder;
 pub mod config;
 pub mod error;
+pub mod file;
 
 pub use builder::QueueBuilder;
 pub use config::{FlushMode, QueueConfig, RollStrategy};
 pub use error::{QueueError, Result};
+pub use file::{DataFile, ReadOnlyDataFile};
 
 pub struct Queue {}
 
