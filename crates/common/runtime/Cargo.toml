@@ -12,3 +12,6 @@ once_cell.workspace = true
 smart-default.workspace = true
 snafu.workspace = true
 tokio.workspace = true
+
+[lints]
+workspace = true

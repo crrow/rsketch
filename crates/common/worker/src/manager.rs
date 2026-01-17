@@ -36,7 +36,8 @@ use crate::{
     },
     id::WorkerId,
     metrics::{
-        WORKER_ACTIVE, WORKER_EXECUTION_DURATION_SECONDS, WORKER_EXECUTIONS, WORKER_STARTED,
+        WORKER_ACTIVE, WORKER_ERRORS, WORKER_EXECUTION_DURATION_SECONDS, WORKER_EXECUTION_ERRORS,
+        WORKER_EXECUTIONS, WORKER_SHUTDOWN_ERRORS, WORKER_START_ERRORS, WORKER_STARTED,
         WORKER_STOPPED,
     },
     trigger::Trigger,
@@ -79,6 +80,8 @@ struct WorkerEntry {
     notify:       Arc<Notify>,
     #[allow(dead_code)]
     paused:       Arc<AtomicBool>,
+    #[allow(dead_code)]
+    pause_notify: Arc<Notify>,
     join_handle:  JoinHandle<()>,
 }
 
@@ -267,6 +270,47 @@ impl<S: Clone + Send + Sync + 'static> Manager<S> {
         WorkerBuilder::new(self, worker)
     }
 
+    /// Starts building a fallible worker configuration.
+    ///
+    /// Fallible workers can return errors from their lifecycle hooks. The
+    /// runtime handles these errors:
+    /// - **Transient errors**: Logged and worker continues to next execution
+    /// - **Fatal errors**: Logged and worker stops after calling
+    ///   `on_shutdown()`
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use rsketch_common_worker::{Manager, FallibleWorker, WorkerContext, WorkResult, WorkError};
+    /// # use std::time::Duration;
+    /// # #[derive(Clone)] struct AppState;
+    /// struct MyWorker;
+    ///
+    /// #[async_trait::async_trait]
+    /// impl FallibleWorker<AppState> for MyWorker {
+    ///     async fn work(&mut self, ctx: WorkerContext<AppState>) -> WorkResult {
+    ///         // Return transient error to continue, fatal to stop
+    ///         Ok(())
+    ///     }
+    /// }
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() {
+    /// let mut manager = Manager::with_state(AppState);
+    /// let handle = manager
+    ///     .fallible_worker(MyWorker)
+    ///     .name("my-worker")
+    ///     .interval(Duration::from_secs(5))
+    ///     .spawn();
+    /// # }
+    /// ```
+    pub fn fallible_worker<W: crate::FallibleWorker<S>>(
+        &mut self,
+        worker: W,
+    ) -> crate::builder::FallibleWorkerBuilder<'_, S, W, TriggerNotSet> {
+        crate::builder::FallibleWorkerBuilder::new(self, worker)
+    }
+
     /// Internal method to spawn a worker with a specific trigger.
     pub(crate) fn spawn_worker<W, H>(
         &mut self,
@@ -274,6 +318,7 @@ impl<S: Clone + Send + Sync + 'static> Manager<S> {
         name: &'static str,
         blocking: bool,
         trigger: Trigger,
+        pause_mode: crate::PauseMode,
     ) -> H
     where
         W: Worker,
@@ -283,6 +328,7 @@ impl<S: Clone + Send + Sync + 'static> Manager<S> {
         let id = WorkerId::new();
         let notify = Arc::new(Notify::new());
         let paused = Arc::new(AtomicBool::new(false));
+        let pause_notify = Arc::new(Notify::new());
 
         let worker_cancel_token = self.cancel_token.child_token();
 
@@ -309,7 +355,16 @@ impl<S: Clone + Send + Sync + 'static> Manager<S> {
         };
 
         let paused_clone = paused.clone();
-        let task = run_worker(worker, ctx, paused_clone, driver, name);
+        let pause_notify_clone = pause_notify.clone();
+        let task = run_worker(
+            worker,
+            ctx,
+            paused_clone,
+            pause_notify_clone,
+            pause_mode,
+            driver,
+            name,
+        );
 
         let runtime = self
             .runtime
@@ -330,6 +385,89 @@ impl<S: Clone + Send + Sync + 'static> Manager<S> {
             cancel_token: worker_cancel_token,
             notify: notify.clone(),
             paused: paused.clone(),
+            pause_notify,
+            join_handle,
+        };
+        self.workers.insert(id, entry);
+
+        H::from_parts(id, name, notify, paused)
+    }
+
+    /// Internal method to spawn a fallible worker with a specific trigger.
+    pub(crate) fn spawn_fallible_worker<W, H>(
+        &mut self,
+        worker: W,
+        name: &'static str,
+        blocking: bool,
+        trigger: Trigger,
+        pause_mode: crate::PauseMode,
+    ) -> H
+    where
+        W: crate::FallibleWorker<S>,
+        H: SpawnResult,
+        S: Clone,
+    {
+        let id = WorkerId::new();
+        let notify = Arc::new(Notify::new());
+        let paused = Arc::new(AtomicBool::new(false));
+        let pause_notify = Arc::new(Notify::new());
+
+        let worker_cancel_token = self.cancel_token.child_token();
+
+        let ctx = WorkerContext::new(
+            self.state.clone(),
+            worker_cancel_token.child_token(),
+            notify.clone(),
+            name,
+        );
+
+        let driver = match trigger {
+            Trigger::Once => TriggerDriverEnum::Once(OnceDriver::new()),
+            Trigger::Notify => TriggerDriverEnum::Notify(NotifyDriver::new()),
+            Trigger::Interval(duration) => {
+                TriggerDriverEnum::Interval(IntervalDriver::new(duration))
+            }
+            Trigger::Cron(cron) => TriggerDriverEnum::Cron(CronDriver::new(cron)),
+            Trigger::IntervalOrNotify(duration) => {
+                TriggerDriverEnum::IntervalOrNotify(IntervalOrNotifyDriver::new(duration))
+            }
+            Trigger::CronOrNotify(cron) => {
+                TriggerDriverEnum::CronOrNotify(CronOrNotifyDriver::new(cron))
+            }
+        };
+
+        let paused_clone = paused.clone();
+        let pause_notify_clone = pause_notify.clone();
+        let task = run_fallible_worker(
+            worker,
+            ctx,
+            paused_clone,
+            pause_notify_clone,
+            pause_mode,
+            driver,
+            name,
+        );
+
+        let runtime = self
+            .runtime
+            .clone()
+            .unwrap_or_else(rsketch_common_runtime::background_runtime);
+
+        let join_handle = if blocking {
+            let rt_handle = runtime.handle().clone();
+            runtime
+                .handle()
+                .spawn_blocking(move || rt_handle.block_on(task))
+        } else {
+            runtime.handle().spawn(task)
+        };
+
+        let entry = WorkerEntry {
+            name,
+            cancel_token: worker_cancel_token,
+            notify: notify.clone(),
+            paused: paused.clone(),
+            pause_notify,
             join_handle,
         };
         self.workers.insert(id, entry);
@@ -471,6 +609,8 @@ async fn run_worker<S: Clone + Send + Sync, W: Worker>(
     mut worker: W,
     ctx: WorkerContext<S>,
     paused: Arc<AtomicBool>,
+    pause_notify: Arc<Notify>,
+    pause_mode: crate::PauseMode,
     mut driver: TriggerDriverEnum,
     name: &'static str,
 ) {
@@ -486,8 +626,34 @@ async fn run_worker<S: Clone + Send + Sync, W: Worker>(
 
     // Main execution loop
     while driver.wait_next(&ctx).await {
+        // Handle pause
         if paused.load(Ordering::Acquire) {
-            continue;
+            match pause_mode {
+                crate::PauseMode::Soft => {
+                    // Soft pause: skip this execution, driver continues
+                    continue;
+                }
+                crate::PauseMode::Hard => {
+                    // Hard pause: wait for resume signal
+                    loop {
+                        tokio::select! {
+                            _ = pause_notify.notified() => {
+                                if !paused.load(Ordering::Acquire) {
+                                    break; // Resumed
+                                }
+                            }
+                            _ = ctx.cancelled() => {
+                                // Shutdown requested while paused
+                                worker.on_shutdown(ctx.clone()).await;
+                                info!("Worker stopped (cancelled while paused)");
+                                WORKER_STOPPED.with_label_values(&[name]).inc();
+                                WORKER_ACTIVE.with_label_values(&[name]).set(0);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         let start = Instant::now();
@@ -501,6 +667,111 @@ async fn run_worker<S: Clone + Send + Sync, W: Worker>(
 
     // Call on_shutdown hook
     worker.on_shutdown(ctx.clone()).await;
+
+    info!("Worker stopped");
+    WORKER_STOPPED.with_label_values(&[name]).inc();
+    WORKER_ACTIVE.with_label_values(&[name]).set(0);
+}
+
+/// Execution loop for fallible workers with error handling.
+///
+/// This loop handles errors returned by the worker:
+/// - **Transient errors**: Logged, metrics updated, worker continues
+/// - **Fatal errors**: Logged, worker stops after calling `on_shutdown()`
+async fn run_fallible_worker<S: Clone + Send + Sync + 'static, W: crate::FallibleWorker<S>>(
+    mut worker: W,
+    ctx: WorkerContext<S>,
+    paused: Arc<AtomicBool>,
+    pause_notify: Arc<Notify>,
+    pause_mode: crate::PauseMode,
+    mut driver: TriggerDriverEnum,
+    name: &'static str,
+) {
+    let span = tracing::info_span!("worker", name);
+    let _guard = span.enter();
+
+    info!("Worker starting");
+    WORKER_STARTED.with_label_values(&[name]).inc();
+    WORKER_ACTIVE.with_label_values(&[name]).set(1);
+
+    // Call on_start hook with error handling
+    if let Err(e) = worker.on_start(ctx.clone()).await {
+        error!(error = %e, "Worker on_start failed");
+        WORKER_START_ERRORS.with_label_values(&[name]).inc();
+        WORKER_ERRORS.with_label_values(&[name]).inc();
+
+        if e.is_fatal() {
+            error!("Fatal error in on_start, worker will not run");
+            WORKER_STOPPED.with_label_values(&[name]).inc();
+            WORKER_ACTIVE.with_label_values(&[name]).set(0);
+            return;
+        }
+    }
+
+    // Main execution loop
+    'main: while driver.wait_next(&ctx).await {
+        // Handle pause
+        if paused.load(Ordering::Acquire) {
+            match pause_mode {
+                crate::PauseMode::Soft => {
+                    // Soft pause: skip this execution, driver continues
+                    continue;
+                }
+                crate::PauseMode::Hard => {
+                    // Hard pause: wait for resume signal
+                    loop {
+                        tokio::select! {
+                            _ = pause_notify.notified() => {
+                                if !paused.load(Ordering::Acquire) {
+                                    break; // Resumed
+                                }
+                            }
+                            _ = ctx.cancelled() => {
+                                // Shutdown requested while paused
+                                if let Err(e) = worker.on_shutdown(ctx.clone()).await {
+                                    error!(error = %e, "Worker on_shutdown failed");
+                                    WORKER_SHUTDOWN_ERRORS.with_label_values(&[name]).inc();
+                                    WORKER_ERRORS.with_label_values(&[name]).inc();
+                                }
+                                info!("Worker stopped (cancelled while paused)");
+                                WORKER_STOPPED.with_label_values(&[name]).inc();
+                                WORKER_ACTIVE.with_label_values(&[name]).set(0);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        let start = Instant::now();
+        let result = worker.work(ctx.clone()).await;
+
+        WORKER_EXECUTIONS.with_label_values(&[name]).inc();
+        WORKER_EXECUTION_DURATION_SECONDS
+            .with_label_values(&[name])
+            .observe(start.elapsed().as_secs_f64());
+
+        // Handle work errors
+        if let Err(e) = result {
+            error!(error = %e, "Worker execution failed");
+            WORKER_EXECUTION_ERRORS.with_label_values(&[name]).inc();
+            WORKER_ERRORS.with_label_values(&[name]).inc();
+
+            if e.is_fatal() {
+                error!("Fatal error, stopping worker");
+                break 'main;
+            }
+            // Transient errors: continue to next execution
+        }
+    }
+
+    // Call on_shutdown hook with error handling
+    if let Err(e) = worker.on_shutdown(ctx.clone()).await {
+        error!(error = %e, "Worker on_shutdown failed");
+        WORKER_SHUTDOWN_ERRORS.with_label_values(&[name]).inc();
+        WORKER_ERRORS.with_label_values(&[name]).inc();
+    }
 
     info!("Worker stopped");
     WORKER_STOPPED.with_label_values(&[name]).inc();

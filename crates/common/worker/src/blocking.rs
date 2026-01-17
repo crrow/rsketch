@@ -14,12 +14,39 @@
 
 use crate::context::WorkerContext;
 
-pub trait BlockingWorker: Send + 'static {
-    fn on_start<S: Clone + Send + Sync>(&mut self, _ctx: WorkerContext<S>) {}
+/// Trait for synchronous blocking workers with state type at trait level.
+///
+/// Unlike the async `Worker` trait, this is for CPU-intensive or synchronous
+/// blocking operations. Workers implementing this trait run on Tokio's blocking
+/// thread pool via `spawn_blocking`.
+///
+/// The state type `S` is a trait-level generic, providing better type safety
+/// and allowing the worker to be stateful with a specific state type.
+///
+/// # Example
+///
+/// ```rust
+/// use rsketch_common_worker::{BlockingWorker, WorkerContext};
+///
+/// struct HeavyComputeWorker {
+///     batch_size: usize,
+/// }
+///
+/// impl BlockingWorker<()> for HeavyComputeWorker {
+///     fn work(&mut self, ctx: WorkerContext<()>) {
+///         // CPU-intensive work that would block async runtime
+///         for i in 0..self.batch_size {
+///             // Heavy computation...
+///         }
+///     }
+/// }
+/// ```
+pub trait BlockingWorker<S: Clone + Send + Sync + 'static>: Send + 'static {
+    fn on_start(&mut self, _ctx: WorkerContext<S>) {}
 
-    fn work<S: Clone + Send + Sync>(&mut self, ctx: WorkerContext<S>);
+    fn work(&mut self, ctx: WorkerContext<S>);
 
-    fn on_shutdown<S: Clone + Send + Sync>(&mut self, _ctx: WorkerContext<S>) {}
+    fn on_shutdown(&mut self, _ctx: WorkerContext<S>) {}
 }
 
 #[cfg(test)]
@@ -35,16 +62,12 @@ mod tests {
         counter: Arc<AtomicUsize>,
     }
 
-    impl BlockingWorker for TestBlockingWorker {
-        fn on_start<S: Clone + Send + Sync>(&mut self, _ctx: WorkerContext<S>) {
-            self.counter.store(1, Ordering::SeqCst);
-        }
+    impl BlockingWorker<()> for TestBlockingWorker {
+        fn on_start(&mut self, _ctx: WorkerContext<()>) { self.counter.store(1, Ordering::SeqCst); }
 
-        fn work<S: Clone + Send + Sync>(&mut self, _ctx: WorkerContext<S>) {
-            self.counter.fetch_add(1, Ordering::SeqCst);
-        }
+        fn work(&mut self, _ctx: WorkerContext<()>) { self.counter.fetch_add(1, Ordering::SeqCst); }
 
-        fn on_shutdown<S: Clone + Send + Sync>(&mut self, _ctx: WorkerContext<S>) {
+        fn on_shutdown(&mut self, _ctx: WorkerContext<()>) {
             self.counter.store(999, Ordering::SeqCst);
         }
     }

@@ -13,3 +13,6 @@ derive_more = { workspace = true }
 dotenvy = "0.15.7"
 serde.workspace = true
 snafu.workspace = true
+
+[lints]
+workspace = true

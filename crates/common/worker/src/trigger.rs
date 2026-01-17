@@ -14,6 +14,77 @@
 
 use std::time::Duration;
 
+// ============================================================================
+// Pause Mode
+// ============================================================================
+
+/// Defines how a worker behaves when paused.
+///
+/// This affects what happens to the trigger driver when `pause()` is called:
+///
+/// - **Soft pause** (default): The driver continues running, but `work()` calls
+///   are skipped. The timer/schedule keeps advancing.
+/// - **Hard pause**: The driver stops completely and waits for `resume()`. The
+///   timer/schedule pauses.
+///
+/// # Use Cases
+///
+/// - **Soft pause**: Good for temporary throttling where you don't want to miss
+///   scheduled times entirely.
+/// - **Hard pause**: Good when you need to completely suspend the worker and
+///   resume exactly where you left off.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use std::time::Duration;
+///
+/// use rsketch_common_worker::{Manager, Pausable, PauseMode, Worker, WorkerContext};
+///
+/// # struct MyWorker;
+/// # #[async_trait::async_trait]
+/// # impl Worker for MyWorker {
+/// #     async fn work<S: Clone + Send + Sync>(&mut self, _ctx: WorkerContext<S>) {}
+/// # }
+/// # #[tokio::main]
+/// # async fn main() {
+/// let mut manager = Manager::new();
+///
+/// // Hard pause: timer stops completely when paused
+/// let handle = manager
+///     .worker(MyWorker)
+///     .interval(Duration::from_secs(10))
+///     .pause_mode(PauseMode::Hard)
+///     .spawn();
+///
+/// handle.pause(); // Timer stops
+/// // ... some time passes ...
+/// handle.resume(); // Timer resumes from where it was
+/// //
+/// # }
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum PauseMode {
+    /// Soft pause: driver continues, work is skipped.
+    ///
+    /// - Interval: timer keeps running, missed ticks are skipped
+    /// - Cron: scheduled times are skipped
+    ///
+    /// This is the default behavior.
+    #[default]
+    Soft,
+
+    /// Hard pause: driver stops completely.
+    ///
+    /// - Interval: timer pauses, resumes from where it left off
+    /// - Cron: scheduling pauses, resumes at next occurrence after resume
+    Hard,
+}
+
+// ============================================================================
+// Trigger
+// ============================================================================
+
 /// Defines when and how a worker should be executed.
 ///
 /// Triggers control the scheduling strategy for worker execution. Each trigger
@@ -46,7 +117,7 @@ use std::time::Duration;
 /// # Examples
 ///
 /// ```rust
-/// use std::time::Duration;
+/// use std::{str::FromStr, time::Duration};
 ///
 /// use rsketch_common_worker::Trigger;
 ///
@@ -54,7 +125,7 @@ use std::time::Duration;
 /// let trigger = Trigger::Interval(Duration::from_secs(5));
 ///
 /// // Run every day at midnight (standard cron format)
-/// let cron = croner::Cron::new("0 0 * * *").parse().unwrap();
+/// let cron = croner::Cron::from_str("0 0 * * *").unwrap();
 /// let trigger = Trigger::Cron(cron);
 ///
 /// // Run every hour OR when manually notified

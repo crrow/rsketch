@@ -85,12 +85,13 @@ pub struct TriggerCronOrNotify;
 /// let handle = builder.spawn(); // Returns IntervalHandle
 /// ```
 pub struct WorkerBuilder<'m, S, W, T> {
-    manager:  &'m mut Manager<S>,
-    worker:   W,
-    name:     Option<&'static str>,
-    blocking: bool,
-    trigger:  Option<Trigger>,
-    _phantom: PhantomData<T>,
+    manager:    &'m mut Manager<S>,
+    worker:     W,
+    name:       Option<&'static str>,
+    blocking:   bool,
+    trigger:    Option<Trigger>,
+    pause_mode: Option<crate::PauseMode>,
+    _phantom:   PhantomData<T>,
 }
 
 impl<'m, S, W> WorkerBuilder<'m, S, W, TriggerNotSet>
@@ -105,6 +106,7 @@ where
             name: None,
             blocking: false,
             trigger: None,
+            pause_mode: None,
             _phantom: PhantomData,
         }
     }
@@ -129,12 +131,13 @@ where
     pub fn once(mut self) -> WorkerBuilder<'m, S, W, TriggerOnce> {
         self.trigger = Some(Trigger::Once);
         WorkerBuilder {
-            manager:  self.manager,
-            worker:   self.worker,
-            name:     self.name,
-            blocking: self.blocking,
-            trigger:  self.trigger,
-            _phantom: PhantomData,
+            manager:    self.manager,
+            worker:     self.worker,
+            name:       self.name,
+            blocking:   self.blocking,
+            trigger:    self.trigger,
+            pause_mode: self.pause_mode,
+            _phantom:   PhantomData,
         }
     }
 
@@ -159,12 +162,13 @@ where
     pub fn on_notify(mut self) -> WorkerBuilder<'m, S, W, TriggerNotify> {
         self.trigger = Some(Trigger::Notify);
         WorkerBuilder {
-            manager:  self.manager,
-            worker:   self.worker,
-            name:     self.name,
-            blocking: self.blocking,
-            trigger:  self.trigger,
-            _phantom: PhantomData,
+            manager:    self.manager,
+            worker:     self.worker,
+            name:       self.name,
+            blocking:   self.blocking,
+            trigger:    self.trigger,
+            pause_mode: self.pause_mode,
+            _phantom:   PhantomData,
         }
     }
 
@@ -194,12 +198,13 @@ where
     pub fn interval(mut self, duration: Duration) -> WorkerBuilder<'m, S, W, TriggerInterval> {
         self.trigger = Some(Trigger::Interval(duration));
         WorkerBuilder {
-            manager:  self.manager,
-            worker:   self.worker,
-            name:     self.name,
-            blocking: self.blocking,
-            trigger:  self.trigger,
-            _phantom: PhantomData,
+            manager:    self.manager,
+            worker:     self.worker,
+            name:       self.name,
+            blocking:   self.blocking,
+            trigger:    self.trigger,
+            pause_mode: self.pause_mode,
+            _phantom:   PhantomData,
         }
     }
 
@@ -258,12 +263,13 @@ where
         let cron = croner::Cron::from_str(expr).context(crate::err::InvalidExpressionSnafu)?;
         self.trigger = Some(Trigger::Cron(cron));
         Ok(WorkerBuilder {
-            manager:  self.manager,
-            worker:   self.worker,
-            name:     self.name,
-            blocking: self.blocking,
-            trigger:  self.trigger,
-            _phantom: PhantomData,
+            manager:    self.manager,
+            worker:     self.worker,
+            name:       self.name,
+            blocking:   self.blocking,
+            trigger:    self.trigger,
+            pause_mode: self.pause_mode,
+            _phantom:   PhantomData,
         })
     }
 
@@ -302,12 +308,13 @@ where
     ) -> WorkerBuilder<'m, S, W, TriggerIntervalOrNotify> {
         self.trigger = Some(Trigger::IntervalOrNotify(duration));
         WorkerBuilder {
-            manager:  self.manager,
-            worker:   self.worker,
-            name:     self.name,
-            blocking: self.blocking,
-            trigger:  self.trigger,
-            _phantom: PhantomData,
+            manager:    self.manager,
+            worker:     self.worker,
+            name:       self.name,
+            blocking:   self.blocking,
+            trigger:    self.trigger,
+            pause_mode: self.pause_mode,
+            _phantom:   PhantomData,
         }
     }
 
@@ -352,12 +359,13 @@ where
         let cron = croner::Cron::from_str(expr).context(crate::err::InvalidExpressionSnafu)?;
         self.trigger = Some(Trigger::CronOrNotify(cron));
         Ok(WorkerBuilder {
-            manager:  self.manager,
-            worker:   self.worker,
-            name:     self.name,
-            blocking: self.blocking,
-            trigger:  self.trigger,
-            _phantom: PhantomData,
+            manager:    self.manager,
+            worker:     self.worker,
+            name:       self.name,
+            blocking:   self.blocking,
+            trigger:    self.trigger,
+            pause_mode: self.pause_mode,
+            _phantom:   PhantomData,
         })
     }
 }
@@ -425,6 +433,15 @@ where
         self.blocking = true;
         self
     }
+
+    /// Sets the pause mode (soft or hard pause).
+    ///
+    /// - `PauseMode::Soft` (default): Driver continues, work is skipped
+    /// - `PauseMode::Hard`: Driver stops completely, waits for resume
+    pub fn pause_mode(mut self, mode: crate::PauseMode) -> Self {
+        self.pause_mode = Some(mode);
+        self
+    }
 }
 
 // spawn() implementations for each trigger type
@@ -438,8 +455,14 @@ where
     /// The worker will execute immediately once and then stop.
     pub fn spawn(self) -> OnceHandle {
         let name = self.name.unwrap_or("unnamed-worker");
-        self.manager
-            .spawn_worker(self.worker, name, self.blocking, self.trigger.unwrap())
+        let pause_mode = self.pause_mode.unwrap_or_default();
+        self.manager.spawn_worker(
+            self.worker,
+            name,
+            self.blocking,
+            self.trigger.unwrap(),
+            pause_mode,
+        )
     }
 }
 
@@ -453,8 +476,14 @@ where
     /// The worker will only execute when `handle.notify()` is called.
     pub fn spawn(self) -> NotifyHandle {
         let name = self.name.unwrap_or("unnamed-worker");
-        self.manager
-            .spawn_worker(self.worker, name, self.blocking, self.trigger.unwrap())
+        let pause_mode = self.pause_mode.unwrap_or_default();
+        self.manager.spawn_worker(
+            self.worker,
+            name,
+            self.blocking,
+            self.trigger.unwrap(),
+            pause_mode,
+        )
     }
 }
 
@@ -469,8 +498,14 @@ where
     /// Use `handle.pause()` and `handle.resume()` to control execution.
     pub fn spawn(self) -> IntervalHandle {
         let name = self.name.unwrap_or("unnamed-worker");
-        self.manager
-            .spawn_worker(self.worker, name, self.blocking, self.trigger.unwrap())
+        let pause_mode = self.pause_mode.unwrap_or_default();
+        self.manager.spawn_worker(
+            self.worker,
+            name,
+            self.blocking,
+            self.trigger.unwrap(),
+            pause_mode,
+        )
     }
 }
 
@@ -485,8 +520,14 @@ where
     /// Use `handle.pause()` and `handle.resume()` to control execution.
     pub fn spawn(self) -> CronHandle {
         let name = self.name.unwrap_or("unnamed-worker");
-        self.manager
-            .spawn_worker(self.worker, name, self.blocking, self.trigger.unwrap())
+        let pause_mode = self.pause_mode.unwrap_or_default();
+        self.manager.spawn_worker(
+            self.worker,
+            name,
+            self.blocking,
+            self.trigger.unwrap(),
+            pause_mode,
+        )
     }
 }
 
@@ -501,8 +542,14 @@ where
     /// Provides both pause/resume and notify() methods.
     pub fn spawn(self) -> IntervalOrNotifyHandle {
         let name = self.name.unwrap_or("unnamed-worker");
-        self.manager
-            .spawn_worker(self.worker, name, self.blocking, self.trigger.unwrap())
+        let pause_mode = self.pause_mode.unwrap_or_default();
+        self.manager.spawn_worker(
+            self.worker,
+            name,
+            self.blocking,
+            self.trigger.unwrap(),
+            pause_mode,
+        )
     }
 }
 
@@ -517,8 +564,14 @@ where
     /// Provides both pause/resume and notify() methods.
     pub fn spawn(self) -> CronOrNotifyHandle {
         let name = self.name.unwrap_or("unnamed-worker");
-        self.manager
-            .spawn_worker(self.worker, name, self.blocking, self.trigger.unwrap())
+        let pause_mode = self.pause_mode.unwrap_or_default();
+        self.manager.spawn_worker(
+            self.worker,
+            name,
+            self.blocking,
+            self.trigger.unwrap(),
+            pause_mode,
+        )
     }
 }
 
@@ -603,5 +656,291 @@ impl SpawnResult for CronOrNotifyHandle {
         paused: std::sync::Arc<std::sync::atomic::AtomicBool>,
     ) -> Self {
         CronOrNotifyHandle::new(id, name, notify, paused)
+    }
+}
+
+// ============================================================================
+// Fallible Worker Builder
+// ============================================================================
+
+/// Type-safe builder for configuring and spawning fallible workers.
+///
+/// This builder is similar to [`WorkerBuilder`] but works with workers that
+/// implement [`FallibleWorker`], allowing them to return errors from lifecycle
+/// hooks.
+///
+/// # Type Parameters
+///
+/// - `'m`: Lifetime of the mutable reference to Manager
+/// - `S`: State type from the Manager (must match worker's state type)
+/// - `W`: FallibleWorker implementation type
+/// - `T`: Type-state marker (TriggerNotSet, TriggerOnce, etc.)
+pub struct FallibleWorkerBuilder<'m, S, W, T> {
+    manager:    &'m mut crate::Manager<S>,
+    worker:     W,
+    name:       Option<&'static str>,
+    blocking:   bool,
+    trigger:    Option<crate::Trigger>,
+    pause_mode: Option<crate::PauseMode>,
+    _phantom:   PhantomData<T>,
+}
+
+impl<'m, S, W> FallibleWorkerBuilder<'m, S, W, TriggerNotSet>
+where
+    W: crate::FallibleWorker<S>,
+    S: Clone + Send + Sync + 'static,
+{
+    pub(crate) fn new(manager: &'m mut crate::Manager<S>, worker: W) -> Self {
+        FallibleWorkerBuilder {
+            manager,
+            worker,
+            name: None,
+            blocking: false,
+            trigger: None,
+            pause_mode: None,
+            _phantom: PhantomData,
+        }
+    }
+
+    /// Configures the worker to run once immediately on startup, then stop.
+    pub fn once(mut self) -> FallibleWorkerBuilder<'m, S, W, TriggerOnce> {
+        self.trigger = Some(crate::Trigger::Once);
+        FallibleWorkerBuilder {
+            manager:    self.manager,
+            worker:     self.worker,
+            name:       self.name,
+            blocking:   self.blocking,
+            trigger:    self.trigger,
+            pause_mode: self.pause_mode,
+            _phantom:   PhantomData,
+        }
+    }
+
+    /// Configures the worker to run only when explicitly notified.
+    pub fn on_notify(mut self) -> FallibleWorkerBuilder<'m, S, W, TriggerNotify> {
+        self.trigger = Some(crate::Trigger::Notify);
+        FallibleWorkerBuilder {
+            manager:    self.manager,
+            worker:     self.worker,
+            name:       self.name,
+            blocking:   self.blocking,
+            trigger:    self.trigger,
+            pause_mode: self.pause_mode,
+            _phantom:   PhantomData,
+        }
+    }
+
+    /// Configures the worker to run at fixed intervals.
+    pub fn interval(
+        mut self,
+        duration: Duration,
+    ) -> FallibleWorkerBuilder<'m, S, W, TriggerInterval> {
+        self.trigger = Some(crate::Trigger::Interval(duration));
+        FallibleWorkerBuilder {
+            manager:    self.manager,
+            worker:     self.worker,
+            name:       self.name,
+            blocking:   self.blocking,
+            trigger:    self.trigger,
+            pause_mode: self.pause_mode,
+            _phantom:   PhantomData,
+        }
+    }
+
+    /// Configures the worker to run on a cron schedule.
+    pub fn cron(
+        mut self,
+        expr: &str,
+    ) -> Result<FallibleWorkerBuilder<'m, S, W, TriggerCron>, crate::CronParseError> {
+        let cron = croner::Cron::from_str(expr).context(crate::err::InvalidExpressionSnafu)?;
+        self.trigger = Some(crate::Trigger::Cron(cron));
+        Ok(FallibleWorkerBuilder {
+            manager:    self.manager,
+            worker:     self.worker,
+            name:       self.name,
+            blocking:   self.blocking,
+            trigger:    self.trigger,
+            pause_mode: self.pause_mode,
+            _phantom:   PhantomData,
+        })
+    }
+
+    /// Configures the worker to run on an interval OR when manually notified.
+    pub fn interval_or_notify(
+        mut self,
+        duration: Duration,
+    ) -> FallibleWorkerBuilder<'m, S, W, TriggerIntervalOrNotify> {
+        self.trigger = Some(crate::Trigger::IntervalOrNotify(duration));
+        FallibleWorkerBuilder {
+            manager:    self.manager,
+            worker:     self.worker,
+            name:       self.name,
+            blocking:   self.blocking,
+            trigger:    self.trigger,
+            pause_mode: self.pause_mode,
+            _phantom:   PhantomData,
+        }
+    }
+
+    /// Configures the worker to run on a cron schedule OR when manually
+    /// notified.
+    pub fn cron_or_notify(
+        mut self,
+        expr: &str,
+    ) -> Result<FallibleWorkerBuilder<'m, S, W, TriggerCronOrNotify>, crate::CronParseError> {
+        let cron = croner::Cron::from_str(expr).context(crate::err::InvalidExpressionSnafu)?;
+        self.trigger = Some(crate::Trigger::CronOrNotify(cron));
+        Ok(FallibleWorkerBuilder {
+            manager:    self.manager,
+            worker:     self.worker,
+            name:       self.name,
+            blocking:   self.blocking,
+            trigger:    self.trigger,
+            pause_mode: self.pause_mode,
+            _phantom:   PhantomData,
+        })
+    }
+}
+
+// Common configuration methods for FallibleWorkerBuilder
+impl<'m, S, W, T> FallibleWorkerBuilder<'m, S, W, T>
+where
+    W: crate::FallibleWorker<S>,
+    S: Clone + Send + Sync + 'static,
+{
+    /// Sets the worker's name for logging and metrics.
+    pub fn name(mut self, name: &'static str) -> Self {
+        self.name = Some(name);
+        self
+    }
+
+    /// Marks this worker as blocking (runs on dedicated blocking thread pool).
+    pub fn blocking(mut self) -> Self {
+        self.blocking = true;
+        self
+    }
+
+    /// Sets the pause mode (soft or hard pause).
+    ///
+    /// - `PauseMode::Soft` (default): Driver continues, work is skipped
+    /// - `PauseMode::Hard`: Driver stops completely, waits for resume
+    pub fn pause_mode(mut self, mode: crate::PauseMode) -> Self {
+        self.pause_mode = Some(mode);
+        self
+    }
+}
+
+// spawn() implementations for each trigger type
+impl<'m, S, W> FallibleWorkerBuilder<'m, S, W, TriggerOnce>
+where
+    W: crate::FallibleWorker<S>,
+    S: Clone + Send + Sync + 'static,
+{
+    /// Spawns the worker and returns an [`OnceHandle`].
+    pub fn spawn(self) -> OnceHandle {
+        let name = self.name.unwrap_or("unnamed-worker");
+        let pause_mode = self.pause_mode.unwrap_or_default();
+        self.manager.spawn_fallible_worker(
+            self.worker,
+            name,
+            self.blocking,
+            self.trigger.unwrap(),
+            pause_mode,
+        )
+    }
+}
+
+impl<'m, S, W> FallibleWorkerBuilder<'m, S, W, TriggerNotify>
+where
+    W: crate::FallibleWorker<S>,
+    S: Clone + Send + Sync + 'static,
+{
+    /// Spawns the worker and returns a [`NotifyHandle`].
+    pub fn spawn(self) -> NotifyHandle {
+        let name = self.name.unwrap_or("unnamed-worker");
+        let pause_mode = self.pause_mode.unwrap_or_default();
+        self.manager.spawn_fallible_worker(
+            self.worker,
+            name,
+            self.blocking,
+            self.trigger.unwrap(),
+            pause_mode,
+        )
+    }
+}
+
+impl<'m, S, W> FallibleWorkerBuilder<'m, S, W, TriggerInterval>
+where
+    W: crate::FallibleWorker<S>,
+    S: Clone + Send + Sync + 'static,
+{
+    /// Spawns the worker and returns an [`IntervalHandle`].
+    pub fn spawn(self) -> IntervalHandle {
+        let name = self.name.unwrap_or("unnamed-worker");
+        let pause_mode = self.pause_mode.unwrap_or_default();
+        self.manager.spawn_fallible_worker(
+            self.worker,
+            name,
+            self.blocking,
+            self.trigger.unwrap(),
+            pause_mode,
+        )
+    }
+}
+
+impl<'m, S, W> FallibleWorkerBuilder<'m, S, W, TriggerCron>
+where
+    W: crate::FallibleWorker<S>,
+    S: Clone + Send + Sync + 'static,
+{
+    /// Spawns the worker and returns a [`CronHandle`].
+    pub fn spawn(self) -> CronHandle {
+        let name = self.name.unwrap_or("unnamed-worker");
+        let pause_mode = self.pause_mode.unwrap_or_default();
+        self.manager.spawn_fallible_worker(
+            self.worker,
+            name,
+            self.blocking,
+            self.trigger.unwrap(),
+            pause_mode,
+        )
+    }
+}
+
+impl<'m, S, W> FallibleWorkerBuilder<'m, S, W, TriggerIntervalOrNotify>
+where
+    W: crate::FallibleWorker<S>,
+    S: Clone + Send + Sync + 'static,
+{
+    /// Spawns the worker and returns an [`IntervalOrNotifyHandle`].
+    pub fn spawn(self) -> IntervalOrNotifyHandle {
+        let name = self.name.unwrap_or("unnamed-worker");
+        let pause_mode = self.pause_mode.unwrap_or_default();
+        self.manager.spawn_fallible_worker(
+            self.worker,
+            name,
+            self.blocking,
+            self.trigger.unwrap(),
+            pause_mode,
+        )
+    }
+}
+
+impl<'m, S, W> FallibleWorkerBuilder<'m, S, W, TriggerCronOrNotify>
+where
+    W: crate::FallibleWorker<S>,
+    S: Clone + Send + Sync + 'static,
+{
+    /// Spawns the worker and returns a [`CronOrNotifyHandle`].
+    pub fn spawn(self) -> CronOrNotifyHandle {
+        let name = self.name.unwrap_or("unnamed-worker");
+        let pause_mode = self.pause_mode.unwrap_or_default();
+        self.manager.spawn_fallible_worker(
+            self.worker,
+            name,
+            self.blocking,
+            self.trigger.unwrap(),
+            pause_mode,
+        )
     }
 }

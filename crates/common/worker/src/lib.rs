@@ -87,12 +87,12 @@ mod worker;
 // Public API
 pub use blocking::BlockingWorker;
 pub use context::WorkerContext;
-pub use err::CronParseError;
+pub use err::{CronParseError, ErrorSeverity, WorkError, WorkResult};
 pub use handle::{
     CronHandle, CronOrNotifyHandle, Handle, IntervalHandle, IntervalOrNotifyHandle, Notifiable,
     NotifyHandle, OnceHandle, Pausable,
 };
 pub use id::WorkerId;
 pub use manager::{Manager, ManagerConfig};
-pub use trigger::Trigger;
-pub use worker::Worker;
+pub use trigger::{PauseMode, Trigger};
+pub use worker::{FallibleWorker, InfallibleWorker, Worker};

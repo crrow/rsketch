@@ -31,3 +31,6 @@ snafu.workspace = true
 
 [build-dependencies]
 shadow-rs = "1.2.1"
+
+[lints]
+workspace = true
