@@ -12,44 +12,87 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::io;
 use std::path::PathBuf;
 
-/// Queue operation errors.
-#[derive(Debug, thiserror::Error)]
-pub enum QueueError {
-    /// Filesystem I/O failure.
-    #[error("IO error: {0}")]
-    Io(#[from] io::Error),
+use snafu::Snafu;
 
-    /// Failed to send message to IO worker.
-    #[error("Channel send error")]
-    ChannelSend,
+pub type Result<T> = std::result::Result<T, Error>;
 
-    /// Failed to receive from IO worker.
-    #[error("Channel receive error")]
-    ChannelRecv,
+#[derive(Debug, Snafu)]
+#[snafu(visibility(pub))]
+pub enum Error {
+    #[snafu(display("IO error"), context(false))]
+    Io {
+        source: std::io::Error,
+        #[snafu(implicit)]
+        loc:    snafu::Location,
+    },
 
-    /// CRC mismatch detected during read.
-    #[error("Corrupted message at sequence {0}")]
-    CorruptedMessage(u64),
+    #[snafu(display("Channel send error"))]
+    ChannelSend {
+        #[snafu(implicit)]
+        loc: snafu::Location,
+    },
 
-    /// Invalid or inaccessible file path.
-    #[error("Invalid file path: {0}")]
-    InvalidPath(PathBuf),
+    #[snafu(display("Channel receive error"))]
+    ChannelRecv {
+        #[snafu(implicit)]
+        loc: snafu::Location,
+    },
 
-    /// Failed to roll to new data file.
-    #[error("File rolling failed: {0}")]
-    RollFileFailed(String),
+    #[snafu(display("Corrupted message at sequence {sequence}"))]
+    CorruptedMessage {
+        sequence: u64,
+        #[snafu(implicit)]
+        loc:      snafu::Location,
+    },
 
-    /// Memory mapping operation failed.
-    #[error("Mmap operation failed: {0}")]
-    MmapFailed(String),
+    #[snafu(display("Invalid file path: {}", path.display()))]
+    InvalidPath {
+        path: PathBuf,
+        #[snafu(implicit)]
+        loc:  snafu::Location,
+    },
 
-    /// Index file read/write error.
-    #[error("Index error: {0}")]
-    IndexError(String),
+    #[snafu(display("File rolling failed: {message}"))]
+    RollFileFailed {
+        message: String,
+        #[snafu(implicit)]
+        loc:     snafu::Location,
+    },
+
+    #[snafu(display("Mmap operation failed"))]
+    MmapFailed {
+        source: mmap_io::MmapIoError,
+        #[snafu(implicit)]
+        loc:    snafu::Location,
+    },
+
+    #[snafu(display("Index error: {message}"))]
+    IndexError {
+        message: String,
+        #[snafu(implicit)]
+        loc:     snafu::Location,
+    },
+
+    #[snafu(display("{message}"))]
+    Internal {
+        message: String,
+        #[snafu(implicit)]
+        loc:     snafu::Location,
+    },
+
+    #[snafu(display("Manifest corrupted: {reason}"))]
+    ManifestCorrupted {
+        reason: String,
+        #[snafu(implicit)]
+        loc:    snafu::Location,
+    },
+
+    #[snafu(display("Manifest version {version} not supported"))]
+    UnsupportedManifestVersion {
+        version: u32,
+        #[snafu(implicit)]
+        loc:     snafu::Location,
+    },
 }
-
-/// Result type for queue operations.
-pub type Result<T> = std::result::Result<T, QueueError>;

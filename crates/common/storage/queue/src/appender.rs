@@ -12,41 +12,75 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::message::{WriteEvent, timestamp_micros};
-use crate::{QueueError, Result};
+//! Message writer (appender) for producing to the queue.
+//!
+//! The [`Appender`] provides a thread-safe interface for writing messages
+//! to the queue. It:
+//! - Atomically assigns sequence numbers
+//! - Sends messages to the IOWorker via a channel
+//! - Returns immediately (writes are asynchronous)
+//!
+//! ## Concurrency
+//!
+//! Appenders can be cloned and used from multiple threads. Each `append`
+//! call atomically increments the global sequence counter, ensuring unique
+//! sequence numbers even under concurrent writes.
+
+use std::sync::{
+    Arc,
+    atomic::{AtomicU64, Ordering},
+};
+
 use bytes::Bytes;
 use crossbeam::channel::Sender;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicU64, Ordering};
+use snafu::ensure;
 
-/// Thread-safe handle for appending messages to the queue.
+use crate::{Result, error::ChannelSendSnafu, message::WriteEvent};
+
+/// A writer for appending messages to the queue.
+///
+/// Appenders are cheap to clone and thread-safe. Multiple appenders can
+/// write concurrently to the same queue.
 #[derive(Clone)]
 pub struct Appender {
-    tx: Sender<WriteEvent>,
+    /// Channel sender to the IOWorker.
+    tx:       Sender<WriteEvent>,
+    /// Shared global sequence counter.
     sequence: Arc<AtomicU64>,
 }
 
 impl Appender {
+    /// Create a new appender with the given channel and sequence counter.
     pub(crate) fn new(tx: Sender<WriteEvent>, sequence: Arc<AtomicU64>) -> Self {
         Self { tx, sequence }
     }
 
-    /// Appends a single message. Returns the assigned sequence number.
+    /// Append a message to the queue.
+    ///
+    /// Atomically assigns a sequence number and sends the message to the
+    /// IOWorker for persistence. Returns the assigned sequence number.
+    ///
+    /// This method returns as soon as the message is enqueued to the channel,
+    /// before it is persisted to disk. Use the queue's flush mode to control
+    /// durability guarantees.
     pub fn append(&self, data: impl Into<Bytes>) -> Result<u64> {
         let seq = self.sequence.fetch_add(1, Ordering::Relaxed);
 
         let event = WriteEvent {
             sequence: seq,
-            data: data.into(),
-            timestamp: timestamp_micros(),
+            data:     data.into(),
         };
 
-        self.tx.send(event).map_err(|_| QueueError::ChannelSend)?;
+        ensure!(self.tx.send(event).is_ok(), ChannelSendSnafu);
 
         Ok(seq)
     }
 
-    /// Appends multiple messages atomically. Returns their sequence numbers.
+    /// Append multiple messages to the queue in a batch.
+    ///
+    /// Returns the sequence numbers of all appended messages.
+    /// Note: This is not atomic - each message gets its own sequence number
+    /// and is sent individually.
     pub fn append_batch<I>(&self, items: I) -> Result<Vec<u64>>
     where
         I: IntoIterator<Item = Bytes>,
@@ -61,16 +95,17 @@ impl Appender {
         Ok(sequences)
     }
 
-    /// Returns the next sequence number to be assigned.
-    pub fn current_sequence(&self) -> u64 {
-        self.sequence.load(Ordering::Relaxed)
-    }
+    /// Get the current global sequence number.
+    ///
+    /// This is the sequence that will be assigned to the next appended message.
+    pub fn current_sequence(&self) -> u64 { self.sequence.load(Ordering::Relaxed) }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crossbeam::channel::unbounded;
+
+    use super::*;
 
     #[test]
     fn test_appender_append() {

@@ -29,11 +29,12 @@
 // This file is copied from https://github.com/tikv/raft-engine/blob/8dd2a39f359ff16f5295f35343f626e0c10132fa/src/util.rs
 
 use std::{
-    fmt::{self, Debug, Display, Write},
+    fmt::{self, Display, Write},
     ops::{Div, Mul},
     str::FromStr,
 };
 
+use derive_more::Debug;
 use serde::{
     Deserialize, Deserializer, Serialize, Serializer, de,
     de::{Unexpected, Visitor},
@@ -49,7 +50,8 @@ pub const GIB: u64 = MIB * BINARY_DATA_MAGNITUDE;
 pub const TIB: u64 = GIB * BINARY_DATA_MAGNITUDE;
 pub const PIB: u64 = TIB * BINARY_DATA_MAGNITUDE;
 
-#[derive(Clone, Copy, PartialEq, Eq, Ord, PartialOrd)]
+#[derive(Clone, Copy, PartialEq, Eq, Ord, PartialOrd, Debug)]
+#[debug("{}", self)]
 pub struct ReadableSize(pub u64);
 
 impl ReadableSize {
@@ -154,10 +156,6 @@ impl FromStr for ReadableSize {
             Err(_) => Err(format!("invalid size string: {:?}", s)),
         }
     }
-}
-
-impl Debug for ReadableSize {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self) }
 }
 
 impl Display for ReadableSize {

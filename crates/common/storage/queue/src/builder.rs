@@ -63,9 +63,7 @@ impl QueueBuilder {
     }
 
     /// Builds the Queue with the configured options.
-    pub fn build(self) -> Result<Queue> {
-        Queue::new(self.config)
-    }
+    pub fn build(self) -> Result<Queue> { Queue::new(self.config) }
 }
 
 #[cfg(test)]

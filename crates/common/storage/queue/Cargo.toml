@@ -8,12 +8,22 @@ repository.workspace = true
 homepage.workspace = true
 
 [dependencies]
-bytes = "1.0"
-chrono = "0.4"
-crc = "3.0"
+bytes.workspace = true
+chrono.workspace = true
+crc32fast = "1.5"
 crossbeam = "0.8"
 mmap-io = "0.9"
-thiserror = "2.0"
+snafu.workspace = true
+tracing.workspace = true
 
 [dev-dependencies]
+criterion = "0.5"
 tempfile = "3.0"
+test-case = "3.3"
+
+[lib]
+bench = false
+
+[[bench]]
+name = "queue_benchmark"
+harness = false

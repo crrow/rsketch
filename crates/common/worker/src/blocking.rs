@@ -24,9 +24,12 @@ pub trait BlockingWorker: Send + 'static {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::{
+        Arc,
+        atomic::{AtomicUsize, Ordering},
+    };
+
     use super::*;
-    use std::sync::Arc;
-    use std::sync::atomic::{AtomicUsize, Ordering};
 
     struct TestBlockingWorker {
         counter: Arc<AtomicUsize>,

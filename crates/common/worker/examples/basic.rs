@@ -47,7 +47,7 @@ impl Worker for CounterWorker {
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
 struct AppState {
-    name: String,
+    name:    String,
     version: String,
 }
 
@@ -149,7 +149,7 @@ async fn main() {
     // Example 2: Worker with shared state
     {
         let state = AppState {
-            name: "MyApp".to_string(),
+            name:    "MyApp".to_string(),
             version: "1.0.0".to_string(),
         };
 

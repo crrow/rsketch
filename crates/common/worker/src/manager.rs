@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use std::{
+    collections::HashMap,
     sync::{
         Arc,
         atomic::{AtomicBool, Ordering},
@@ -22,7 +23,7 @@ use std::{
 
 use rsketch_common_runtime::Runtime;
 use smart_default::SmartDefault;
-use tokio::{sync::Notify, task::JoinSet};
+use tokio::{sync::Notify, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 use tracing::{error, info};
 
@@ -33,6 +34,7 @@ use crate::{
         CronDriver, CronOrNotifyDriver, IntervalDriver, IntervalOrNotifyDriver, NotifyDriver,
         OnceDriver, TriggerDriverEnum,
     },
+    id::WorkerId,
     metrics::{
         WORKER_ACTIVE, WORKER_EXECUTION_DURATION_SECONDS, WORKER_EXECUTIONS, WORKER_STARTED,
         WORKER_STOPPED,
@@ -65,9 +67,19 @@ use crate::{
 /// ```
 #[derive(Debug, Clone, SmartDefault)]
 pub struct ManagerConfig {
-    pub runtime: Option<Arc<Runtime>>,
+    pub runtime:          Option<Arc<Runtime>>,
     #[default(Duration::from_secs(30))]
     pub shutdown_timeout: Duration,
+}
+
+struct WorkerEntry {
+    name:         &'static str,
+    cancel_token: CancellationToken,
+    #[allow(dead_code)]
+    notify:       Arc<Notify>,
+    #[allow(dead_code)]
+    paused:       Arc<AtomicBool>,
+    join_handle:  JoinHandle<()>,
 }
 
 /// Orchestrates lifecycle and execution of multiple background workers.
@@ -139,11 +151,11 @@ pub struct ManagerConfig {
 /// }
 /// ```
 pub struct Manager<S = ()> {
-    state: S,
-    cancel_token: CancellationToken,
-    runtime: Option<Arc<Runtime>>,
+    state:            S,
+    cancel_token:     CancellationToken,
+    runtime:          Option<Arc<Runtime>>,
     shutdown_timeout: Duration,
-    joins: JoinSet<()>,
+    workers:          HashMap<WorkerId, WorkerEntry>,
 }
 
 impl Manager<()> {
@@ -151,9 +163,7 @@ impl Manager<()> {
     ///
     /// Workers will receive `WorkerContext<()>` with no accessible state.
     /// Uses default configuration (30s shutdown timeout).
-    pub fn new() -> Self {
-        Self::with_config(ManagerConfig::default())
-    }
+    pub fn new() -> Self { Self::with_config(ManagerConfig::default()) }
 
     /// Creates a new worker manager with custom configuration.
     ///
@@ -172,19 +182,17 @@ impl Manager<()> {
     /// ```
     pub fn with_config(config: ManagerConfig) -> Self {
         Manager {
-            state: (),
-            cancel_token: CancellationToken::new(),
-            runtime: config.runtime,
+            state:            (),
+            cancel_token:     CancellationToken::new(),
+            runtime:          config.runtime,
             shutdown_timeout: config.shutdown_timeout,
-            joins: JoinSet::new(),
+            workers:          HashMap::new(),
         }
     }
 }
 
 impl Default for Manager<()> {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }
 
 impl<S: Clone + Send + Sync + 'static> Manager<S> {
@@ -222,7 +230,7 @@ impl<S: Clone + Send + Sync + 'static> Manager<S> {
             cancel_token: CancellationToken::new(),
             runtime: config.runtime,
             shutdown_timeout: config.shutdown_timeout,
-            joins: JoinSet::new(),
+            workers: HashMap::new(),
         }
     }
 
@@ -272,11 +280,15 @@ impl<S: Clone + Send + Sync + 'static> Manager<S> {
         H: SpawnResult,
         S: Clone,
     {
+        let id = WorkerId::new();
         let notify = Arc::new(Notify::new());
         let paused = Arc::new(AtomicBool::new(false));
+
+        let worker_cancel_token = self.cancel_token.child_token();
+
         let ctx = WorkerContext::new(
             self.state.clone(),
-            self.cancel_token.child_token(),
+            worker_cancel_token.child_token(),
             notify.clone(),
             name,
         );
@@ -304,16 +316,55 @@ impl<S: Clone + Send + Sync + 'static> Manager<S> {
             .clone()
             .unwrap_or_else(rsketch_common_runtime::background_runtime);
 
-        if blocking {
-            let handle = runtime.handle().clone();
-            self.joins
-                .spawn_blocking_on(move || handle.block_on(task), runtime.handle());
+        let join_handle = if blocking {
+            let rt_handle = runtime.handle().clone();
+            runtime
+                .handle()
+                .spawn_blocking(move || rt_handle.block_on(task))
         } else {
-            self.joins.spawn_on(task, runtime.handle());
-        }
+            runtime.handle().spawn(task)
+        };
 
-        H::from_parts(name, notify, paused)
+        let entry = WorkerEntry {
+            name,
+            cancel_token: worker_cancel_token,
+            notify: notify.clone(),
+            paused: paused.clone(),
+            join_handle,
+        };
+        self.workers.insert(id, entry);
+
+        H::from_parts(id, name, notify, paused)
     }
+
+    pub fn terminate(&self, id: WorkerId) -> bool {
+        if let Some(entry) = self.workers.get(&id) {
+            entry.cancel_token.cancel();
+            true
+        } else {
+            false
+        }
+    }
+
+    pub async fn remove(&mut self, id: WorkerId) -> Option<&'static str> {
+        if let Some(mut entry) = self.workers.remove(&id) {
+            entry.cancel_token.cancel();
+            let _ = (&mut entry.join_handle).await;
+            Some(entry.name)
+        } else {
+            None
+        }
+    }
+
+    pub fn find_by_name(&self, name: &str) -> Vec<WorkerId> {
+        self.workers
+            .iter()
+            .filter(|(_, entry)| entry.name == name)
+            .map(|(id, _)| *id)
+            .collect()
+    }
+
+    pub fn worker_count(&self) -> usize { self.workers.len() }
 
     /// Initiates graceful shutdown of all workers and waits for them to
     /// complete.
@@ -368,51 +419,37 @@ impl<S: Clone + Send + Sync + 'static> Manager<S> {
         info!("Shutting down worker manager");
         self.cancel_token.cancel();
 
+        for entry in self.workers.values() {
+            entry.cancel_token.cancel();
+        }
+
         let deadline = tokio::time::Instant::now() + self.shutdown_timeout;
         let mut aborted_count = 0;
         let mut total_count = 0;
 
-        loop {
-            let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
+        let worker_ids: Vec<_> = self.workers.keys().copied().collect();
+        for id in worker_ids {
+            if let Some(mut entry) = self.workers.remove(&id) {
+                let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
+                total_count += 1;
 
-            tokio::select! {
-                result = self.joins.join_next() => {
-                    match result {
-                        Some(Ok(())) => {
-                            total_count += 1;
-                        }
-                        Some(Err(e)) => {
-                            total_count += 1;
-                            if e.is_cancelled() {
-                                aborted_count += 1;
-                            } else {
-                                error!(error = ?e, "Join error during shutdown");
-                            }
-                        }
-                        None => {
-                            // All workers finished
-                            break;
-                        }
-                    }
-                }
-                _ = tokio::time::sleep(remaining) => {
-                    // Timeout reached, abort remaining workers
-                    error!(
-                        timeout = ?self.shutdown_timeout,
-                        "Shutdown timeout reached, aborting remaining workers"
-                    );
-                    self.joins.abort_all();
-
-                    // Drain remaining join handles
-                    while let Some(result) = self.joins.join_next().await {
-                        total_count += 1;
-                        if let Err(e) = result
-                            && e.is_cancelled()
-                        {
+                match tokio::time::timeout(remaining, &mut entry.join_handle).await {
+                    Ok(Ok(())) => {}
+                    Ok(Err(e)) => {
+                        if e.is_cancelled() {
                             aborted_count += 1;
+                        } else {
+                            error!(name = entry.name, error = ?e, "Join error during shutdown");
                         }
                     }
-                    break;
+                    Err(_) => {
+                        entry.join_handle.abort();
+                        aborted_count += 1;
+                        error!(
+                            name = entry.name,
+                            "Worker timed out during shutdown, aborted"
+                        );
+                    }
                 }
             }
         }

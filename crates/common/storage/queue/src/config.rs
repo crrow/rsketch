@@ -12,22 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::path::PathBuf;
-use std::time::Duration;
+use std::{path::PathBuf, time::Duration};
 
 /// Configuration for the persistent queue.
 #[derive(Debug, Clone)]
 pub struct QueueConfig {
     /// Root directory for queue data files.
-    pub base_path: PathBuf,
+    pub base_path:         PathBuf,
     /// Maximum size of each data file in bytes.
-    pub file_size: u64,
+    pub file_size:         u64,
     /// Strategy for rolling to new data files.
-    pub roll_strategy: RollStrategy,
+    pub roll_strategy:     RollStrategy,
     /// How writes are flushed to disk.
-    pub flush_mode: FlushMode,
+    pub flush_mode:        FlushMode,
     /// Interval between index entries (every N messages).
-    pub index_interval: u64,
+    pub index_interval:    u64,
     /// Whether to verify data integrity on startup.
     pub verify_on_startup: bool,
 }
@@ -35,11 +34,11 @@ pub struct QueueConfig {
 impl Default for QueueConfig {
     fn default() -> Self {
         Self {
-            base_path: PathBuf::from("./queue_data"),
-            file_size: 1024 * 1024 * 1024,
-            roll_strategy: RollStrategy::BySize(1024 * 1024 * 1024),
-            flush_mode: FlushMode::Async,
-            index_interval: 1024,
+            base_path:         PathBuf::from("./queue_data"),
+            file_size:         1024 * 1024 * 1024,
+            roll_strategy:     RollStrategy::BySize(1024 * 1024 * 1024),
+            flush_mode:        FlushMode::Async,
+            index_interval:    1024,
             verify_on_startup: false,
         }
     }

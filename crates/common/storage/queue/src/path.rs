@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::Result;
-use chrono::{DateTime, Datelike, Utc};
 use std::path::{Path, PathBuf};
+
+use chrono::{DateTime, Datelike, Utc};
+
+use crate::Result;
 
 /// Creates a time-based directory path: `base/YYYY/MM/DD`.
 pub fn time_based_dir<P: AsRef<Path>>(base: P, time: DateTime<Utc>) -> PathBuf {
@@ -87,8 +89,9 @@ fn scan_data_files_recursive(dir: &Path, files: &mut Vec<PathBuf>) -> Result<()>
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use chrono::TimeZone;
+
+    use super::*;
 
     #[test]
     fn test_time_based_dir() {
@@ -130,7 +133,7 @@ mod tests {
 
     #[test]
     fn test_scan_data_files() {
-        let temp_dir = tempfile::tempdir().unwrap();
+        let temp_dir = tempfile::TempDir::new().unwrap();
         let base = temp_dir.path();
 
         let time1 = Utc.with_ymd_and_hms(2026, 1, 14, 0, 0, 0).unwrap();

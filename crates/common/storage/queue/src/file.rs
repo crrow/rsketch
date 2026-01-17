@@ -12,16 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Memory-mapped data file operations using mmap-io.
-
-use crate::{FlushMode, QueueError, Result};
-use mmap_io::MemoryMappedFile;
 use std::path::{Path, PathBuf};
 
-/// Memory-mapped data file for append-only writes.
-///
-/// Wraps mmap-io's MemoryMappedFile to provide a simpler interface
-/// for the queue's append-only write pattern.
+use mmap_io::MemoryMappedFile;
+use snafu::ResultExt;
+
+use crate::{FlushMode, Result, error::MmapFailedSnafu};
+
 pub struct DataFile {
     mmap: MemoryMappedFile,
     path: PathBuf,
@@ -29,140 +26,94 @@ pub struct DataFile {
 }
 
 impl DataFile {
-    /// Create a new data file with pre-allocation.
     pub fn create<P: AsRef<Path>>(path: P, size: u64) -> Result<Self> {
         let path = path.as_ref().to_path_buf();
 
-        // Ensure parent directory exists
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)?;
         }
 
-        // Create memory-mapped file with pre-allocated size
-        let mmap = MemoryMappedFile::create_rw(&path, size)
-            .map_err(|e| QueueError::MmapFailed(e.to_string()))?;
+        let mmap = MemoryMappedFile::create_rw(&path, size).context(MmapFailedSnafu)?;
 
         Ok(Self { mmap, path, size })
     }
 
-    /// Open an existing data file.
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self> {
         let path = path.as_ref().to_path_buf();
 
-        let mmap =
-            MemoryMappedFile::open_rw(&path).map_err(|e| QueueError::MmapFailed(e.to_string()))?;
+        let mmap = MemoryMappedFile::open_rw(&path).context(MmapFailedSnafu)?;
 
         let size = mmap.len();
 
         Ok(Self { mmap, path, size })
     }
 
-    /// Write data at the specified offset.
     #[inline]
     pub fn write_at(&self, offset: u64, data: &[u8]) -> Result<()> {
         self.mmap
             .update_region(offset, data)
-            .map_err(|e| QueueError::MmapFailed(e.to_string()))
+            .context(MmapFailedSnafu)
     }
 
-    /// Read data from the specified offset into the provided buffer.
     #[inline]
     pub fn read_at(&self, offset: u64, buf: &mut [u8]) -> Result<()> {
-        self.mmap
-            .read_into(offset, buf)
-            .map_err(|e| QueueError::MmapFailed(e.to_string()))
+        self.mmap.read_into(offset, buf).context(MmapFailedSnafu)
     }
 
-    /// Get file size.
-    pub fn size(&self) -> u64 {
-        self.size
-    }
+    pub fn size(&self) -> u64 { self.size }
 
-    /// Get file path.
-    pub fn path(&self) -> &Path {
-        &self.path
-    }
+    pub fn path(&self) -> &Path { &self.path }
 
-    /// Flush data to disk based on flush mode.
     pub fn flush(&self, mode: FlushMode) -> Result<()> {
         match mode {
-            FlushMode::Async => {
-                // mmap-io uses async flush internally when appropriate
-                self.mmap
-                    .flush()
-                    .map_err(|e| QueueError::MmapFailed(e.to_string()))?;
-            }
-            FlushMode::Sync => {
-                self.mmap
-                    .flush()
-                    .map_err(|e| QueueError::MmapFailed(e.to_string()))?;
-            }
-            FlushMode::Batch { .. } => {
-                // Batch mode is handled by caller, use regular flush
-                self.mmap
-                    .flush()
-                    .map_err(|e| QueueError::MmapFailed(e.to_string()))?;
+            FlushMode::Async | FlushMode::Sync | FlushMode::Batch { .. } => {
+                self.mmap.flush().context(MmapFailedSnafu)?;
             }
         }
         Ok(())
     }
 
-    /// Flush a specific range to disk.
     pub fn flush_range(&self, offset: u64, len: u64) -> Result<()> {
-        self.mmap
-            .flush_range(offset, len)
-            .map_err(|e| QueueError::MmapFailed(e.to_string()))
+        self.mmap.flush_range(offset, len).context(MmapFailedSnafu)
     }
 }
 
-/// Read-only memory-mapped data file.
 pub struct ReadOnlyDataFile {
     mmap: MemoryMappedFile,
     size: u64,
 }
 
 impl ReadOnlyDataFile {
-    /// Open an existing data file in read-only mode.
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self> {
-        let mmap = MemoryMappedFile::open_ro(path.as_ref())
-            .map_err(|e| QueueError::MmapFailed(e.to_string()))?;
+        let mmap = MemoryMappedFile::open_ro(path.as_ref()).context(MmapFailedSnafu)?;
 
         let size = mmap.len();
 
         Ok(Self { mmap, size })
     }
 
-    /// Read data from the specified offset into the provided buffer.
     #[inline]
     pub fn read_at(&self, offset: u64, buf: &mut [u8]) -> Result<()> {
-        self.mmap
-            .read_into(offset, buf)
-            .map_err(|e| QueueError::MmapFailed(e.to_string()))
+        self.mmap.read_into(offset, buf).context(MmapFailedSnafu)
     }
 
-    /// Get a slice of data at the specified offset.
-    ///
-    /// This is zero-copy for read-only mappings.
     #[inline]
     pub fn as_slice(&self, offset: u64, len: u64) -> Result<&[u8]> {
-        self.mmap
-            .as_slice(offset, len)
-            .map_err(|e| QueueError::MmapFailed(e.to_string()))
+        self.mmap.as_slice(offset, len).context(MmapFailedSnafu)
     }
 
-    /// Get file size.
-    pub fn size(&self) -> u64 {
-        self.size
-    }
+    pub fn size(&self) -> u64 { self.size }
 }
 
 #[cfg(test)]
 mod tests {
+    use tempfile::TempDir;
+
     use super::*;
 
     #[test]
     fn test_create_data_file() {
-        let temp_dir = tempfile::tempdir().unwrap();
+        let temp_dir = TempDir::new().unwrap();
         let path = temp_dir.path().join("test.data");
         let size = 4096;
 
@@ -173,11 +124,10 @@ mod tests {
 
     #[test]
     fn test_write_and_read_data_file() {
-        let temp_dir = tempfile::tempdir().unwrap();
+        let temp_dir = TempDir::new().unwrap();
         let path = temp_dir.path().join("test.data");
         let size = 4096;
 
-        // Create and write
         {
             let file = DataFile::create(&path, size).unwrap();
             let data = b"Hello, World!";
@@ -185,7 +135,6 @@ mod tests {
             file.flush(FlushMode::Sync).unwrap();
         }
 
-        // Read back
         {
             let file = ReadOnlyDataFile::open(&path).unwrap();
             let data = file.as_slice(0, 13).unwrap();
@@ -195,18 +144,16 @@ mod tests {
 
     #[test]
     fn test_read_into_buffer() {
-        let temp_dir = tempfile::tempdir().unwrap();
+        let temp_dir = TempDir::new().unwrap();
         let path = temp_dir.path().join("test.data");
         let size = 4096;
 
-        // Create and write
         {
             let file = DataFile::create(&path, size).unwrap();
             file.write_at(100, b"Test data at offset").unwrap();
             file.flush(FlushMode::Sync).unwrap();
         }
 
-        // Read back using read_at
         {
             let file = ReadOnlyDataFile::open(&path).unwrap();
             let mut buf = [0u8; 19];
@@ -217,15 +164,13 @@ mod tests {
 
     #[test]
     fn test_open_existing_file() {
-        let temp_dir = tempfile::tempdir().unwrap();
+        let temp_dir = TempDir::new().unwrap();
         let path = temp_dir.path().join("test.data");
 
-        // Create file first
         {
             DataFile::create(&path, 1024).unwrap();
         }
 
-        // Open existing
         let file = DataFile::open(&path).unwrap();
         assert_eq!(file.size(), 1024);
     }

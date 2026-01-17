@@ -29,7 +29,7 @@
 //! ```rust,no_run
 //! use std::time::Duration;
 //!
-//! use rsketch_common_worker::{Manager, Pausable, Worker, WorkerContext};
+//! use rsketch_common_worker::{Handle, Manager, Pausable, Worker, WorkerContext};
 //!
 //! struct MyWorker;
 //!
@@ -44,7 +44,7 @@
 //! async fn main() {
 //!     let mut manager = Manager::new();
 //!
-//!     // Spawn an interval worker
+//!     // Spawn an interval worker (handle contains worker id)
 //!     let handle = manager
 //!         .worker(MyWorker)
 //!         .name("my-worker")
@@ -54,6 +54,9 @@
 //!     // Pause/resume control
 //!     handle.pause();
 //!     handle.resume();
+//!
+//!     // Access worker id via handle
+//!     let _id = handle.id();
 //!
 //!     // Graceful shutdown
 //!     manager.shutdown().await;
@@ -75,6 +78,7 @@ mod context;
 mod driver;
 mod err;
 mod handle;
+mod id;
 mod manager;
 mod metrics;
 mod trigger;
@@ -88,6 +92,7 @@ pub use handle::{
     CronHandle, CronOrNotifyHandle, Handle, IntervalHandle, IntervalOrNotifyHandle, Notifiable,
     NotifyHandle, OnceHandle, Pausable,
 };
+pub use id::WorkerId;
 pub use manager::{Manager, ManagerConfig};
 pub use trigger::Trigger;
 pub use worker::Worker;

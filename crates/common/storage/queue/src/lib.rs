@@ -22,6 +22,13 @@
 //! - Thread-safe appender for concurrent writes
 
 mod crc;
+mod index;
+mod io_worker;
+mod manifest;
+mod manifest_writer;
+mod queue;
+mod recovery;
+mod tailer;
 
 pub mod appender;
 pub mod builder;
@@ -34,15 +41,8 @@ pub mod path;
 pub use appender::Appender;
 pub use builder::QueueBuilder;
 pub use config::{FlushMode, QueueConfig, RollStrategy};
-pub use error::{QueueError, Result};
+pub use error::{Error, Result};
 pub use file::{DataFile, ReadOnlyDataFile};
 pub use message::Message;
-
-/// Main queue handle (placeholder for future implementation).
-pub struct Queue {}
-
-impl Queue {
-    pub(crate) fn new(_config: QueueConfig) -> Result<Self> {
-        Ok(Queue {})
-    }
-}
+pub use queue::Queue;
+pub use tailer::Tailer;

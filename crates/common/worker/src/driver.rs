@@ -51,9 +51,7 @@ pub(crate) struct OnceDriver {
 }
 
 impl OnceDriver {
-    pub fn new() -> Self {
-        OnceDriver { executed: false }
-    }
+    pub fn new() -> Self { OnceDriver { executed: false } }
 }
 
 impl TriggerDriver for OnceDriver {
@@ -73,9 +71,7 @@ impl TriggerDriver for OnceDriver {
 pub(crate) struct NotifyDriver;
 
 impl NotifyDriver {
-    pub fn new() -> Self {
-        NotifyDriver
-    }
+    pub fn new() -> Self { NotifyDriver }
 }
 
 impl TriggerDriver for NotifyDriver {
@@ -115,9 +111,7 @@ pub(crate) struct CronDriver {
 }
 
 impl CronDriver {
-    pub fn new(cron: croner::Cron) -> Self {
-        CronDriver { cron }
-    }
+    pub fn new(cron: croner::Cron) -> Self { CronDriver { cron } }
 }
 
 impl TriggerDriver for CronDriver {
@@ -180,9 +174,7 @@ pub(crate) struct CronOrNotifyDriver {
 }
 
 impl CronOrNotifyDriver {
-    pub fn new(cron: croner::Cron) -> Self {
-        CronOrNotifyDriver { cron }
-    }
+    pub fn new(cron: croner::Cron) -> Self { CronOrNotifyDriver { cron } }
 }
 
 impl TriggerDriver for CronOrNotifyDriver {

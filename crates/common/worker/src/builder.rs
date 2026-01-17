@@ -31,6 +31,7 @@ use crate::{
         CronHandle, CronOrNotifyHandle, IntervalHandle, IntervalOrNotifyHandle, NotifyHandle,
         OnceHandle,
     },
+    id::WorkerId,
     manager::Manager,
     trigger::Trigger,
     worker::Worker,
@@ -84,11 +85,11 @@ pub struct TriggerCronOrNotify;
 /// let handle = builder.spawn(); // Returns IntervalHandle
 /// ```
 pub struct WorkerBuilder<'m, S, W, T> {
-    manager: &'m mut Manager<S>,
-    worker: W,
-    name: Option<&'static str>,
+    manager:  &'m mut Manager<S>,
+    worker:   W,
+    name:     Option<&'static str>,
     blocking: bool,
-    trigger: Option<Trigger>,
+    trigger:  Option<Trigger>,
     _phantom: PhantomData<T>,
 }
 
@@ -128,11 +129,11 @@ where
     pub fn once(mut self) -> WorkerBuilder<'m, S, W, TriggerOnce> {
         self.trigger = Some(Trigger::Once);
         WorkerBuilder {
-            manager: self.manager,
-            worker: self.worker,
-            name: self.name,
+            manager:  self.manager,
+            worker:   self.worker,
+            name:     self.name,
             blocking: self.blocking,
-            trigger: self.trigger,
+            trigger:  self.trigger,
             _phantom: PhantomData,
         }
     }
@@ -158,11 +159,11 @@ where
     pub fn on_notify(mut self) -> WorkerBuilder<'m, S, W, TriggerNotify> {
         self.trigger = Some(Trigger::Notify);
         WorkerBuilder {
-            manager: self.manager,
-            worker: self.worker,
-            name: self.name,
+            manager:  self.manager,
+            worker:   self.worker,
+            name:     self.name,
             blocking: self.blocking,
-            trigger: self.trigger,
+            trigger:  self.trigger,
             _phantom: PhantomData,
         }
     }
@@ -193,11 +194,11 @@ where
     pub fn interval(mut self, duration: Duration) -> WorkerBuilder<'m, S, W, TriggerInterval> {
         self.trigger = Some(Trigger::Interval(duration));
         WorkerBuilder {
-            manager: self.manager,
-            worker: self.worker,
-            name: self.name,
+            manager:  self.manager,
+            worker:   self.worker,
+            name:     self.name,
             blocking: self.blocking,
-            trigger: self.trigger,
+            trigger:  self.trigger,
             _phantom: PhantomData,
         }
     }
@@ -259,11 +260,11 @@ where
             .context(crate::err::InvalidExpressionSnafu)?;
         self.trigger = Some(Trigger::Cron(cron));
         Ok(WorkerBuilder {
-            manager: self.manager,
-            worker: self.worker,
-            name: self.name,
+            manager:  self.manager,
+            worker:   self.worker,
+            name:     self.name,
             blocking: self.blocking,
-            trigger: self.trigger,
+            trigger:  self.trigger,
             _phantom: PhantomData,
         })
     }
@@ -303,11 +304,11 @@ where
     ) -> WorkerBuilder<'m, S, W, TriggerIntervalOrNotify> {
         self.trigger = Some(Trigger::IntervalOrNotify(duration));
         WorkerBuilder {
-            manager: self.manager,
-            worker: self.worker,
-            name: self.name,
+            manager:  self.manager,
+            worker:   self.worker,
+            name:     self.name,
             blocking: self.blocking,
-            trigger: self.trigger,
+            trigger:  self.trigger,
             _phantom: PhantomData,
         }
     }
@@ -355,11 +356,11 @@ where
             .context(crate::err::InvalidExpressionSnafu)?;
         self.trigger = Some(Trigger::CronOrNotify(cron));
         Ok(WorkerBuilder {
-            manager: self.manager,
-            worker: self.worker,
-            name: self.name,
+            manager:  self.manager,
+            worker:   self.worker,
+            name:     self.name,
             blocking: self.blocking,
-            trigger: self.trigger,
+            trigger:  self.trigger,
             _phantom: PhantomData,
         })
     }
@@ -536,6 +537,7 @@ where
 /// This is an internal trait and should not be implemented by external code.
 pub(crate) trait SpawnResult {
     fn from_parts(
+        id: WorkerId,
         name: &'static str,
         notify: std::sync::Arc<tokio::sync::Notify>,
         paused: std::sync::Arc<std::sync::atomic::AtomicBool>,
@@ -544,60 +546,66 @@ pub(crate) trait SpawnResult {
 
 impl SpawnResult for OnceHandle {
     fn from_parts(
-        _name: &'static str,
+        id: WorkerId,
+        name: &'static str,
         _notify: std::sync::Arc<tokio::sync::Notify>,
         _paused: std::sync::Arc<std::sync::atomic::AtomicBool>,
     ) -> Self {
-        OnceHandle::new(_name)
+        OnceHandle::new(id, name)
     }
 }
 
 impl SpawnResult for NotifyHandle {
     fn from_parts(
+        id: WorkerId,
         name: &'static str,
         notify: std::sync::Arc<tokio::sync::Notify>,
         _paused: std::sync::Arc<std::sync::atomic::AtomicBool>,
     ) -> Self {
-        NotifyHandle::new(name, notify)
+        NotifyHandle::new(id, name, notify)
     }
 }
 
 impl SpawnResult for IntervalHandle {
     fn from_parts(
+        id: WorkerId,
         name: &'static str,
         notify: std::sync::Arc<tokio::sync::Notify>,
         paused: std::sync::Arc<std::sync::atomic::AtomicBool>,
     ) -> Self {
-        IntervalHandle::new(name, notify, paused)
+        IntervalHandle::new(id, name, notify, paused)
     }
 }
 
 impl SpawnResult for CronHandle {
     fn from_parts(
+        id: WorkerId,
         name: &'static str,
         notify: std::sync::Arc<tokio::sync::Notify>,
         paused: std::sync::Arc<std::sync::atomic::AtomicBool>,
     ) -> Self {
-        CronHandle::new(name, notify, paused)
+        CronHandle::new(id, name, notify, paused)
     }
 }
 
 impl SpawnResult for IntervalOrNotifyHandle {
     fn from_parts(
+        id: WorkerId,
         name: &'static str,
         notify: std::sync::Arc<tokio::sync::Notify>,
         paused: std::sync::Arc<std::sync::atomic::AtomicBool>,
     ) -> Self {
-        IntervalOrNotifyHandle::new(name, notify, paused)
+        IntervalOrNotifyHandle::new(id, name, notify, paused)
     }
 }
 
 impl SpawnResult for CronOrNotifyHandle {
     fn from_parts(
+        id: WorkerId,
         name: &'static str,
         notify: std::sync::Arc<tokio::sync::Notify>,
         paused: std::sync::Arc<std::sync::atomic::AtomicBool>,
     ) -> Self {
-        CronOrNotifyHandle::new(name, notify, paused)
+        CronOrNotifyHandle::new(id, name, notify, paused)
     }
 }

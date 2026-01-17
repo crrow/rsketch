@@ -20,7 +20,7 @@ use std::{
     time::Duration,
 };
 
-use rsketch_common_worker::{Manager, Notifiable, Pausable, Worker, WorkerContext};
+use rsketch_common_worker::{Handle, Manager, Notifiable, Pausable, Worker, WorkerContext};
 
 struct TestWorker {
     counter: Arc<AtomicUsize>,
@@ -201,4 +201,202 @@ async fn test_cron_trigger() {
 
     // We can't assert exact count since cron timing is minute-based
     // Just verify the worker was created successfully
+}
+
+#[tokio::test]
+async fn test_worker_count() {
+    let counter = Arc::new(AtomicUsize::new(0));
+    let mut manager = Manager::new();
+
+    assert_eq!(manager.worker_count(), 0);
+
+    let _h1 = manager
+        .worker(TestWorker {
+            counter: counter.clone(),
+        })
+        .name("worker-1")
+        .interval(Duration::from_millis(100))
+        .spawn();
+
+    assert_eq!(manager.worker_count(), 1);
+
+    let _h2 = manager
+        .worker(TestWorker {
+            counter: counter.clone(),
+        })
+        .name("worker-2")
+        .interval(Duration::from_millis(100))
+        .spawn();
+
+    assert_eq!(manager.worker_count(), 2);
+
+    let _h3 = manager
+        .worker(TestWorker {
+            counter: counter.clone(),
+        })
+        .name("worker-3")
+        .interval(Duration::from_millis(100))
+        .spawn();
+
+    assert_eq!(manager.worker_count(), 3);
+
+    manager.shutdown().await;
+}
+
+#[tokio::test]
+async fn test_find_by_name() {
+    let counter = Arc::new(AtomicUsize::new(0));
+    let mut manager = Manager::new();
+
+    let h1 = manager
+        .worker(TestWorker {
+            counter: counter.clone(),
+        })
+        .name("metrics-worker")
+        .interval(Duration::from_millis(100))
+        .spawn();
+
+    let h2 = manager
+        .worker(TestWorker {
+            counter: counter.clone(),
+        })
+        .name("metrics-worker")
+        .interval(Duration::from_millis(100))
+        .spawn();
+
+    let _h3 = manager
+        .worker(TestWorker {
+            counter: counter.clone(),
+        })
+        .name("other-worker")
+        .interval(Duration::from_millis(100))
+        .spawn();
+
+    let metrics_ids = manager.find_by_name("metrics-worker");
+    assert_eq!(metrics_ids.len(), 2);
+    assert!(metrics_ids.contains(&h1.id()));
+    assert!(metrics_ids.contains(&h2.id()));
+
+    let other_ids = manager.find_by_name("other-worker");
+    assert_eq!(other_ids.len(), 1);
+
+    let empty_ids = manager.find_by_name("nonexistent");
+    assert!(empty_ids.is_empty());
+
+    manager.shutdown().await;
+}
+
+#[tokio::test]
+async fn test_terminate() {
+    let counter = Arc::new(AtomicUsize::new(0));
+    let mut manager = Manager::new();
+
+    let handle = manager
+        .worker(TestWorker {
+            counter: counter.clone(),
+        })
+        .name("test-terminate")
+        .interval(Duration::from_millis(50))
+        .spawn();
+
+    tokio::time::sleep(Duration::from_millis(125)).await;
+    let count_before = counter.load(Ordering::SeqCst);
+    assert!(count_before >= 2, "Should have run at least twice");
+
+    let terminated = manager.terminate(handle.id());
+    assert!(terminated);
+
+    tokio::time::sleep(Duration::from_millis(100)).await;
+    let count_after = counter.load(Ordering::SeqCst);
+
+    assert!(
+        count_after <= count_before + 1,
+        "Counter should stop increasing after terminate"
+    );
+
+    let terminated_again = manager.terminate(handle.id());
+    assert!(terminated_again);
+
+    manager.shutdown().await;
+}
+
+#[tokio::test]
+async fn test_terminate_nonexistent() {
+    let mut manager = Manager::new();
+    let counter = Arc::new(AtomicUsize::new(0));
+
+    let handle = manager
+        .worker(TestWorker {
+            counter: counter.clone(),
+        })
+        .name("test-worker")
+        .once()
+        .spawn();
+
+    tokio::time::sleep(Duration::from_millis(50)).await;
+    manager.remove(handle.id()).await;
+
+    let terminated = manager.terminate(handle.id());
+    assert!(!terminated);
+
+    manager.shutdown().await;
+}
+
+#[tokio::test]
+async fn test_remove() {
+    let counter = Arc::new(AtomicUsize::new(0));
+    let mut manager = Manager::new();
+
+    let handle = manager
+        .worker(TestWorker {
+            counter: counter.clone(),
+        })
+        .name("test-remove")
+        .interval(Duration::from_millis(50))
+        .spawn();
+
+    assert_eq!(manager.worker_count(), 1);
+
+    tokio::time::sleep(Duration::from_millis(125)).await;
+    let count_before = counter.load(Ordering::SeqCst);
+    assert!(count_before >= 2, "Should have run at least twice");
+
+    let name = manager.remove(handle.id()).await;
+    assert_eq!(name, Some("test-remove"));
+    assert_eq!(manager.worker_count(), 0);
+
+    let count_after = counter.load(Ordering::SeqCst);
+    tokio::time::sleep(Duration::from_millis(100)).await;
+    let count_final = counter.load(Ordering::SeqCst);
+    assert_eq!(
+        count_after, count_final,
+        "Counter should not change after remove"
+    );
+
+    let removed_again = manager.remove(handle.id()).await;
+    assert!(removed_again.is_none());
+
+    manager.shutdown().await;
+}
+
+#[tokio::test]
+async fn test_remove_nonexistent() {
+    let mut manager = Manager::new();
+    let counter = Arc::new(AtomicUsize::new(0));
+
+    let handle = manager
+        .worker(TestWorker {
+            counter: counter.clone(),
+        })
+        .name("test-worker")
+        .once()
+        .spawn();
+
+    tokio::time::sleep(Duration::from_millis(50)).await;
+    manager.remove(handle.id()).await;
+
+    let removed = manager.remove(handle.id()).await;
+    assert!(removed.is_none());
+
+    manager.shutdown().await;
 }
