@@ -69,6 +69,11 @@ impl Tailer {
     /// Create a new tailer starting from the beginning of the queue.
     ///
     /// Scans for existing data files and opens the first one if present.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the queue directory cannot be read or if opening
+    /// the first data file fails.
     pub fn new(config: Arc<QueueConfig>) -> Result<Self> {
         let data_files = scan_data_files(&config.base_path)?;
 
@@ -93,6 +98,11 @@ impl Tailer {
     ///
     /// Uses the sparse index for O(log n) seek when available, otherwise
     /// performs a linear scan from the beginning.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the queue directory cannot be read, opening data
+    /// files fails, or seeking to the target sequence fails.
     pub fn from_sequence(config: Arc<QueueConfig>, target_sequence: u64) -> Result<Self> {
         let mut tailer = Self::new(config)?;
         tailer.seek(target_sequence)?;
@@ -106,6 +116,13 @@ impl Tailer {
     ///
     /// Automatically advances to the next data file when the current one is
     /// exhausted.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - Reading from the data file fails
+    /// - CRC validation fails (data corruption detected)
+    /// - Opening the next data file fails
     pub fn read_next(&mut self) -> Result<Option<Message>> {
         loop {
             let Some(file) = self.current_file.as_ref() else {
@@ -132,7 +149,8 @@ impl Tailer {
                 continue;
             }
 
-            let total_size = MESSAGE_LENGTH_SIZE as u64 + u64::from(length) + MESSAGE_CRC_SIZE as u64;
+            let total_size =
+                MESSAGE_LENGTH_SIZE as u64 + u64::from(length) + MESSAGE_CRC_SIZE as u64;
 
             ensure!(
                 self.read_position + total_size <= file_size,
@@ -176,6 +194,11 @@ impl Tailer {
     /// After seeking, the next call to `read_next` will return the message
     /// at `target_sequence` (if it exists). Uses the sparse index for
     /// efficient seeking when available.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if opening index files fails, reading messages during
+    /// the scan fails, or opening data files fails.
     pub fn seek(&mut self, target_sequence: u64) -> Result<()> {
         for (idx, data_path) in self.data_files.iter().enumerate() {
             let index_path = data_path.with_extension("index");
@@ -219,6 +242,10 @@ impl Tailer {
     /// Refresh the list of data files.
     ///
     /// Call this to pick up newly written files when tailing a live queue.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if scanning the queue directory fails.
     pub fn refresh(&mut self) -> Result<()> {
         self.data_files = scan_data_files(&self.config.base_path)?;
         Ok(())
@@ -290,7 +317,7 @@ mod tests {
     };
 
     fn write_test_message(file: &DataFile, offset: u64, data: &[u8]) -> u64 {
-        let length = data.len() as u32;
+        let length = u32::try_from(data.len()).expect("failed to convert to u32 from usize");
         let crc = calculate_message_crc(length, data);
 
         file.write_at(offset, &length.to_le_bytes()).unwrap();

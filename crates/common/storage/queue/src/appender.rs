@@ -63,6 +63,11 @@ impl Appender {
     /// This method returns as soon as the message is enqueued to the channel,
     /// before it is persisted to disk. Use the queue's flush mode to control
     /// durability guarantees.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the IO worker has shut down and can no longer
+    /// receive messages.
     pub fn append(&self, data: impl Into<Bytes>) -> Result<u64> {
         let seq = self.sequence.fetch_add(1, Ordering::Relaxed);
 
@@ -81,6 +86,11 @@ impl Appender {
     /// Returns the sequence numbers of all appended messages.
     /// Note: This is not atomic - each message gets its own sequence number
     /// and is sent individually.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the IO worker has shut down and can no longer
+    /// receive messages.
     pub fn append_batch<I>(&self, items: I) -> Result<Vec<u64>>
     where
         I: IntoIterator<Item = Bytes>,

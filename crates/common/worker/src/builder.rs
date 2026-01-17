@@ -666,14 +666,14 @@ impl SpawnResult for CronOrNotifyHandle {
 /// Type-safe builder for configuring and spawning fallible workers.
 ///
 /// This builder is similar to [`WorkerBuilder`] but works with workers that
-/// implement [`FallibleWorker`], allowing them to return errors from lifecycle
-/// hooks.
+/// implement [`crate::FallibleWorker`], allowing them to return errors from
+/// lifecycle hooks.
 ///
 /// # Type Parameters
 ///
 /// - `'m`: Lifetime of the mutable reference to Manager
 /// - `S`: State type from the Manager (must match worker's state type)
-/// - `W`: `FallibleWorker` implementation type
+/// - `W`: `crate::FallibleWorker` implementation type
 /// - `T`: Type-state marker (`TriggerNotSet`, `TriggerOnce`, etc.)
 pub struct FallibleWorkerBuilder<'m, S, W, T> {
     manager:    &'m mut crate::Manager<S>,

@@ -109,9 +109,9 @@ pub trait Pausable: Handle {
 pub trait Notifiable: Handle {
     /// Triggers an immediate execution of the worker.
     ///
-    /// For hybrid triggers (`IntervalOrNotify`, `CronOrNotify`), this resets the
-    /// timer. Multiple `notify()` calls may be coalesced if the worker is
-    /// still executing.
+    /// For hybrid triggers (`IntervalOrNotify`, `CronOrNotify`), this resets
+    /// the timer. Multiple `notify()` calls may be coalesced if the worker
+    /// is still executing.
     fn notify(&self);
 }
 

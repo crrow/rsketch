@@ -132,10 +132,9 @@ impl ShouldSample for TracingSampleOptions {
             // No extra attributes ever set by the SDK samplers.
             attributes:  Vec::new(),
             // all sampler in SDK will not modify trace state.
-            trace_state: match parent_context {
-                Some(ctx) => ctx.span().span_context().trace_state().clone(),
-                None => TraceState::default(),
-            },
+            trace_state: parent_context.map_or_else(TraceState::default, |ctx| {
+                ctx.span().span_context().trace_state().clone()
+            }),
         }
     }
 }
@@ -146,6 +145,11 @@ fn sample_based_on_probability(prob: f64, trace_id: TraceId) -> SamplingDecision
     if prob >= 1.0 {
         SamplingDecision::RecordAndSample
     } else {
+        #[allow(
+            clippy::cast_precision_loss,
+            clippy::cast_possible_truncation,
+            clippy::cast_sign_loss
+        )]
         let prob_upper_bound = (prob.max(0.0) * (1u64 << 63) as f64) as u64;
         let bytes = trace_id.to_bytes();
         let (_, low) = bytes.split_at(8);

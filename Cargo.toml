@@ -25,6 +25,7 @@ items_after_statements = "allow"
 redundant_pub_crate = "allow"
 significant_drop_tightening = "allow"
 future_not_send = "allow"
+missing_errors_doc = "allow"
 
 [workspace]
 resolver = "3"

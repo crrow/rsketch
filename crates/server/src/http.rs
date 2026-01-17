@@ -83,6 +83,16 @@ pub struct RestServerConfig {
 ///     Ok(())
 /// }
 /// ```
+///
+/// # Errors
+///
+/// Returns an error if server binding fails or graceful shutdown encounters
+/// issues.
+///
+/// # Panics
+///
+/// May panic if TcpListener binding fails within the spawn context.
+#[allow(clippy::unused_async)]
 pub async fn start_rest_server<F>(
     config: RestServerConfig,
     route_handlers: Vec<F>,

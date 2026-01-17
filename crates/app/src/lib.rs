@@ -118,12 +118,8 @@ impl App {
         };
 
         // Start servers
-        let grpc_handle = start_grpc_server(
-            self.config.grpc_config.clone(),
-            vec![Arc::new(HelloService)],
-        )
-        .await
-        .whatever_context("Failed to start gRPC server")?;
+        let grpc_handle = start_grpc_server(&self.config.grpc_config, &[Arc::new(HelloService)])
+            .whatever_context("Failed to start gRPC server")?;
 
         let http_handle = start_rest_server(self.config.http_config.clone(), vec![health_routes])
             .await

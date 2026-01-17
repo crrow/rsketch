@@ -34,14 +34,13 @@ impl hello_service_server::HelloService for HelloService {
         &self,
         request: tonic::Request<HelloRequest>,
     ) -> std::result::Result<tonic::Response<HelloResponse>, tonic::Status> {
-        let response = self.hello_inner(request).map_err(tonic::Status::from)?;
+        let response = Self::hello_inner(request).map_err(tonic::Status::from)?;
         Ok(response)
     }
 }
 
 impl HelloService {
     fn hello_inner(
-        &self,
         request: tonic::Request<HelloRequest>,
     ) -> ApiResult<tonic::Response<HelloResponse>> {
         let name = request.into_inner().name;

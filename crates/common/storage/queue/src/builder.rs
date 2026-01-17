@@ -68,6 +68,11 @@ impl QueueBuilder {
     }
 
     /// Builds the Queue with the configured options.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if queue initialization fails (e.g., directory
+    /// creation, manifest loading, or IO worker spawn failures).
     pub fn build(self) -> Result<Queue> { Queue::new(self.config) }
 }
 

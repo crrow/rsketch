@@ -88,7 +88,7 @@ lint:
     @echo "🔍 Running clippy..."
     cargo clippy --workspace --all-targets --all-features --no-deps -- -D warnings
     @echo "📚 Building documentation..."
-    cargo doc --workspace --all-features --no-deps --document-private-items
+    cargo doc --workspace --all-features --no-deps
     @echo "🔍 Linting protobuf..."
     cd api && buf lint
     @echo "✅ All linting checks passed!"

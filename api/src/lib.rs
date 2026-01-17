@@ -19,7 +19,8 @@ pub mod pb {
         clippy::missing_errors_doc,
         clippy::default_trait_access,
         clippy::similar_names,
-        clippy::doc_markdown
+        clippy::doc_markdown,
+        clippy::missing_const_for_fn
     )]
 
     pub const GRPC_DESC: &[u8] = tonic::include_file_descriptor_set!("rsketch_grpc_desc");

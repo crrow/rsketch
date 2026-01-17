@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![allow(clippy::missing_errors_doc)]
+
 use std::path::{Path, PathBuf};
 
 use mmap_io::MemoryMappedFile;

@@ -17,7 +17,7 @@
 //! This module defines the core message types used throughout the queue:
 //! - [`Message`]: The public type returned to consumers with sequence,
 //!   timestamp, and payload
-//! - [`WriteEvent`]: Internal type sent from Appender to `IOWorker` via channel
+//! - `WriteEvent`: Internal type sent from Appender to `IOWorker` via channel
 //!
 //! ## On-Disk Message Format
 //!

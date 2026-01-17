@@ -19,8 +19,8 @@ shadow!(build);
 /// Package author information from Cargo.toml
 pub const AUTHOR: &str = env!("CARGO_PKG_AUTHORS");
 
-/// Returns true if this is an official release build (`KISEKI_RELEASE` env var is
-/// set)
+/// Returns true if this is an official release build (`KISEKI_RELEASE` env var
+/// is set)
 const fn is_official_release() -> bool { option_env!("KISEKI_RELEASE").is_some() }
 
 /// Dirty status suffix derived from git state

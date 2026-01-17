@@ -478,12 +478,10 @@ impl<S: Clone + Send + Sync + 'static> Manager<S> {
     }
 
     pub fn terminate(&self, id: WorkerId) -> bool {
-        if let Some(entry) = self.workers.get(&id) {
+        self.workers.get(&id).is_some_and(|entry| {
             entry.cancel_token.cancel();
             true
-        } else {
-            false
-        }
+        })
     }
 
     pub async fn remove(&mut self, id: WorkerId) -> Option<&'static str> {

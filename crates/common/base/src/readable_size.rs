@@ -157,7 +157,11 @@ impl FromStr for ReadableSize {
             }
         };
 
-        #[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        #[allow(
+            clippy::cast_precision_loss,
+            clippy::cast_possible_truncation,
+            clippy::cast_sign_loss
+        )]
         size.parse::<f64>()
             .map(|n| Self((n * unit as f64) as u64))
             .map_err(|_| format!("invalid size string: {s:?}"))

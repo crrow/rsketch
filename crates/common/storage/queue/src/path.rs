@@ -63,6 +63,10 @@ pub fn index_file_path<P: AsRef<Path>>(base: P, time: DateTime<Utc>, sequence: u
 }
 
 /// Recursively scans for all `.data` files under the base directory.
+///
+/// # Errors
+///
+/// Returns an error if directory traversal fails or permissions are denied.
 pub fn scan_data_files<P: AsRef<Path>>(base: P) -> Result<Vec<PathBuf>> {
     let mut files = Vec::new();
     scan_data_files_recursive(base.as_ref(), &mut files)?;

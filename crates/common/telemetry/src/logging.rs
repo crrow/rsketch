@@ -12,6 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![allow(
+    clippy::or_fun_call,
+    clippy::option_if_let_else,
+    clippy::doc_markdown,
+    clippy::unwrap_or_default,
+    clippy::map_unwrap_or,
+    clippy::literal_string_with_formatting_args
+)]
+
 use std::{
     collections::HashMap,
     env,
@@ -328,6 +337,10 @@ pub fn init_tracing_subscriber(app_name: &str) -> Vec<WorkerGuard> {
 /// This function is thread-safe and can be called from multiple test functions
 /// simultaneously. The first call initializes logging, subsequent calls are
 /// no-ops.
+///
+/// # Panics
+///
+/// May panic if the global logging subscriber fails to initialize.
 pub fn init_default_ut_logging() {
     static START: Once = Once::new();
 
@@ -422,7 +435,14 @@ const DEFAULT_LOG_TARGETS: &str = "info";
 /// - File rotation happens automatically without blocking
 /// - OTLP export is batched for efficiency
 /// - Sampling can be configured to reduce overhead
-#[allow(clippy::print_stdout)]
+///
+/// # Panics
+///
+/// May panic if:
+/// - Failed to set global tracing subscriber
+/// - File writer initialization fails
+/// - OTLP exporter initialization fails
+#[allow(clippy::print_stdout, clippy::too_many_lines)]
 pub fn init_global_logging(
     app_name: &str,
     opts: &LoggingOptions,

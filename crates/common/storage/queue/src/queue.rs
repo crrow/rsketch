@@ -19,8 +19,7 @@
 //! - Recovery of existing data on startup
 //! - Background I/O worker thread for writes
 //! - Global sequence number generation
-//! - Factory methods for [`Appender`](crate::Appender) and
-//!   [`Tailer`](crate::Tailer)
+//! - Factory methods for [`Appender`] and [`Tailer`]
 //!
 //! ## Usage
 //!
@@ -148,6 +147,10 @@ impl Queue {
     ///
     /// Appenders are cheap to create and can be used from any thread.
     /// Multiple appenders can write concurrently.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the queue has been shut down.
     #[must_use]
     pub fn create_appender(&self) -> Appender {
         Appender::new(
@@ -157,9 +160,19 @@ impl Queue {
     }
 
     /// Create a new tailer starting from the beginning of the queue.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the queue directory cannot be read or the manifest
+    /// cannot be loaded.
     pub fn create_tailer(&self) -> Result<Tailer> { Tailer::new(self.config.clone()) }
 
     /// Create a new tailer starting from a specific sequence number.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the queue directory cannot be read, the manifest
+    /// cannot be loaded, or seeking to the target sequence fails.
     pub fn create_tailer_at(&self, sequence: u64) -> Result<Tailer> {
         Tailer::from_sequence(self.config.clone(), sequence)
     }
@@ -174,6 +187,11 @@ impl Queue {
     ///
     /// Signals the `IOWorker` to stop, waits for it to flush all pending data,
     /// and joins the background thread. Consumes `self` to prevent further use.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the IO worker thread panicked or failed to flush
+    /// data.
     pub fn shutdown(mut self) -> Result<()> {
         info!("Shutting down queue");
 

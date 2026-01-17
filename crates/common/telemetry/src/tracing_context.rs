@@ -89,6 +89,11 @@ impl TracingContext {
     }
 
     /// Serialize to JSON string.
+    ///
+    /// # Panics
+    ///
+    /// Panics if JSON serialization fails (should not happen with valid W3C
+    /// context).
     #[must_use]
     pub fn to_json(&self) -> String { serde_json::to_string(&self.to_w3c()).unwrap() }
 
