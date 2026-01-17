@@ -21,7 +21,7 @@
 //! The builder progresses through type states:
 //! `TriggerNotSet` → `TriggerOnce/Notify/Interval/...` → `spawn()` → Handle
 
-use std::{marker::PhantomData, time::Duration};
+use std::{marker::PhantomData, str::FromStr, time::Duration};
 
 use snafu::ResultExt;
 
@@ -255,9 +255,7 @@ where
         mut self,
         expr: &str,
     ) -> Result<WorkerBuilder<'m, S, W, TriggerCron>, CronParseError> {
-        let cron = croner::Cron::new(expr)
-            .parse()
-            .context(crate::err::InvalidExpressionSnafu)?;
+        let cron = croner::Cron::from_str(expr).context(crate::err::InvalidExpressionSnafu)?;
         self.trigger = Some(Trigger::Cron(cron));
         Ok(WorkerBuilder {
             manager:  self.manager,
@@ -351,9 +349,7 @@ where
         mut self,
         expr: &str,
     ) -> Result<WorkerBuilder<'m, S, W, TriggerCronOrNotify>, CronParseError> {
-        let cron = croner::Cron::new(expr)
-            .parse()
-            .context(crate::err::InvalidExpressionSnafu)?;
+        let cron = croner::Cron::from_str(expr).context(crate::err::InvalidExpressionSnafu)?;
         self.trigger = Some(Trigger::CronOrNotify(cron));
         Ok(WorkerBuilder {
             manager:  self.manager,
