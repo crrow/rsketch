@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![allow(clippy::cast_possible_truncation)]
+
 //! Manifest data structures for O(1) queue recovery.
 //!
 //! The manifest records queue metadata to avoid scanning all data files on
@@ -112,7 +114,7 @@ impl Manifest {
     /// Serialize the manifest to bytes.
     ///
     /// Format:
-    /// - Header (32 bytes): magic, version, next_seq, file_count, checksum,
+    /// - Header (32 bytes): magic, version, `next_seq`, `file_count`, checksum,
     ///   reserved
     /// - Active file state (variable)
     /// - File entries (variable)

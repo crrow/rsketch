@@ -75,9 +75,9 @@ fn global_runtimes() -> &'static GlobalRuntimes {
 ///
 /// # Panics
 /// Panics if called more than once.
-pub fn init_global_runtimes(options: GlobalRuntimeOptions) {
+pub fn init_global_runtimes(options: &GlobalRuntimeOptions) {
     GLOBAL_RUNTIMES
-        .set(build_global_runtimes(&options))
+        .set(build_global_runtimes(options))
         .expect("Global runtimes already initialized");
 }
 

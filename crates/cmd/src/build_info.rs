@@ -19,7 +19,7 @@ shadow!(build);
 /// Package author information from Cargo.toml
 pub const AUTHOR: &str = env!("CARGO_PKG_AUTHORS");
 
-/// Returns true if this is an official release build (KISEKI_RELEASE env var is
+/// Returns true if this is an official release build (`KISEKI_RELEASE` env var is
 /// set)
 const fn is_official_release() -> bool { option_env!("KISEKI_RELEASE").is_some() }
 
@@ -28,7 +28,7 @@ const DIRTY_SUFFIX: &str = if build::GIT_CLEAN { "" } else { "-dirty" };
 
 /// Full version string with optional development suffix
 ///
-/// For official releases: uses PKG_VERSION as-is
+/// For official releases: uses `PKG_VERSION` as-is
 /// For development builds: appends "-unofficial" or
 /// "-unofficial+{hash}{-dirty}"
 #[allow(clippy::const_is_empty)]

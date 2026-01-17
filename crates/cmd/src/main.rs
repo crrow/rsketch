@@ -69,7 +69,7 @@ struct ServerArgs {}
 impl ServerArgs {
     fn run() -> Result<(), Whatever> {
         let app = AppConfig::default().open();
-        init_global_runtimes(GlobalRuntimeOptions::default());
+        init_global_runtimes(&GlobalRuntimeOptions::default());
         block_on_background(app.run())
     }
 }

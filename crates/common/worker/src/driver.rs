@@ -135,7 +135,7 @@ impl TriggerDriver for CronDriver {
     }
 }
 
-/// Driver for IntervalOrNotify trigger.
+/// Driver for `IntervalOrNotify` trigger.
 pub(crate) struct IntervalOrNotifyDriver {
     interval: tokio::time::Interval,
 }
@@ -162,7 +162,7 @@ impl TriggerDriver for IntervalOrNotifyDriver {
     }
 }
 
-/// Driver for CronOrNotify trigger.
+/// Driver for `CronOrNotify` trigger.
 pub(crate) struct CronOrNotifyDriver {
     cron: croner::Cron,
 }

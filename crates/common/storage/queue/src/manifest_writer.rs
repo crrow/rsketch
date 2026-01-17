@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![allow(clippy::cast_possible_truncation)]
+
 //! Atomic manifest writer using dual-file strategy.
 //!
 //! Maintains two manifest files and alternates between them to ensure

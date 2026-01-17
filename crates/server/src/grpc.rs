@@ -64,7 +64,7 @@ pub struct GrpcServerConfig {
 /// - Health status management
 ///
 /// By implementing this trait, services can be easily integrated into the
-/// GrpcServer framework, which handles server lifecycle, reflection setup,
+/// `GrpcServer` framework, which handles server lifecycle, reflection setup,
 /// health checking, and graceful shutdown automatically.
 ///
 /// # Example
@@ -81,7 +81,7 @@ pub trait GrpcServiceHandler: Send + Sync + 'static {
     /// This method should wrap the service in the appropriate tonic-generated
     /// server and add it to the builder
     fn register_service(self: &Arc<Self>, builder: &mut RoutesBuilder);
-    /// readiness_reporting is called after the service is registered and
+    /// `readiness_reporting` is called after the service is registered and
     /// allows the service to set its initial health status
     async fn readiness_reporting(
         self: &Arc<Self>,

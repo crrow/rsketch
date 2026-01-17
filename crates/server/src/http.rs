@@ -103,9 +103,10 @@ where
         .route("/health", get(health_check))
         .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())
-        .layer(DefaultBodyLimit::max(
-            config.max_body_size.as_bytes() as usize
-        ));
+        .layer({
+            #[allow(clippy::cast_possible_truncation)]
+            DefaultBodyLimit::max(config.max_body_size.as_bytes() as usize)
+        });
 
     // Add CORS if enabled
     if config.enable_cors {

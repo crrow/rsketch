@@ -18,7 +18,7 @@ use snafu::{ResultExt, Whatever, whatever};
 
 /// Reads an environment variable for the current process.
 ///
-/// Compared to [std::env::var] there are a couple of differences:
+/// Compared to [`std::env::var`] there are a couple of differences:
 ///
 /// - [var] uses [dotenvy] which loads the `.env` file from the current or
 ///   parent directories before returning the value.
@@ -40,7 +40,7 @@ pub fn var(key: &str) -> Result<Option<String>, Whatever> {
 /// Reads an environment variable for the current process, and parses it if
 /// it is set.
 ///
-/// Compared to [std::env::var] there are a couple of differences:
+/// Compared to [`std::env::var`] there are a couple of differences:
 ///
 /// - [var] uses [dotenvy] which loads the `.env` file from the current or
 ///   parent directories before returning the value.
@@ -68,7 +68,7 @@ where
 /// Reads an environment variable for the current process, and fails if it was
 /// not found.
 ///
-/// Compared to [std::env::var] there are a couple of differences:
+/// Compared to [`std::env::var`] there are a couple of differences:
 ///
 /// - [var] uses [dotenvy] which loads the `.env` file from the current or
 ///   parent directories before returning the value.

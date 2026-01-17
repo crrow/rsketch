@@ -17,7 +17,7 @@
 //! The [`Appender`] provides a thread-safe interface for writing messages
 //! to the queue. It:
 //! - Atomically assigns sequence numbers
-//! - Sends messages to the IOWorker via a channel
+//! - Sends messages to the `IOWorker` via a channel
 //! - Returns immediately (writes are asynchronous)
 //!
 //! ## Concurrency
@@ -43,7 +43,7 @@ use crate::{Result, error::ChannelSendSnafu, message::WriteEvent};
 /// write concurrently to the same queue.
 #[derive(Clone)]
 pub struct Appender {
-    /// Channel sender to the IOWorker.
+    /// Channel sender to the `IOWorker`.
     tx:       Sender<WriteEvent>,
     /// Shared global sequence counter.
     sequence: Arc<AtomicU64>,
@@ -58,7 +58,7 @@ impl Appender {
     /// Append a message to the queue.
     ///
     /// Atomically assigns a sequence number and sends the message to the
-    /// IOWorker for persistence. Returns the assigned sequence number.
+    /// `IOWorker` for persistence. Returns the assigned sequence number.
     ///
     /// This method returns as soon as the message is enqueued to the channel,
     /// before it is persisted to disk. Use the queue's flush mode to control

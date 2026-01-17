@@ -20,7 +20,7 @@
 //! - **Type-safe builder API**: Compile-time guarantees for trigger
 //!   configuration
 //! - **Shared state**: Generic state support with Clone constraint
-//! - **Lifecycle hooks**: on_start, work, on_shutdown
+//! - **Lifecycle hooks**: `on_start`, work, `on_shutdown`
 //! - **Graceful shutdown**: Coordinated cancellation with timeout
 //! - **Pause/Resume/Notify**: Runtime control via handle traits
 //!

@@ -17,7 +17,7 @@
 //! This module defines the core message types used throughout the queue:
 //! - [`Message`]: The public type returned to consumers with sequence,
 //!   timestamp, and payload
-//! - [`WriteEvent`]: Internal type sent from Appender to IOWorker via channel
+//! - [`WriteEvent`]: Internal type sent from Appender to `IOWorker` via channel
 //!
 //! ## On-Disk Message Format
 //!
@@ -63,11 +63,11 @@ pub struct Message {
     pub payload: Bytes,
 }
 
-/// Internal event sent from Appender to IOWorker.
+/// Internal event sent from Appender to `IOWorker`.
 ///
-/// This is a simplified representation used in the write path. The IOWorker
+/// This is a simplified representation used in the write path. The `IOWorker`
 /// receives these events via a crossbeam channel and writes them to disk.
-/// The timestamp is captured by the IOWorker at write time, not by the
+/// The timestamp is captured by the `IOWorker` at write time, not by the
 /// Appender.
 #[derive(Debug, Clone)]
 pub(crate) struct WriteEvent {

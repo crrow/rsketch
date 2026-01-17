@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![allow(clippy::cast_possible_truncation)]
+
 //! Crash recovery for the persistent queue.
 //!
 //! Recovery uses the manifest file for O(1) startup:
@@ -36,7 +38,7 @@ use crate::{
 
 /// Information recovered from scanning existing data files.
 ///
-/// Used to initialize the IOWorker so it can resume writing from
+/// Used to initialize the `IOWorker` so it can resume writing from
 /// where the previous session left off.
 #[derive(Debug, Default)]
 pub struct RecoveryInfo {
@@ -143,7 +145,7 @@ fn scan_data_file_from(path: &Path, start_position: u64, verify_crc: bool) -> Re
             break;
         }
 
-        let total_size = MESSAGE_LENGTH_SIZE as u64 + length as u64 + MESSAGE_CRC_SIZE as u64;
+        let total_size = MESSAGE_LENGTH_SIZE as u64 + u64::from(length) + MESSAGE_CRC_SIZE as u64;
 
         if position + total_size > file_size {
             warn!(
@@ -155,9 +157,9 @@ fn scan_data_file_from(path: &Path, start_position: u64, verify_crc: bool) -> Re
 
         if verify_crc {
             let payload_offset = position + MESSAGE_LENGTH_SIZE as u64;
-            let crc_offset = payload_offset + length as u64;
+            let crc_offset = payload_offset + u64::from(length);
 
-            let payload = file.as_slice(payload_offset, length as u64)?;
+            let payload = file.as_slice(payload_offset, u64::from(length))?;
 
             let mut crc_buf = [0u8; MESSAGE_CRC_SIZE];
             file.read_at(crc_offset, &mut crc_buf)?;

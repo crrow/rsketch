@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![allow(clippy::cast_possible_truncation)]
+
 //! Background I/O worker for persisting messages to disk.
 //!
 //! ## Architecture
 //!
-//! The IOWorker runs on a dedicated thread and receives [`WriteEvent`]s from
+//! The `IOWorker` runs on a dedicated thread and receives [`WriteEvent`]s from
 //! [`Appender`](crate::Appender)s via a crossbeam channel. This decouples the
 //! write latency from disk I/O, allowing appenders to return quickly.
 //!
@@ -60,7 +62,7 @@ use crate::{
     path::{data_file_path, index_file_path, scan_data_files},
 };
 
-/// Background I/O worker that receives WriteEvents and persists them to disk.
+/// Background I/O worker that receives `WriteEvents` and persists them to disk.
 ///
 /// This worker runs on a dedicated thread and handles:
 /// - Writing messages to memory-mapped data files
@@ -137,7 +139,7 @@ impl IOWorker {
         }
     }
 
-    /// Create an IOWorker initialized with recovery state from a previous
+    /// Create an `IOWorker` initialized with recovery state from a previous
     /// session.
     ///
     /// Called by [`Queue`](crate::Queue) after scanning existing data files
@@ -175,7 +177,7 @@ impl IOWorker {
         }
     }
 
-    /// Main run loop for the IOWorker.
+    /// Main run loop for the `IOWorker`.
     ///
     /// Blocks and processes events until shutdown is signaled or the channel
     /// disconnects. On each iteration:
@@ -227,7 +229,7 @@ impl IOWorker {
     ///
     /// If `recovered` is true, opens the last existing file (found via
     /// `scan_data_files`). Otherwise, creates a new file with the current
-    /// timestamp and file_sequence.
+    /// timestamp and `file_sequence`.
     fn ensure_file(&mut self) -> Result<()> {
         if self.current_file.is_some() {
             return Ok(());
@@ -274,7 +276,7 @@ impl IOWorker {
 
     /// Roll to a new data file.
     ///
-    /// Flushes the current file, closes it, increments file_sequence,
+    /// Flushes the current file, closes it, increments `file_sequence`,
     /// and resets counters. The next `ensure_file` call will create the new
     /// file.
     fn roll_file(&mut self) -> Result<()> {

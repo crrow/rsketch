@@ -98,7 +98,7 @@ mod tests {
 
     #[test]
     fn global_runtimes_can_spawn() {
-        init_global_runtimes(GlobalRuntimeOptions {
+        init_global_runtimes(&GlobalRuntimeOptions {
             file_io_threads:    1,
             network_io_threads: 1,
             background_threads: 1,

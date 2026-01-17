@@ -127,8 +127,8 @@ pub struct LoggingOptions {
     /// Log level filter string.
     ///
     /// Supports standard Rust log level syntax like "info", "debug,hyper=warn",
-    /// or more complex filters like "info,my_crate::module=debug". If None,
-    /// falls back to the RUST_LOG environment variable or "info" default.
+    /// or more complex filters like "`info,my_crate::module=debug`". If None,
+    /// falls back to the `RUST_LOG` environment variable or "info" default.
     pub level: Option<String>,
 
     /// Output format for log messages.
@@ -312,7 +312,7 @@ pub fn init_tracing_subscriber(app_name: &str) -> Vec<WorkerGuard> {
 /// # Environment Variables
 ///
 /// * `UNITTEST_LOG_DIR` - Directory for test logs (default:
-///   "/tmp/__unittest_logs")
+///   "/tmp/__`unittest_logs`")
 /// * `UNITTEST_LOG_LEVEL` - Log level filter (default:
 ///   "debug,hyper=warn,tower=warn,...")
 ///

@@ -21,16 +21,10 @@ cargo = { level = "warn", priority = -1 }
 
 multiple_crate_versions = "allow"
 doc_markdown = "allow"
-cast_possible_truncation = "allow"
-cast_sign_loss = "allow"
-cast_precision_loss = "allow"
-cast_lossless = "allow"
 items_after_statements = "allow"
 redundant_pub_crate = "allow"
 significant_drop_tightening = "allow"
 future_not_send = "allow"
-missing_errors_doc = "allow"
-missing_panics_doc = "allow"
 
 [workspace]
 resolver = "3"

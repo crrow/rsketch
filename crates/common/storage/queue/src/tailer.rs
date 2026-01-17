@@ -132,7 +132,7 @@ impl Tailer {
                 continue;
             }
 
-            let total_size = MESSAGE_LENGTH_SIZE as u64 + length as u64 + MESSAGE_CRC_SIZE as u64;
+            let total_size = MESSAGE_LENGTH_SIZE as u64 + u64::from(length) + MESSAGE_CRC_SIZE as u64;
 
             ensure!(
                 self.read_position + total_size <= file_size,
@@ -142,7 +142,7 @@ impl Tailer {
             );
 
             let payload_offset = self.read_position + MESSAGE_LENGTH_SIZE as u64;
-            let crc_offset = payload_offset + length as u64;
+            let crc_offset = payload_offset + u64::from(length);
 
             let mut payload = vec![0u8; length as usize];
             file.read_at(payload_offset, &mut payload)?;

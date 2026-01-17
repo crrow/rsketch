@@ -72,13 +72,13 @@ use crate::{
 pub struct Queue {
     /// Shared configuration (base path, file size, flush mode, etc.).
     config:           Arc<QueueConfig>,
-    /// Sender side of the channel to the IOWorker. `None` after shutdown.
+    /// Sender side of the channel to the `IOWorker`. `None` after shutdown.
     io_tx:            Option<Sender<WriteEvent>>,
     /// Global sequence counter shared across all appenders.
     global_sequence:  Arc<AtomicU64>,
-    /// Shutdown flag checked by the IOWorker.
+    /// Shutdown flag checked by the `IOWorker`.
     shutdown_flag:    Arc<AtomicBool>,
-    /// Handle to the background IOWorker thread.
+    /// Handle to the background `IOWorker` thread.
     io_worker_handle: Option<JoinHandle<()>>,
 }
 
@@ -88,7 +88,7 @@ impl Queue {
     /// If the queue directory exists, performs recovery to find the next
     /// sequence number and file position. Otherwise, creates the directory.
     ///
-    /// Spawns a background IOWorker thread for handling writes.
+    /// Spawns a background `IOWorker` thread for handling writes.
     pub(crate) fn new(config: QueueConfig) -> Result<Self> {
         let config = Arc::new(config);
 
@@ -172,7 +172,7 @@ impl Queue {
 
     /// Shut down the queue gracefully.
     ///
-    /// Signals the IOWorker to stop, waits for it to flush all pending data,
+    /// Signals the `IOWorker` to stop, waits for it to flush all pending data,
     /// and joins the background thread. Consumes `self` to prevent further use.
     pub fn shutdown(mut self) -> Result<()> {
         info!("Shutting down queue");

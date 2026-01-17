@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![allow(clippy::cast_possible_truncation)]
+
 //! CRC32 checksum utilities for message integrity verification.
 //!
 //! Uses CRC-32 (IEEE polynomial) via crc32fast for hardware-accelerated

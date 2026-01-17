@@ -71,6 +71,7 @@ impl ReadableSize {
     pub const fn as_bytes(self) -> u64 { self.0 }
 
     #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
     pub const fn as_bytes_usize(self) -> usize { self.0 as usize }
 }
 
@@ -156,6 +157,7 @@ impl FromStr for ReadableSize {
             }
         };
 
+        #[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation, clippy::cast_sign_loss)]
         size.parse::<f64>()
             .map(|n| Self((n * unit as f64) as u64))
             .map_err(|_| format!("invalid size string: {s:?}"))
@@ -163,6 +165,7 @@ impl FromStr for ReadableSize {
 }
 
 impl Display for ReadableSize {
+    #[allow(clippy::cast_precision_loss)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.0 >= PIB {
             write!(f, "{:.1}PiB", self.0 as f64 / PIB as f64)
@@ -199,7 +202,10 @@ impl<'de> Deserialize<'de> for ReadableSize {
                 E: de::Error,
             {
                 if size >= 0 {
-                    self.visit_u64(size as u64)
+                    #[allow(clippy::cast_sign_loss)]
+                    {
+                        self.visit_u64(size as u64)
+                    }
                 } else {
                     Err(E::invalid_value(Unexpected::Signed(size), &self))
                 }

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![allow(clippy::cast_possible_truncation)]
+
 //! Sparse index file for efficient random access to queue messages.
 //!
 //! ## Purpose
@@ -40,7 +42,7 @@
 //!
 //! - **interval**: How many messages between index entries (e.g., 100 = index
 //!   every 100th message)
-//! - **entry_count**: Number of index entries in the file
+//! - **`entry_count`**: Number of index entries in the file
 //! - **sequence**: Message sequence number at this index point
 //! - **offset**: Byte offset in the data file where this message starts
 //!
@@ -62,7 +64,7 @@ use std::{
 use crate::Result;
 
 /// Size of the index file header in bytes.
-/// Contains interval, entry_count, and reserved space for future use.
+/// Contains interval, `entry_count`, and reserved space for future use.
 const INDEX_HEADER_SIZE: u64 = 256;
 
 /// Size of each index entry in bytes (sequence: 8 + offset: 8).

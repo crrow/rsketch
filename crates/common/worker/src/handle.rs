@@ -109,7 +109,7 @@ pub trait Pausable: Handle {
 pub trait Notifiable: Handle {
     /// Triggers an immediate execution of the worker.
     ///
-    /// For hybrid triggers (IntervalOrNotify, CronOrNotify), this resets the
+    /// For hybrid triggers (`IntervalOrNotify`, `CronOrNotify`), this resets the
     /// timer. Multiple `notify()` calls may be coalesced if the worker is
     /// still executing.
     fn notify(&self);
@@ -319,7 +319,7 @@ impl Notifiable for IntervalOrNotifyHandle {
 ///
 /// Hybrid handle combining pause/resume and manual notification.
 /// The worker runs on a cron schedule OR when explicitly notified.
-/// Unlike IntervalOrNotify, `notify()` doesn't reset the cron schedule - it
+/// Unlike `IntervalOrNotify`, `notify()` doesn't reset the cron schedule - it
 /// only triggers an immediate one-time execution.
 #[derive(Clone)]
 pub struct CronOrNotifyHandle {

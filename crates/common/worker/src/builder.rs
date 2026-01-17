@@ -65,7 +65,7 @@ pub struct TriggerCronOrNotify;
 /// - `'m`: Lifetime of the mutable reference to Manager
 /// - `S`: State type from the Manager
 /// - `W`: Worker implementation type
-/// - `T`: Type-state marker (TriggerNotSet, TriggerOnce, etc.)
+/// - `T`: Type-state marker (`TriggerNotSet`, `TriggerOnce`, etc.)
 ///
 /// # Example
 ///
@@ -539,7 +539,7 @@ where
     /// Spawns the worker and returns an [`IntervalOrNotifyHandle`].
     ///
     /// The worker will execute on an interval OR when notified.
-    /// Provides both pause/resume and notify() methods.
+    /// Provides both pause/resume and `notify()` methods.
     pub fn spawn(self) -> IntervalOrNotifyHandle {
         let name = self.name.unwrap_or("unnamed-worker");
         let pause_mode = self.pause_mode.unwrap_or_default();
@@ -561,7 +561,7 @@ where
     /// Spawns the worker and returns a [`CronOrNotifyHandle`].
     ///
     /// The worker will execute on a cron schedule OR when notified.
-    /// Provides both pause/resume and notify() methods.
+    /// Provides both pause/resume and `notify()` methods.
     pub fn spawn(self) -> CronOrNotifyHandle {
         let name = self.name.unwrap_or("unnamed-worker");
         let pause_mode = self.pause_mode.unwrap_or_default();
@@ -673,8 +673,8 @@ impl SpawnResult for CronOrNotifyHandle {
 ///
 /// - `'m`: Lifetime of the mutable reference to Manager
 /// - `S`: State type from the Manager (must match worker's state type)
-/// - `W`: FallibleWorker implementation type
-/// - `T`: Type-state marker (TriggerNotSet, TriggerOnce, etc.)
+/// - `W`: `FallibleWorker` implementation type
+/// - `T`: Type-state marker (`TriggerNotSet`, `TriggerOnce`, etc.)
 pub struct FallibleWorkerBuilder<'m, S, W, T> {
     manager:    &'m mut crate::Manager<S>,
     worker:     W,
