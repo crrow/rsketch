@@ -302,11 +302,11 @@ fn bench_e2e_latency(c: &mut Criterion) {
                     // Wait until readable (IOWorker has processed it)
                     let mut tailer = queue.create_tailer_at(seq).unwrap();
                     loop {
-                        if let Ok(Some(m)) = tailer.read_next() {
-                            if m.sequence == seq {
-                                black_box(m);
-                                break;
-                            }
+                        if let Ok(Some(m)) = tailer.read_next()
+                            && m.sequence == seq
+                        {
+                            black_box(m);
+                            break;
                         }
                         std::thread::yield_now();
                     }

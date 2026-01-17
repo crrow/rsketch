@@ -57,6 +57,7 @@ pub struct TracingSampleRule {
 impl TracingSampleRule {
     /// Check if this rule matches the given protocol and request type.
     /// Returns the sampling ratio if matched, None otherwise.
+    #[must_use]
     pub fn match_rule(&self, protocol: &str, request_type: Option<&str>) -> Option<f64> {
         if protocol == self.protocol {
             if self.request_types.is_empty() {
@@ -92,6 +93,7 @@ impl Eq for TracingSampleRule {}
 
 /// Create a sampler from sampling options.
 /// Uses simple ratio-based sampling if no rules are defined.
+#[must_use]
 pub fn create_sampler(opt: &TracingSampleOptions) -> Box<dyn ShouldSample> {
     if opt.rules.is_empty() {
         Box::new(Sampler::TraceIdRatioBased(opt.default_ratio))

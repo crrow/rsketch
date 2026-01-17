@@ -25,6 +25,9 @@ use snafu::{ResultExt, Whatever, whatever};
 ///
 /// - [var] returns `Ok(None)` (instead of `Err`) if an environment variable
 ///   wasn't set.
+///
+/// # Errors
+/// Returns an error if reading the environment variable fails.
 #[track_caller]
 pub fn var(key: &str) -> Result<Option<String>, Whatever> {
     match dotenvy::var(key) {
@@ -44,6 +47,9 @@ pub fn var(key: &str) -> Result<Option<String>, Whatever> {
 ///
 /// - [var] returns `Ok(None)` (instead of `Err`) if an environment variable
 ///   wasn't set.
+///
+/// # Errors
+/// Returns an error if reading or parsing the environment variable fails.
 #[track_caller]
 pub fn var_parsed<R>(key: &str) -> Result<Option<R>, Whatever>
 where
@@ -66,6 +72,9 @@ where
 ///
 /// - [var] uses [dotenvy] which loads the `.env` file from the current or
 ///   parent directories before returning the value.
+///
+/// # Errors
+/// Returns an error if reading the environment variable fails or it is not set.
 #[track_caller]
 pub fn required_var(key: &str) -> Result<String, Whatever> { required(var(key), key) }
 

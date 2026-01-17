@@ -166,6 +166,7 @@ impl Manager<()> {
     ///
     /// Workers will receive `WorkerContext<()>` with no accessible state.
     /// Uses default configuration (30s shutdown timeout).
+    #[must_use]
     pub fn new() -> Self { Self::with_config(ManagerConfig::default()) }
 
     /// Creates a new worker manager with custom configuration.
@@ -183,8 +184,9 @@ impl Manager<()> {
     /// };
     /// let manager = Manager::with_config(config);
     /// ```
+    #[must_use]
     pub fn with_config(config: ManagerConfig) -> Self {
-        Manager {
+        Self {
             state:            (),
             cancel_token:     CancellationToken::new(),
             runtime:          config.runtime,
@@ -228,7 +230,7 @@ impl<S: Clone + Send + Sync + 'static> Manager<S> {
 
     /// Create a new worker manager with custom state and configuration.
     pub fn with_state_and_config(state: S, config: ManagerConfig) -> Self {
-        Manager {
+        Self {
             state,
             cancel_token: CancellationToken::new(),
             runtime: config.runtime,
@@ -266,7 +268,7 @@ impl<S: Clone + Send + Sync + 'static> Manager<S> {
     ///     .interval(Duration::from_secs(5))  // Required trigger
     ///     .spawn(); // Required to start
     /// ```
-    pub fn worker<W: Worker>(&mut self, worker: W) -> WorkerBuilder<'_, S, W, TriggerNotSet> {
+    pub const fn worker<W: Worker>(&mut self, worker: W) -> WorkerBuilder<'_, S, W, TriggerNotSet> {
         WorkerBuilder::new(self, worker)
     }
 
@@ -304,7 +306,7 @@ impl<S: Clone + Send + Sync + 'static> Manager<S> {
     ///     .spawn();
     /// # }
     /// ```
-    pub fn fallible_worker<W: crate::FallibleWorker<S>>(
+    pub const fn fallible_worker<W: crate::FallibleWorker<S>>(
         &mut self,
         worker: W,
     ) -> crate::builder::FallibleWorkerBuilder<'_, S, W, TriggerNotSet> {
@@ -637,12 +639,12 @@ async fn run_worker<S: Clone + Send + Sync, W: Worker>(
                     // Hard pause: wait for resume signal
                     loop {
                         tokio::select! {
-                            _ = pause_notify.notified() => {
+                            () = pause_notify.notified() => {
                                 if !paused.load(Ordering::Acquire) {
                                     break; // Resumed
                                 }
                             }
-                            _ = ctx.cancelled() => {
+                            () = ctx.cancelled() => {
                                 // Shutdown requested while paused
                                 worker.on_shutdown(ctx.clone()).await;
                                 info!("Worker stopped (cancelled while paused)");
@@ -721,12 +723,12 @@ async fn run_fallible_worker<S: Clone + Send + Sync + 'static, W: crate::Fallibl
                     // Hard pause: wait for resume signal
                     loop {
                         tokio::select! {
-                            _ = pause_notify.notified() => {
+                            () = pause_notify.notified() => {
                                 if !paused.load(Ordering::Acquire) {
                                     break; // Resumed
                                 }
                             }
-                            _ = ctx.cancelled() => {
+                            () = ctx.cancelled() => {
                                 // Shutdown requested while paused
                                 if let Err(e) = worker.on_shutdown(ctx.clone()).await {
                                     error!(error = %e, "Worker on_shutdown failed");

@@ -50,6 +50,7 @@ pub enum StatusCode {
 }
 
 impl StatusCode {
+    #[must_use]
     pub fn http_status(self) -> HttpStatusCode {
         self.get_str("http_status")
             .and_then(|value| value.parse::<u16>().ok())
@@ -57,6 +58,7 @@ impl StatusCode {
             .unwrap_or(HttpStatusCode::INTERNAL_SERVER_ERROR)
     }
 
+    #[must_use]
     pub fn tonic_code(self) -> TonicCode {
         let value = self
             .get_str("tonic_code")
@@ -102,19 +104,20 @@ pub trait ErrorExt: StackError {
             }
             _ => {
                 let error = self.last();
-                if let Some(external_error) = error.source() {
-                    let mut root = external_error;
-                    while let Some(source) = root.source() {
-                        root = source;
-                    }
-                    if error.transparent() {
-                        format!("{root}")
-                    } else {
-                        format!("{error}: {root}")
-                    }
-                } else {
-                    format!("{error}")
-                }
+                error.source().map_or_else(
+                    || format!("{error}"),
+                    |external_error| {
+                        let mut root = external_error;
+                        while let Some(source) = root.source() {
+                            root = source;
+                        }
+                        if error.transparent() {
+                            format!("{root}")
+                        } else {
+                            format!("{error}: {root}")
+                        }
+                    },
+                )
             }
         }
     }
@@ -133,13 +136,17 @@ pub trait ErrorExt: StackError {
 }
 
 impl<T: ?Sized + StackError> StackError for Arc<T> {
-    fn debug_fmt(&self, layer: usize, buf: &mut Vec<String>) { self.as_ref().debug_fmt(layer, buf) }
+    fn debug_fmt(&self, layer: usize, buf: &mut Vec<String>) {
+        self.as_ref().debug_fmt(layer, buf);
+    }
 
     fn next(&self) -> Option<&dyn StackError> { self.as_ref().next() }
 }
 
 impl<T: StackError> StackError for Box<T> {
-    fn debug_fmt(&self, layer: usize, buf: &mut Vec<String>) { self.as_ref().debug_fmt(layer, buf) }
+    fn debug_fmt(&self, layer: usize, buf: &mut Vec<String>) {
+        self.as_ref().debug_fmt(layer, buf);
+    }
 
     fn next(&self) -> Option<&dyn StackError> { self.as_ref().next() }
 }

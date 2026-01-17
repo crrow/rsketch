@@ -117,7 +117,7 @@ where
     }
 
     // Register route handlers
-    for handler in route_handlers.iter() {
+    for handler in &route_handlers {
         info!("Registering REST route handler");
         router = handler(router);
     }
@@ -205,7 +205,7 @@ mod tests {
 
         let port = get_available_port().await;
         let config = RestServerConfig {
-            bind_address: format!("127.0.0.1:{}", port),
+            bind_address: format!("127.0.0.1:{port}"),
             ..RestServerConfig::default()
         };
         let handlers: Vec<fn(Router) -> Router> = vec![health_routes];
@@ -218,14 +218,14 @@ mod tests {
         // Test that the server is running by making a request
         let client = reqwest::Client::new();
         let response = client
-            .get(format!("http://127.0.0.1:{}/health", port))
+            .get(format!("http://127.0.0.1:{port}/health"))
             .send()
             .await
             .unwrap();
         assert_eq!(response.status(), 200);
 
         let response = client
-            .get(format!("http://127.0.0.1:{}/api/v1/health", port))
+            .get(format!("http://127.0.0.1:{port}/api/v1/health"))
             .send()
             .await
             .unwrap();
@@ -242,7 +242,7 @@ mod tests {
 
         let port = get_available_port().await;
         let config = RestServerConfig {
-            bind_address: format!("127.0.0.1:{}", port),
+            bind_address: format!("127.0.0.1:{port}"),
             enable_cors: false,
             ..RestServerConfig::default()
         };
@@ -254,7 +254,7 @@ mod tests {
         // Test that the server is running
         let client = reqwest::Client::new();
         let response = client
-            .get(format!("http://127.0.0.1:{}/health", port))
+            .get(format!("http://127.0.0.1:{port}/health"))
             .send()
             .await
             .unwrap();
@@ -276,7 +276,7 @@ mod tests {
 
         let port = get_available_port().await;
         let config = RestServerConfig {
-            bind_address: format!("127.0.0.1:{}", port),
+            bind_address: format!("127.0.0.1:{port}"),
             ..RestServerConfig::default()
         };
         let handlers = vec![health_routes, goodbye_routes];
@@ -287,14 +287,14 @@ mod tests {
         // Test both routes
         let client = reqwest::Client::new();
         let response = client
-            .get(format!("http://127.0.0.1:{}/api/v1/health", port))
+            .get(format!("http://127.0.0.1:{port}/api/v1/health"))
             .send()
             .await
             .unwrap();
         assert_eq!(response.status(), 200);
 
         let response = client
-            .get(format!("http://127.0.0.1:{}/api/v1/goodbye", port))
+            .get(format!("http://127.0.0.1:{port}/api/v1/goodbye"))
             .send()
             .await
             .unwrap();

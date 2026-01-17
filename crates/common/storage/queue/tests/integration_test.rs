@@ -31,7 +31,7 @@ fn test_queue_write_and_read() {
     let appender = queue.create_appender();
 
     for i in 0..100 {
-        let msg = format!("message-{:04}", i);
+        let msg = format!("message-{i:04}");
         let seq = appender.append(msg).unwrap();
         assert_eq!(seq, i);
     }
@@ -45,7 +45,7 @@ fn test_queue_write_and_read() {
         assert_eq!(msg.sequence, i);
         assert_eq!(
             std::str::from_utf8(&msg.payload).unwrap(),
-            format!("message-{:04}", i)
+            format!("message-{i:04}")
         );
     }
 
@@ -68,7 +68,7 @@ fn test_queue_recovery() {
 
         let appender = queue.create_appender();
         for i in 0..50 {
-            appender.append(format!("msg-{}", i)).unwrap();
+            appender.append(format!("msg-{i}")).unwrap();
         }
 
         std::thread::sleep(Duration::from_millis(50));
@@ -86,7 +86,7 @@ fn test_queue_recovery() {
 
         let appender = queue.create_appender();
         for i in 50..100 {
-            let seq = appender.append(format!("msg-{}", i)).unwrap();
+            let seq = appender.append(format!("msg-{i}")).unwrap();
             assert_eq!(seq, i);
         }
 
@@ -115,7 +115,7 @@ fn test_queue_batch_append() {
     let appender = queue.create_appender();
 
     let messages: Vec<Bytes> = (0..10)
-        .map(|i| Bytes::from(format!("batch-msg-{}", i)))
+        .map(|i| Bytes::from(format!("batch-msg-{i}")))
         .collect();
 
     let sequences = appender.append_batch(messages).unwrap();
@@ -129,7 +129,7 @@ fn test_queue_batch_append() {
         assert_eq!(msg.sequence, i);
         assert_eq!(
             std::str::from_utf8(&msg.payload).unwrap(),
-            format!("batch-msg-{}", i)
+            format!("batch-msg-{i}")
         );
     }
 
@@ -150,7 +150,7 @@ fn test_queue_tailer_seek() {
     let appender = queue.create_appender();
 
     for i in 0..100 {
-        appender.append(format!("seek-msg-{:04}", i)).unwrap();
+        appender.append(format!("seek-msg-{i:04}")).unwrap();
     }
 
     std::thread::sleep(Duration::from_millis(50));
@@ -178,7 +178,7 @@ fn test_queue_file_rolling() {
     let appender = queue.create_appender();
 
     for i in 0..25 {
-        appender.append(format!("roll-msg-{:04}", i)).unwrap();
+        appender.append(format!("roll-msg-{i:04}")).unwrap();
     }
 
     std::thread::sleep(Duration::from_millis(100));
@@ -205,7 +205,7 @@ fn test_queue_iterator() {
 
     let appender = queue.create_appender();
     for i in 0..10 {
-        appender.append(format!("iter-msg-{}", i)).unwrap();
+        appender.append(format!("iter-msg-{i}")).unwrap();
     }
 
     std::thread::sleep(Duration::from_millis(50));

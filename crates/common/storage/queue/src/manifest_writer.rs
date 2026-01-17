@@ -99,7 +99,7 @@ impl ManifestWriter {
 
         if slot != 1 && slot != 2 {
             return ManifestCorruptedSnafu {
-                reason: format!("invalid slot number in manifest.current: {}", slot),
+                reason: format!("invalid slot number in manifest.current: {slot}"),
             }
             .fail();
         }
@@ -107,7 +107,7 @@ impl ManifestWriter {
         let manifest_path = self.slot_path(slot);
         if !manifest_path.exists() {
             return ManifestCorruptedSnafu {
-                reason: format!("manifest.{} does not exist", slot),
+                reason: format!("manifest.{slot} does not exist"),
             }
             .fail();
         }
@@ -145,7 +145,7 @@ mod tests {
                 file_sequence,
                 write_position: next_sequence * 10,
                 message_count: next_sequence,
-                path: PathBuf::from(format!("test-{}.data", file_sequence)),
+                path: PathBuf::from(format!("test-{file_sequence}.data")),
             },
             files: vec![],
         }

@@ -34,16 +34,13 @@ impl hello_service_server::HelloService for HelloService {
         &self,
         request: tonic::Request<HelloRequest>,
     ) -> std::result::Result<tonic::Response<HelloResponse>, tonic::Status> {
-        let response = self
-            .hello_inner(request)
-            .await
-            .map_err(tonic::Status::from)?;
+        let response = self.hello_inner(request).map_err(tonic::Status::from)?;
         Ok(response)
     }
 }
 
 impl HelloService {
-    async fn hello_inner(
+    fn hello_inner(
         &self,
         request: tonic::Request<HelloRequest>,
     ) -> ApiResult<tonic::Response<HelloResponse>> {
@@ -53,7 +50,7 @@ impl HelloService {
                 reason: "name must not be empty".to_string(),
             });
         }
-        let message = format!("Hello, {}!", name);
+        let message = format!("Hello, {name}!");
         Ok(tonic::Response::new(HelloResponse { message }))
     }
 }
@@ -76,7 +73,7 @@ impl GrpcServiceHandler for HelloService {
         reporter: HealthReporter,
     ) {
         reporter
-            .set_serving::<hello_service_server::HelloServiceServer<HelloService>>()
+            .set_serving::<hello_service_server::HelloServiceServer<Self>>()
             .await;
     }
 }

@@ -60,11 +60,13 @@ impl DataFile {
         self.mmap.read_into(offset, buf).context(MmapFailedSnafu)
     }
 
-    pub fn size(&self) -> u64 { self.size }
+    #[must_use]
+    pub const fn size(&self) -> u64 { self.size }
 
+    #[must_use]
     pub fn path(&self) -> &Path { &self.path }
 
-    pub fn flush(&self, mode: FlushMode) -> Result<()> {
+    pub fn flush(&self, mode: &FlushMode) -> Result<()> {
         match mode {
             FlushMode::Async | FlushMode::Sync | FlushMode::Batch { .. } => {
                 self.mmap.flush().context(MmapFailedSnafu)?;
@@ -102,7 +104,8 @@ impl ReadOnlyDataFile {
         self.mmap.as_slice(offset, len).context(MmapFailedSnafu)
     }
 
-    pub fn size(&self) -> u64 { self.size }
+    #[must_use]
+    pub const fn size(&self) -> u64 { self.size }
 }
 
 #[cfg(test)]
@@ -132,7 +135,7 @@ mod tests {
             let file = DataFile::create(&path, size).unwrap();
             let data = b"Hello, World!";
             file.write_at(0, data).unwrap();
-            file.flush(FlushMode::Sync).unwrap();
+            file.flush(&FlushMode::Sync).unwrap();
         }
 
         {
@@ -151,7 +154,7 @@ mod tests {
         {
             let file = DataFile::create(&path, size).unwrap();
             file.write_at(100, b"Test data at offset").unwrap();
-            file.flush(FlushMode::Sync).unwrap();
+            file.flush(&FlushMode::Sync).unwrap();
         }
 
         {

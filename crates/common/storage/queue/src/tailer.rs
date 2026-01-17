@@ -108,9 +108,8 @@ impl Tailer {
     /// exhausted.
     pub fn read_next(&mut self) -> Result<Option<Message>> {
         loop {
-            let file = match self.current_file.as_ref() {
-                Some(f) => f,
-                None => return Ok(None),
+            let Some(file) = self.current_file.as_ref() else {
+                return Ok(None);
             };
 
             let file_size = file.size();
@@ -214,7 +213,8 @@ impl Tailer {
     }
 
     /// Get the sequence number of the next message to be read.
-    pub fn current_sequence(&self) -> u64 { self.current_sequence }
+    #[must_use]
+    pub const fn current_sequence(&self) -> u64 { self.current_sequence }
 
     /// Refresh the list of data files.
     ///
@@ -331,7 +331,7 @@ mod tests {
         let file = DataFile::create(&data_path, 4096).unwrap();
 
         write_test_message(&file, 0, b"hello world");
-        file.flush(FlushMode::Sync).unwrap();
+        file.flush(&FlushMode::Sync).unwrap();
 
         let mut tailer = Tailer::new(config).unwrap();
         let msg = tailer.read_next().unwrap().unwrap();
@@ -353,10 +353,10 @@ mod tests {
 
         let mut offset = 0u64;
         for i in 0..5 {
-            let msg = format!("message {}", i);
+            let msg = format!("message {i}");
             offset += write_test_message(&file, offset, msg.as_bytes());
         }
-        file.flush(FlushMode::Sync).unwrap();
+        file.flush(&FlushMode::Sync).unwrap();
 
         let mut tailer = Tailer::new(config).unwrap();
 
@@ -365,7 +365,7 @@ mod tests {
             assert_eq!(msg.sequence, i);
             assert_eq!(
                 std::str::from_utf8(&msg.payload).unwrap(),
-                format!("message {}", i)
+                format!("message {i}")
             );
         }
 
@@ -387,11 +387,11 @@ mod tests {
         let mut offset = 0u64;
         for i in 0..50 {
             index.maybe_write_entry(i, offset).unwrap();
-            let msg = format!("msg-{:04}", i);
+            let msg = format!("msg-{i:04}");
             offset += write_test_message(&file, offset, msg.as_bytes());
         }
 
-        file.flush(FlushMode::Sync).unwrap();
+        file.flush(&FlushMode::Sync).unwrap();
         index.flush().unwrap();
 
         let mut tailer = Tailer::from_sequence(config, 25).unwrap();

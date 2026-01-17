@@ -126,7 +126,7 @@ pub async fn start_grpc_server(
 
     let reflection_service = {
         let mut file_descriptor_sets = Vec::new();
-        for service in services.iter() {
+        for service in &services {
             file_descriptor_sets.push(service.file_descriptor_set());
         }
         file_descriptor_sets.push(tonic_reflection::pb::v1::FILE_DESCRIPTOR_SET);
@@ -140,7 +140,7 @@ pub async fn start_grpc_server(
         .add_service(reflection_service);
 
     // register services
-    for service in services.iter() {
+    for service in &services {
         let service = service.clone();
         service.register_service(&mut routes_builder);
     }
@@ -174,7 +174,7 @@ pub async fn start_grpc_server(
 
     let reporter_handlers = {
         let mut handlers = Vec::new();
-        for service in services.iter() {
+        for service in &services {
             info!(
                 "spawning readiness reporting task for {}",
                 service.service_name()
@@ -211,7 +211,7 @@ fn build_reflection_service(
     let mut builder = tonic_reflection::server::Builder::configure();
 
     for file_descriptor_set in file_descriptor_sets {
-        builder = builder.register_encoded_file_descriptor_set(file_descriptor_set)
+        builder = builder.register_encoded_file_descriptor_set(file_descriptor_set);
     }
     builder
         .build_v1()

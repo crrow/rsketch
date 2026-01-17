@@ -17,19 +17,16 @@
 //! Enhanced panic handling with structured logging, backtraces, and optional
 //! deadlock detection. Provides better error reporting and monitoring.
 
-use std::panic;
 #[cfg(feature = "deadlock_detection")]
 use std::time::Duration;
+use std::{panic, sync::LazyLock};
 
 use backtrace::Backtrace;
-use lazy_static::lazy_static;
-use prometheus::*;
+use prometheus::{IntCounter, register_int_counter};
 
-lazy_static! {
-    /// Prometheus counter for tracking application panics.
-    pub static ref PANIC_COUNTER: IntCounter =
-        register_int_counter!("rsketch_panic_counter", "panic_counter").unwrap();
-}
+/// Prometheus counter for tracking application panics.
+pub static PANIC_COUNTER: LazyLock<IntCounter> =
+    LazyLock::new(|| register_int_counter!("rsketch_panic_counter", "panic_counter").unwrap());
 
 /// Set up enhanced panic handling with structured logging.
 ///

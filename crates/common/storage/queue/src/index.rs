@@ -207,7 +207,7 @@ impl IndexWriter {
     }
 
     #[cfg(test)]
-    pub fn entry_count(&self) -> u64 { self.entry_count }
+    pub const fn entry_count(&self) -> u64 { self.entry_count }
 }
 
 /// Reads index entries for fast sequence→offset lookup.
@@ -285,7 +285,7 @@ impl IndexReader {
     pub fn entries(&self) -> &[IndexEntry] { &self.entries }
 
     #[cfg(test)]
-    pub fn interval(&self) -> u64 { self.interval }
+    pub const fn interval(&self) -> u64 { self.interval }
 }
 
 #[cfg(test)]

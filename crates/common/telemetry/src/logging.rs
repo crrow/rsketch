@@ -53,6 +53,9 @@ use crate::tracing_sampler::{TracingSampleOptions, create_sampler};
 ///
 /// * `Ok(T)` - The deserialized value or default if string was empty
 /// * `Err(D::Error)` - Deserialization error if the string was invalid
+///
+/// # Errors
+/// Returns an error if deserialization fails.
 pub fn empty_string_as_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
     D: Deserializer<'de>,
@@ -109,7 +112,7 @@ pub static RELOAD_HANDLE: OnceCell<tracing_subscriber::reload::Handle<filter::Ta
 /// This structure contains all the configuration parameters needed to set up
 /// the logging infrastructure, including output destinations, formats,
 /// OpenTelemetry integration, and performance tuning options.
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, SmartDefault, Builder)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, SmartDefault, Builder)]
 #[serde(default)]
 pub struct LoggingOptions {
     /// Directory path for storing log files.
@@ -198,7 +201,7 @@ pub struct LoggingOptions {
 /// Defines the available transport mechanisms for sending trace data to
 /// observability backends. Each protocol has different characteristics
 /// and use cases.
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, derive_more::Display)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, derive_more::Display)]
 #[serde(rename_all = "snake_case")]
 pub enum OtlpExportProtocol {
     /// gRPC transport protocol.
@@ -292,6 +295,7 @@ pub struct TracingOptions {
 ///
 /// This function can only be called once per application. Subsequent calls
 /// will be ignored due to internal `Once` synchronization.
+#[must_use]
 pub fn init_tracing_subscriber(app_name: &str) -> Vec<WorkerGuard> {
     let logging_opts = LoggingOptions::default();
     let tracing_opts = TracingOptions::default();
@@ -457,7 +461,9 @@ pub fn init_global_logging(
             None
         };
 
-        let file_logging_layer = if !opts.dir.is_empty() {
+        let file_logging_layer = if opts.dir.is_empty() {
+            None
+        } else {
             let rolling_appender = RollingFileAppender::builder()
                 .rotation(Rotation::HOURLY)
                 .filename_prefix("rsketch")
@@ -490,11 +496,11 @@ pub fn init_global_logging(
                         .boxed(),
                 )
             }
-        } else {
-            None
         };
 
-        let err_file_logging_layer = if !opts.dir.is_empty() {
+        let err_file_logging_layer = if opts.dir.is_empty() {
+            None
+        } else {
             let rolling_appender = RollingFileAppender::builder()
                 .rotation(Rotation::HOURLY)
                 .filename_prefix("rsketch-err")
@@ -527,8 +533,6 @@ pub fn init_global_logging(
                         .boxed(),
                 )
             }
-        } else {
-            None
         };
 
         let filter = opts
@@ -539,7 +543,7 @@ pub fn init_global_logging(
             .parse::<filter::Targets>()
             .expect("error parsing log level string");
 
-        let (dyn_filter, reload_handle) = tracing_subscriber::reload::Layer::new(filter.clone());
+        let (dyn_filter, reload_handle) = tracing_subscriber::reload::Layer::new(filter);
 
         RELOAD_HANDLE
             .set(reload_handle)
@@ -551,10 +555,7 @@ pub fn init_global_logging(
                 &tracing_opts.tokio_console_addr
             {
                 let addr: std::net::SocketAddr = tokio_console_addr.parse().unwrap_or_else(|e| {
-                    panic!(
-                        "Invalid binding address '{}' for tokio-console: {}",
-                        tokio_console_addr, e
-                    );
+                    panic!("Invalid binding address '{tokio_console_addr}' for tokio-console: {e}");
                 });
                 println!("tokio-console listening on {{addr}}");
 
@@ -591,8 +592,10 @@ pub fn init_global_logging(
                 .tracing_sample_ratio
                 .as_ref()
                 .map(create_sampler)
-                .map(Sampler::ParentBased)
-                .unwrap_or(Sampler::ParentBased(Box::new(Sampler::AlwaysOn)));
+                .map_or(
+                    Sampler::ParentBased(Box::new(Sampler::AlwaysOn)),
+                    Sampler::ParentBased,
+                );
 
             let provider = opentelemetry_sdk::trace::SdkTracerProvider::builder()
                 .with_batch_exporter(build_otlp_exporter(opts))
@@ -679,9 +682,9 @@ fn build_otlp_exporter(opts: &LoggingOptions) -> SpanExporter {
         .as_ref()
         .map(|e| {
             if e.starts_with("http") {
-                e.to_string()
+                e.clone()
             } else {
-                format!("http://{}", e)
+                format!("http://{e}")
             }
         })
         .unwrap_or_else(|| match protocol {

@@ -177,13 +177,13 @@ pub struct InfallibleWorker<W> {
 
 impl<W> InfallibleWorker<W> {
     /// Wraps a legacy worker to make it fallible.
-    pub fn new(worker: W) -> Self { InfallibleWorker { inner: worker } }
+    pub const fn new(worker: W) -> Self { Self { inner: worker } }
 
     /// Returns a reference to the inner worker.
-    pub fn inner(&self) -> &W { &self.inner }
+    pub const fn inner(&self) -> &W { &self.inner }
 
     /// Returns a mutable reference to the inner worker.
-    pub fn inner_mut(&mut self) -> &mut W { &mut self.inner }
+    pub const fn inner_mut(&mut self) -> &mut W { &mut self.inner }
 
     /// Consumes the wrapper and returns the inner worker.
     pub fn into_inner(self) -> W { self.inner }

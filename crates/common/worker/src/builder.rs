@@ -99,7 +99,7 @@ where
     W: Worker,
     S: Send + Sync + 'static,
 {
-    pub(crate) fn new(manager: &'m mut Manager<S>, worker: W) -> Self {
+    pub(crate) const fn new(manager: &'m mut Manager<S>, worker: W) -> Self {
         WorkerBuilder {
             manager,
             worker,
@@ -371,7 +371,7 @@ where
 }
 
 // Common configuration methods available in all builder states
-impl<'m, S, W, T> WorkerBuilder<'m, S, W, T>
+impl<S, W, T> WorkerBuilder<'_, S, W, T>
 where
     W: Worker,
     S: Send + Sync + 'static,
@@ -399,7 +399,7 @@ where
     ///     .interval(Duration::from_secs(3600))
     ///     .spawn();
     /// ```
-    pub fn name(mut self, name: &'static str) -> Self {
+    pub const fn name(mut self, name: &'static str) -> Self {
         self.name = Some(name);
         self
     }
@@ -429,7 +429,7 @@ where
     ///     .interval(Duration::from_secs(60))
     ///     .spawn();
     /// ```
-    pub fn blocking(mut self) -> Self {
+    pub const fn blocking(mut self) -> Self {
         self.blocking = true;
         self
     }
@@ -438,14 +438,14 @@ where
     ///
     /// - `PauseMode::Soft` (default): Driver continues, work is skipped
     /// - `PauseMode::Hard`: Driver stops completely, waits for resume
-    pub fn pause_mode(mut self, mode: crate::PauseMode) -> Self {
+    pub const fn pause_mode(mut self, mode: crate::PauseMode) -> Self {
         self.pause_mode = Some(mode);
         self
     }
 }
 
 // spawn() implementations for each trigger type
-impl<'m, S, W> WorkerBuilder<'m, S, W, TriggerOnce>
+impl<S, W> WorkerBuilder<'_, S, W, TriggerOnce>
 where
     W: Worker,
     S: Clone + Send + Sync + 'static,
@@ -466,7 +466,7 @@ where
     }
 }
 
-impl<'m, S, W> WorkerBuilder<'m, S, W, TriggerNotify>
+impl<S, W> WorkerBuilder<'_, S, W, TriggerNotify>
 where
     W: Worker,
     S: Clone + Send + Sync + 'static,
@@ -487,7 +487,7 @@ where
     }
 }
 
-impl<'m, S, W> WorkerBuilder<'m, S, W, TriggerInterval>
+impl<S, W> WorkerBuilder<'_, S, W, TriggerInterval>
 where
     W: Worker,
     S: Clone + Send + Sync + 'static,
@@ -509,7 +509,7 @@ where
     }
 }
 
-impl<'m, S, W> WorkerBuilder<'m, S, W, TriggerCron>
+impl<S, W> WorkerBuilder<'_, S, W, TriggerCron>
 where
     W: Worker,
     S: Clone + Send + Sync + 'static,
@@ -531,7 +531,7 @@ where
     }
 }
 
-impl<'m, S, W> WorkerBuilder<'m, S, W, TriggerIntervalOrNotify>
+impl<S, W> WorkerBuilder<'_, S, W, TriggerIntervalOrNotify>
 where
     W: Worker,
     S: Clone + Send + Sync + 'static,
@@ -553,7 +553,7 @@ where
     }
 }
 
-impl<'m, S, W> WorkerBuilder<'m, S, W, TriggerCronOrNotify>
+impl<S, W> WorkerBuilder<'_, S, W, TriggerCronOrNotify>
 where
     W: Worker,
     S: Clone + Send + Sync + 'static,
@@ -600,7 +600,7 @@ impl SpawnResult for OnceHandle {
         _notify: std::sync::Arc<tokio::sync::Notify>,
         _paused: std::sync::Arc<std::sync::atomic::AtomicBool>,
     ) -> Self {
-        OnceHandle::new(id, name)
+        Self::new(id, name)
     }
 }
 
@@ -611,7 +611,7 @@ impl SpawnResult for NotifyHandle {
         notify: std::sync::Arc<tokio::sync::Notify>,
         _paused: std::sync::Arc<std::sync::atomic::AtomicBool>,
     ) -> Self {
-        NotifyHandle::new(id, name, notify)
+        Self::new(id, name, notify)
     }
 }
 
@@ -622,7 +622,7 @@ impl SpawnResult for IntervalHandle {
         notify: std::sync::Arc<tokio::sync::Notify>,
         paused: std::sync::Arc<std::sync::atomic::AtomicBool>,
     ) -> Self {
-        IntervalHandle::new(id, name, notify, paused)
+        Self::new(id, name, notify, paused)
     }
 }
 
@@ -633,7 +633,7 @@ impl SpawnResult for CronHandle {
         notify: std::sync::Arc<tokio::sync::Notify>,
         paused: std::sync::Arc<std::sync::atomic::AtomicBool>,
     ) -> Self {
-        CronHandle::new(id, name, notify, paused)
+        Self::new(id, name, notify, paused)
     }
 }
 
@@ -644,7 +644,7 @@ impl SpawnResult for IntervalOrNotifyHandle {
         notify: std::sync::Arc<tokio::sync::Notify>,
         paused: std::sync::Arc<std::sync::atomic::AtomicBool>,
     ) -> Self {
-        IntervalOrNotifyHandle::new(id, name, notify, paused)
+        Self::new(id, name, notify, paused)
     }
 }
 
@@ -655,7 +655,7 @@ impl SpawnResult for CronOrNotifyHandle {
         notify: std::sync::Arc<tokio::sync::Notify>,
         paused: std::sync::Arc<std::sync::atomic::AtomicBool>,
     ) -> Self {
-        CronOrNotifyHandle::new(id, name, notify, paused)
+        Self::new(id, name, notify, paused)
     }
 }
 
@@ -690,7 +690,7 @@ where
     W: crate::FallibleWorker<S>,
     S: Clone + Send + Sync + 'static,
 {
-    pub(crate) fn new(manager: &'m mut crate::Manager<S>, worker: W) -> Self {
+    pub(crate) const fn new(manager: &'m mut crate::Manager<S>, worker: W) -> Self {
         FallibleWorkerBuilder {
             manager,
             worker,
@@ -803,19 +803,19 @@ where
 }
 
 // Common configuration methods for FallibleWorkerBuilder
-impl<'m, S, W, T> FallibleWorkerBuilder<'m, S, W, T>
+impl<S, W, T> FallibleWorkerBuilder<'_, S, W, T>
 where
     W: crate::FallibleWorker<S>,
     S: Clone + Send + Sync + 'static,
 {
     /// Sets the worker's name for logging and metrics.
-    pub fn name(mut self, name: &'static str) -> Self {
+    pub const fn name(mut self, name: &'static str) -> Self {
         self.name = Some(name);
         self
     }
 
     /// Marks this worker as blocking (runs on dedicated blocking thread pool).
-    pub fn blocking(mut self) -> Self {
+    pub const fn blocking(mut self) -> Self {
         self.blocking = true;
         self
     }
@@ -824,14 +824,14 @@ where
     ///
     /// - `PauseMode::Soft` (default): Driver continues, work is skipped
     /// - `PauseMode::Hard`: Driver stops completely, waits for resume
-    pub fn pause_mode(mut self, mode: crate::PauseMode) -> Self {
+    pub const fn pause_mode(mut self, mode: crate::PauseMode) -> Self {
         self.pause_mode = Some(mode);
         self
     }
 }
 
 // spawn() implementations for each trigger type
-impl<'m, S, W> FallibleWorkerBuilder<'m, S, W, TriggerOnce>
+impl<S, W> FallibleWorkerBuilder<'_, S, W, TriggerOnce>
 where
     W: crate::FallibleWorker<S>,
     S: Clone + Send + Sync + 'static,
@@ -850,7 +850,7 @@ where
     }
 }
 
-impl<'m, S, W> FallibleWorkerBuilder<'m, S, W, TriggerNotify>
+impl<S, W> FallibleWorkerBuilder<'_, S, W, TriggerNotify>
 where
     W: crate::FallibleWorker<S>,
     S: Clone + Send + Sync + 'static,
@@ -869,7 +869,7 @@ where
     }
 }
 
-impl<'m, S, W> FallibleWorkerBuilder<'m, S, W, TriggerInterval>
+impl<S, W> FallibleWorkerBuilder<'_, S, W, TriggerInterval>
 where
     W: crate::FallibleWorker<S>,
     S: Clone + Send + Sync + 'static,
@@ -888,7 +888,7 @@ where
     }
 }
 
-impl<'m, S, W> FallibleWorkerBuilder<'m, S, W, TriggerCron>
+impl<S, W> FallibleWorkerBuilder<'_, S, W, TriggerCron>
 where
     W: crate::FallibleWorker<S>,
     S: Clone + Send + Sync + 'static,
@@ -907,7 +907,7 @@ where
     }
 }
 
-impl<'m, S, W> FallibleWorkerBuilder<'m, S, W, TriggerIntervalOrNotify>
+impl<S, W> FallibleWorkerBuilder<'_, S, W, TriggerIntervalOrNotify>
 where
     W: crate::FallibleWorker<S>,
     S: Clone + Send + Sync + 'static,
@@ -926,7 +926,7 @@ where
     }
 }
 
-impl<'m, S, W> FallibleWorkerBuilder<'m, S, W, TriggerCronOrNotify>
+impl<S, W> FallibleWorkerBuilder<'_, S, W, TriggerCronOrNotify>
 where
     W: crate::FallibleWorker<S>,
     S: Clone + Send + Sync + 'static,

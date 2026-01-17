@@ -58,5 +58,6 @@ pub struct WorkerId(Uuid);
 impl WorkerId {
     pub(crate) fn new() -> Self { Self(Uuid::new_v4()) }
 
-    pub fn as_uuid(&self) -> &Uuid { &self.0 }
+    #[must_use]
+    pub const fn as_uuid(&self) -> &Uuid { &self.0 }
 }

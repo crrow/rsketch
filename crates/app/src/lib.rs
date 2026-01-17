@@ -55,6 +55,7 @@ pub struct AppConfig {
 }
 
 impl AppConfig {
+    #[must_use]
     pub fn open(self) -> App {
         App {
             config: self,
@@ -88,6 +89,7 @@ impl AppHandle {
     }
 
     /// Check if the application is still running
+    #[must_use]
     pub fn is_running(&self) -> bool { self.running.load(Ordering::SeqCst) }
 
     /// Wait for the application to shutdown
@@ -183,8 +185,8 @@ async fn shutdown_signal(shutdown_rx: oneshot::Receiver<()>) {
     let terminate = std::future::pending::<()>();
 
     tokio::select! {
-        _ = ctrl_c => { info!("Received Ctrl+C signal"); },
-        _ = terminate => { info!("Received terminate signal"); },
+        () = ctrl_c => { info!("Received Ctrl+C signal"); },
+        () = terminate => { info!("Received terminate signal"); },
         _ = shutdown_rx => { info!("Received shutdown signal"); },
     }
 }

@@ -52,4 +52,4 @@ doc-valid-idents = [
     "Tonic",
 ]
 
-msrv = "1.85"
+msrv = "1.92"

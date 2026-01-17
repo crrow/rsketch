@@ -96,7 +96,7 @@ pub(crate) const MESSAGE_CRC_SIZE: usize = 4;
 /// assert_eq!(message_disk_size(100), 108);
 /// ```
 #[inline]
-pub(crate) fn message_disk_size(payload_len: usize) -> usize {
+pub(crate) const fn message_disk_size(payload_len: usize) -> usize {
     MESSAGE_LENGTH_SIZE + payload_len + MESSAGE_CRC_SIZE
 }
 
@@ -118,7 +118,7 @@ mod tests {
             data:     Bytes::from("test data"),
         };
 
-        let cloned = event.clone();
+        let cloned = event;
         assert_eq!(cloned.sequence, 42);
         assert_eq!(cloned.data, Bytes::from("test data"));
     }

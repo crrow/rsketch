@@ -126,7 +126,7 @@ pub struct OnceHandle {
 }
 
 impl OnceHandle {
-    pub(crate) fn new(id: WorkerId, name: &'static str) -> Self { OnceHandle { id, name } }
+    pub(crate) const fn new(id: WorkerId, name: &'static str) -> Self { Self { id, name } }
 }
 
 impl Handle for OnceHandle {
@@ -147,8 +147,8 @@ pub struct NotifyHandle {
 }
 
 impl NotifyHandle {
-    pub(crate) fn new(id: WorkerId, name: &'static str, notify: Arc<Notify>) -> Self {
-        NotifyHandle { id, name, notify }
+    pub(crate) const fn new(id: WorkerId, name: &'static str, notify: Arc<Notify>) -> Self {
+        Self { id, name, notify }
     }
 }
 
@@ -175,13 +175,13 @@ pub struct IntervalHandle {
 }
 
 impl IntervalHandle {
-    pub(crate) fn new(
+    pub(crate) const fn new(
         id: WorkerId,
         name: &'static str,
         notify: Arc<Notify>,
         paused: Arc<AtomicBool>,
     ) -> Self {
-        IntervalHandle {
+        Self {
             id,
             name,
             notify,
@@ -224,13 +224,13 @@ pub struct CronHandle {
 }
 
 impl CronHandle {
-    pub(crate) fn new(
+    pub(crate) const fn new(
         id: WorkerId,
         name: &'static str,
         notify: Arc<Notify>,
         paused: Arc<AtomicBool>,
     ) -> Self {
-        CronHandle {
+        Self {
             id,
             name,
             notify,
@@ -275,13 +275,13 @@ pub struct IntervalOrNotifyHandle {
 }
 
 impl IntervalOrNotifyHandle {
-    pub(crate) fn new(
+    pub(crate) const fn new(
         id: WorkerId,
         name: &'static str,
         notify: Arc<Notify>,
         paused: Arc<AtomicBool>,
     ) -> Self {
-        IntervalOrNotifyHandle {
+        Self {
             id,
             name,
             notify,
@@ -330,13 +330,13 @@ pub struct CronOrNotifyHandle {
 }
 
 impl CronOrNotifyHandle {
-    pub(crate) fn new(
+    pub(crate) const fn new(
         id: WorkerId,
         name: &'static str,
         notify: Arc<Notify>,
         paused: Arc<AtomicBool>,
     ) -> Self {
-        CronOrNotifyHandle {
+        Self {
             id,
             name,
             notify,

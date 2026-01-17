@@ -3,8 +3,13 @@ name = "rsketch-api"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "API definitions and gRPC stubs for rsketch"
 
 [dependencies]
 prost = { workspace = true }

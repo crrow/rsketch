@@ -54,17 +54,18 @@ pub enum RollStrategy {
     /// Roll after the given number of messages.
     ByCount(u64),
     /// Roll when any of the contained strategies triggers.
-    Combined(Vec<RollStrategy>),
+    Combined(Vec<Self>),
 }
 
 impl RollStrategy {
     /// Returns true if the file should be rolled based on current metrics.
+    #[must_use]
     pub fn should_roll(&self, current_size: u64, elapsed: Duration, count: u64) -> bool {
         match self {
-            RollStrategy::BySize(size) => current_size >= *size,
-            RollStrategy::ByTime(duration) => elapsed >= *duration,
-            RollStrategy::ByCount(max_count) => count >= *max_count,
-            RollStrategy::Combined(strategies) => strategies
+            Self::BySize(size) => current_size >= *size,
+            Self::ByTime(duration) => elapsed >= *duration,
+            Self::ByCount(max_count) => count >= *max_count,
+            Self::Combined(strategies) => strategies
                 .iter()
                 .any(|s| s.should_roll(current_size, elapsed, count)),
         }

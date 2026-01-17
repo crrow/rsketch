@@ -148,6 +148,7 @@ impl Queue {
     ///
     /// Appenders are cheap to create and can be used from any thread.
     /// Multiple appenders can write concurrently.
+    #[must_use]
     pub fn create_appender(&self) -> Appender {
         Appender::new(
             self.io_tx.clone().expect("Queue is shut down"),
@@ -166,6 +167,7 @@ impl Queue {
     /// Get the current global sequence number.
     ///
     /// This is the sequence that will be assigned to the next appended message.
+    #[must_use]
     pub fn current_sequence(&self) -> u64 { self.global_sequence.load(Ordering::Relaxed) }
 
     /// Shut down the queue gracefully.
@@ -192,6 +194,7 @@ impl Queue {
     }
 
     /// Get the queue configuration.
+    #[must_use]
     pub fn config(&self) -> &QueueConfig { &self.config }
 }
 

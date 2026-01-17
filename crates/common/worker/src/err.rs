@@ -83,7 +83,7 @@ impl WorkError {
     /// Transient errors allow the worker to continue - it will be retried on
     /// the next trigger.
     pub fn transient(message: impl Into<String>) -> Self {
-        WorkError {
+        Self {
             severity: ErrorSeverity::Transient,
             message:  message.into(),
             source:   None,
@@ -95,7 +95,7 @@ impl WorkError {
     /// Fatal errors cause the worker to stop immediately after calling
     /// `on_shutdown()`.
     pub fn fatal(message: impl Into<String>) -> Self {
-        WorkError {
+        Self {
             severity: ErrorSeverity::Fatal,
             message:  message.into(),
             source:   None,
@@ -107,7 +107,7 @@ impl WorkError {
     where
         E: std::error::Error + Send + Sync + 'static,
     {
-        WorkError {
+        Self {
             severity: ErrorSeverity::Transient,
             message:  message.into(),
             source:   Some(Box::new(source)),
@@ -119,7 +119,7 @@ impl WorkError {
     where
         E: std::error::Error + Send + Sync + 'static,
     {
-        WorkError {
+        Self {
             severity: ErrorSeverity::Fatal,
             message:  message.into(),
             source:   Some(Box::new(source)),
@@ -127,15 +127,19 @@ impl WorkError {
     }
 
     /// Returns the error severity.
-    pub fn severity(&self) -> ErrorSeverity { self.severity }
+    #[must_use]
+    pub const fn severity(&self) -> ErrorSeverity { self.severity }
 
     /// Returns `true` if this is a fatal error.
+    #[must_use]
     pub fn is_fatal(&self) -> bool { self.severity == ErrorSeverity::Fatal }
 
     /// Returns `true` if this is a transient error.
+    #[must_use]
     pub fn is_transient(&self) -> bool { self.severity == ErrorSeverity::Transient }
 
     /// Returns the error message.
+    #[must_use]
     pub fn message(&self) -> &str { &self.message }
 }
 

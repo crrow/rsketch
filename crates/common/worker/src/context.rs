@@ -66,7 +66,7 @@ pub struct WorkerContext<S = ()> {
 
 impl<S: Clone> Clone for WorkerContext<S> {
     fn clone(&self) -> Self {
-        WorkerContext {
+        Self {
             state:        self.state.clone(),
             cancel_token: self.cancel_token.clone(),
             notify:       self.notify.clone(),
@@ -76,13 +76,13 @@ impl<S: Clone> Clone for WorkerContext<S> {
 }
 
 impl<S> WorkerContext<S> {
-    pub(crate) fn new(
+    pub(crate) const fn new(
         state: S,
         cancel_token: CancellationToken,
         notify: Arc<Notify>,
         worker_name: &'static str,
     ) -> Self {
-        WorkerContext {
+        Self {
             state,
             cancel_token,
             notify,
@@ -93,7 +93,7 @@ impl<S> WorkerContext<S> {
     /// Returns a reference to the shared state.
     ///
     /// The state is cloned for each worker execution from the Manager's state.
-    pub fn state(&self) -> &S { &self.state }
+    pub const fn state(&self) -> &S { &self.state }
 
     /// Checks if cancellation has been requested.
     ///
@@ -115,13 +115,13 @@ impl<S> WorkerContext<S> {
     /// # }
     /// # async fn async_work() {}
     /// ```
-    pub async fn cancelled(&self) { self.cancel_token.cancelled().await }
+    pub async fn cancelled(&self) { self.cancel_token.cancelled().await; }
 
     /// Waits asynchronously for a notify signal.
     ///
     /// Only relevant for workers with `Trigger::Notify` or hybrid triggers.
     /// The handle's `notify()` method will wake this future.
-    pub async fn notified(&self) { self.notify.notified().await }
+    pub async fn notified(&self) { self.notify.notified().await; }
 
     /// Creates a child cancellation token for spawning sub-tasks.
     ///
@@ -133,5 +133,5 @@ impl<S> WorkerContext<S> {
     ///
     /// The name is set via `WorkerBuilder::name()` or defaults to
     /// "unnamed-worker".
-    pub fn name(&self) -> &'static str { self.worker_name }
+    pub const fn name(&self) -> &'static str { self.worker_name }
 }

@@ -15,6 +15,13 @@
 pub use serde;
 
 pub mod pb {
+    #![allow(
+        clippy::missing_errors_doc,
+        clippy::default_trait_access,
+        clippy::similar_names,
+        clippy::doc_markdown
+    )]
+
     pub const GRPC_DESC: &[u8] = tonic::include_file_descriptor_set!("rsketch_grpc_desc");
 
     pub mod hello {

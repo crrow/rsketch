@@ -6,6 +6,10 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Background worker and task scheduling utilities for rsketch"
 
 [dependencies]
 async-trait.workspace = true

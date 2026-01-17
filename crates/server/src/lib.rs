@@ -86,5 +86,6 @@ impl ServiceHandler {
     ///
     /// Returns `true` if the server has finished running, either due to
     /// shutdown or an error condition.
+    #[must_use]
     pub fn is_finished(&self) -> bool { self.join_handle.is_finished() }
 }

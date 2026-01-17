@@ -27,6 +27,7 @@ pub fn time_based_dir<P: AsRef<Path>>(base: P, time: DateTime<Utc>) -> PathBuf {
 }
 
 /// Generates a data file name: `YYYYMMDD-NNNN.data`.
+#[must_use]
 pub fn data_file_name(time: DateTime<Utc>, sequence: u32) -> String {
     format!(
         "{:04}{:02}{:02}-{:04}.data",
@@ -38,6 +39,7 @@ pub fn data_file_name(time: DateTime<Utc>, sequence: u32) -> String {
 }
 
 /// Generates an index file name: `YYYYMMDD-NNNN.index`.
+#[must_use]
 pub fn index_file_name(time: DateTime<Utc>, sequence: u32) -> String {
     format!(
         "{:04}{:02}{:02}-{:04}.index",

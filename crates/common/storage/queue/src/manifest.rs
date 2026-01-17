@@ -162,7 +162,7 @@ impl Manifest {
         ensure!(
             magic == MANIFEST_MAGIC,
             ManifestCorruptedSnafu {
-                reason: format!("invalid magic: {:?}", magic),
+                reason: format!("invalid magic: {magic:?}"),
             }
         );
 
@@ -187,8 +187,8 @@ impl Manifest {
             stored_checksum == computed_checksum,
             ManifestCorruptedSnafu {
                 reason: format!(
-                    "checksum mismatch: stored={:#x}, computed={:#x}",
-                    stored_checksum, computed_checksum
+                    "checksum mismatch: stored={stored_checksum:#x}, \
+                     computed={computed_checksum:#x}"
                 ),
             }
         );
@@ -372,13 +372,13 @@ mod tests {
         assert_eq!(recovered.files[1].end_sequence, 1999);
     }
 
-    fn corrupt_magic(bytes: &mut Vec<u8>) { bytes[0] = 0xFF; }
+    fn corrupt_magic(bytes: &mut [u8]) { bytes[0] = 0xFF; }
 
-    fn corrupt_checksum(bytes: &mut Vec<u8>) { bytes[20] ^= 0xFF; }
+    fn corrupt_checksum(bytes: &mut [u8]) { bytes[20] ^= 0xFF; }
 
     #[test_case(corrupt_magic ; "invalid magic")]
     #[test_case(corrupt_checksum ; "invalid checksum")]
-    fn test_manifest_deserialize_corrupted(corrupt_fn: fn(&mut Vec<u8>)) {
+    fn test_manifest_deserialize_corrupted(corrupt_fn: fn(&mut [u8])) {
         let mut bytes = Manifest::default().serialize();
         corrupt_fn(&mut bytes);
         assert!(Manifest::deserialize(&bytes).is_err());

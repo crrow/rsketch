@@ -199,7 +199,7 @@ impl IOWorker {
 
             match self.rx.recv_timeout(Duration::from_micros(100)) {
                 Ok(event) => {
-                    if let Err(e) = self.write_event(event) {
+                    if let Err(e) = self.write_event(&event) {
                         error!(error = ?e, "Failed to write event");
                     }
                 }
@@ -279,22 +279,22 @@ impl IOWorker {
     /// file.
     fn roll_file(&mut self) -> Result<()> {
         if let Some(ref file) = self.current_file {
-            file.flush(self.config.flush_mode.clone())?;
+            file.flush(&self.config.flush_mode)?;
         }
         if let Some(ref mut index) = self.current_index {
             index.flush()?;
         }
 
-        if let Some(path) = self.current_file_path.take() {
-            if self.message_count > 0 {
-                let end_sequence = self.file_start_sequence + self.message_count - 1;
-                self.completed_files.push(FileEntry {
-                    path,
-                    start_sequence: self.file_start_sequence,
-                    end_sequence,
-                    size: self.write_position,
-                });
-            }
+        if let Some(path) = self.current_file_path.take()
+            && self.message_count > 0
+        {
+            let end_sequence = self.file_start_sequence + self.message_count - 1;
+            self.completed_files.push(FileEntry {
+                path,
+                start_sequence: self.file_start_sequence,
+                end_sequence,
+                size: self.write_position,
+            });
         }
 
         self.current_file = None;
@@ -317,7 +317,7 @@ impl IOWorker {
     /// Handles file rolling if needed, writes the message in wire format
     /// `[length: 4B][payload: variable][crc: 8B]`, and updates the sparse
     /// index.
-    fn write_event(&mut self, event: WriteEvent) -> Result<()> {
+    fn write_event(&mut self, event: &WriteEvent) -> Result<()> {
         let total_size = message_disk_size(event.data.len()) as u64;
 
         let elapsed = self.file_start_time.elapsed();
@@ -379,7 +379,7 @@ impl IOWorker {
         match &self.config.flush_mode {
             FlushMode::Sync => {
                 if let Some(ref file) = self.current_file {
-                    file.flush(FlushMode::Sync)?;
+                    file.flush(&FlushMode::Sync)?;
                 }
                 self.pending_bytes = 0;
                 self.last_flush = Instant::now();
@@ -390,7 +390,7 @@ impl IOWorker {
 
                 if should_flush {
                     if let Some(ref file) = self.current_file {
-                        file.flush(FlushMode::Async)?;
+                        file.flush(&FlushMode::Async)?;
                     }
                     if let Some(ref mut index) = self.current_index {
                         index.flush()?;
@@ -410,17 +410,18 @@ impl IOWorker {
     /// Called during timeout in the run loop to ensure data is flushed
     /// even during idle periods.
     fn check_flush(&mut self) -> Result<()> {
-        if let FlushMode::Batch { interval, .. } = &self.config.flush_mode {
-            if self.pending_bytes > 0 && self.last_flush.elapsed() >= *interval {
-                if let Some(ref file) = self.current_file {
-                    file.flush(FlushMode::Async)?;
-                }
-                if let Some(ref mut index) = self.current_index {
-                    index.flush()?;
-                }
-                self.pending_bytes = 0;
-                self.last_flush = Instant::now();
+        if let FlushMode::Batch { interval, .. } = &self.config.flush_mode
+            && self.pending_bytes > 0
+            && self.last_flush.elapsed() >= *interval
+        {
+            if let Some(ref file) = self.current_file {
+                file.flush(&FlushMode::Async)?;
             }
+            if let Some(ref mut index) = self.current_index {
+                index.flush()?;
+            }
+            self.pending_bytes = 0;
+            self.last_flush = Instant::now();
         }
 
         Ok(())
@@ -431,7 +432,7 @@ impl IOWorker {
     /// Ensures all pending data is durably persisted to disk.
     fn final_flush(&mut self) -> Result<()> {
         if let Some(ref file) = self.current_file {
-            file.flush(FlushMode::Sync)?;
+            file.flush(&FlushMode::Sync)?;
         }
         if let Some(ref mut index) = self.current_index {
             index.flush()?;
@@ -532,7 +533,7 @@ mod tests {
             sequence: 0,
             data:     Bytes::from("test message"),
         };
-        fixture.worker.write_event(event).unwrap();
+        fixture.worker.write_event(&event).unwrap();
 
         assert!(fixture.worker.write_position > 0);
         assert_eq!(fixture.worker.message_count, 1);
@@ -547,9 +548,9 @@ mod tests {
         for i in 0..write_count {
             let event = WriteEvent {
                 sequence: i,
-                data:     Bytes::from(format!("message {}", i)),
+                data:     Bytes::from(format!("message {i}")),
             };
-            fixture.worker.write_event(event).unwrap();
+            fixture.worker.write_event(&event).unwrap();
         }
 
         assert_eq!(fixture.worker.file_sequence, expected_file_seq);

@@ -26,6 +26,9 @@ impl RuntimeOptions {
     /// Build a multi-thread Tokio runtime with optional IO/time drivers and
     /// sequential thread names. Defaults worker threads to CPU count when
     /// unspecified and prefixes threads using `thread_name`.
+    ///
+    /// # Errors
+    /// Returns an error if the runtime fails to build.
     pub fn create(self) -> Result<Runtime> {
         let mut builder = TokioBuilder::new_multi_thread();
 
@@ -54,6 +57,9 @@ impl RuntimeOptions {
 }
 
 /// Build a single-threaded runtime with all drivers enabled.
+///
+/// # Errors
+/// Returns an error if the runtime fails to build.
 pub fn create_current_thread_runtime(thread_name: impl Into<String>) -> Result<Runtime> {
     let name = thread_name.into();
     let mut builder = TokioBuilder::new_current_thread();

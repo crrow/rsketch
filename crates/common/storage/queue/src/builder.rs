@@ -33,31 +33,36 @@ impl QueueBuilder {
     }
 
     /// Sets the maximum file size in bytes.
-    pub fn file_size(mut self, size: u64) -> Self {
+    #[must_use]
+    pub const fn file_size(mut self, size: u64) -> Self {
         self.config.file_size = size;
         self
     }
 
     /// Sets the strategy for rolling to new files.
+    #[must_use]
     pub fn roll_strategy(mut self, strategy: RollStrategy) -> Self {
         self.config.roll_strategy = strategy;
         self
     }
 
     /// Sets the flush mode for writes.
-    pub fn flush_mode(mut self, mode: FlushMode) -> Self {
+    #[must_use]
+    pub const fn flush_mode(mut self, mode: FlushMode) -> Self {
         self.config.flush_mode = mode;
         self
     }
 
     /// Sets the interval between index entries.
-    pub fn index_interval(mut self, interval: u64) -> Self {
+    #[must_use]
+    pub const fn index_interval(mut self, interval: u64) -> Self {
         self.config.index_interval = interval;
         self
     }
 
     /// Enables or disables integrity verification on startup.
-    pub fn verify_on_startup(mut self, verify: bool) -> Self {
+    #[must_use]
+    pub const fn verify_on_startup(mut self, verify: bool) -> Self {
         self.config.verify_on_startup = verify;
         self
     }

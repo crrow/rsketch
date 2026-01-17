@@ -5,6 +5,9 @@ license = "Apache-2.0"
 authors = ["crrow"]
 repository = "https://github.com/crrow/rsketch"
 homepage = "https://github.com/crrow/rsketch"
+readme = "README.md"
+keywords = ["rust", "template", "server"]
+categories = ["development-tools"]
 
 [workspace.lints.rust]
 unsafe_code = "deny"
@@ -26,6 +29,8 @@ items_after_statements = "allow"
 redundant_pub_crate = "allow"
 significant_drop_tightening = "allow"
 future_not_send = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
 
 [workspace]
 resolver = "3"

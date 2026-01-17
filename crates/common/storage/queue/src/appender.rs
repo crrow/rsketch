@@ -51,7 +51,7 @@ pub struct Appender {
 
 impl Appender {
     /// Create a new appender with the given channel and sequence counter.
-    pub(crate) fn new(tx: Sender<WriteEvent>, sequence: Arc<AtomicU64>) -> Self {
+    pub(crate) const fn new(tx: Sender<WriteEvent>, sequence: Arc<AtomicU64>) -> Self {
         Self { tx, sequence }
     }
 
@@ -98,6 +98,7 @@ impl Appender {
     /// Get the current global sequence number.
     ///
     /// This is the sequence that will be assigned to the next appended message.
+    #[must_use]
     pub fn current_sequence(&self) -> u64 { self.sequence.load(Ordering::Relaxed) }
 }
 

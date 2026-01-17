@@ -28,7 +28,7 @@ struct GlobalRuntimes {
 
 static GLOBAL_RUNTIMES: OnceCell<GlobalRuntimes> = OnceCell::new();
 
-fn build_global_runtimes(options: GlobalRuntimeOptions) -> GlobalRuntimes {
+fn build_global_runtimes(options: &GlobalRuntimeOptions) -> GlobalRuntimes {
     let file_io = Arc::new(
         RuntimeOptions::builder()
             .thread_name("rt-file-io".to_string())
@@ -68,20 +68,26 @@ fn build_global_runtimes(options: GlobalRuntimeOptions) -> GlobalRuntimes {
 }
 
 fn global_runtimes() -> &'static GlobalRuntimes {
-    GLOBAL_RUNTIMES.get_or_init(|| build_global_runtimes(GlobalRuntimeOptions::default()))
+    GLOBAL_RUNTIMES.get_or_init(|| build_global_runtimes(&GlobalRuntimeOptions::default()))
 }
 
-/// Initialize global runtimes with custom options. Panics on double init.
+/// Initialize global runtimes with custom options.
+///
+/// # Panics
+/// Panics if called more than once.
 pub fn init_global_runtimes(options: GlobalRuntimeOptions) {
     GLOBAL_RUNTIMES
-        .set(build_global_runtimes(options))
+        .set(build_global_runtimes(&options))
         .expect("Global runtimes already initialized");
 }
 
+#[must_use]
 pub fn file_io_runtime() -> Arc<Runtime> { Arc::clone(&global_runtimes().file_io) }
 
+#[must_use]
 pub fn network_io_runtime() -> Arc<Runtime> { Arc::clone(&global_runtimes().network_io) }
 
+#[must_use]
 pub fn background_runtime() -> Arc<Runtime> { Arc::clone(&global_runtimes().background) }
 
 pub fn spawn_file_io<F>(future: F) -> JoinHandle<F::Output>

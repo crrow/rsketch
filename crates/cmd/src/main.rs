@@ -49,9 +49,8 @@ rsketch hello
 struct HelloArgs {}
 
 impl HelloArgs {
-    fn run(&self) -> Result<(), Whatever> {
+    fn run() {
         println!("Hello, world!");
-        Ok(())
     }
 }
 
@@ -68,7 +67,7 @@ rsketch server
 struct ServerArgs {}
 
 impl ServerArgs {
-    fn run(&self) -> Result<(), Whatever> {
+    fn run() -> Result<(), Whatever> {
         let app = AppConfig::default().open();
         init_global_runtimes(GlobalRuntimeOptions::default());
         block_on_background(app.run())
@@ -78,7 +77,10 @@ impl ServerArgs {
 fn main() -> Result<(), Whatever> {
     let cli = Cli::parse();
     match cli.commands {
-        Commands::Hello(ha) => ha.run(),
-        Commands::Server(sa) => sa.run(),
+        Commands::Hello(_) => {
+            HelloArgs::run();
+            Ok(())
+        }
+        Commands::Server(_) => ServerArgs::run(),
     }
 }

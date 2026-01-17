@@ -29,12 +29,12 @@ pub(crate) enum TriggerDriverEnum {
 impl TriggerDriverEnum {
     pub async fn wait_next<S: Clone>(&mut self, ctx: &WorkerContext<S>) -> bool {
         match self {
-            TriggerDriverEnum::Once(d) => d.wait_next(ctx).await,
-            TriggerDriverEnum::Notify(d) => d.wait_next(ctx).await,
-            TriggerDriverEnum::Interval(d) => d.wait_next(ctx).await,
-            TriggerDriverEnum::Cron(d) => d.wait_next(ctx).await,
-            TriggerDriverEnum::IntervalOrNotify(d) => d.wait_next(ctx).await,
-            TriggerDriverEnum::CronOrNotify(d) => d.wait_next(ctx).await,
+            Self::Once(d) => d.wait_next(ctx).await,
+            Self::Notify(d) => d.wait_next(ctx).await,
+            Self::Interval(d) => d.wait_next(ctx).await,
+            Self::Cron(d) => d.wait_next(ctx).await,
+            Self::IntervalOrNotify(d) => d.wait_next(ctx).await,
+            Self::CronOrNotify(d) => d.wait_next(ctx).await,
         }
     }
 }
@@ -51,7 +51,7 @@ pub(crate) struct OnceDriver {
 }
 
 impl OnceDriver {
-    pub fn new() -> Self { OnceDriver { executed: false } }
+    pub const fn new() -> Self { Self { executed: false } }
 }
 
 impl TriggerDriver for OnceDriver {
@@ -71,14 +71,14 @@ impl TriggerDriver for OnceDriver {
 pub(crate) struct NotifyDriver;
 
 impl NotifyDriver {
-    pub fn new() -> Self { NotifyDriver }
+    pub const fn new() -> Self { Self }
 }
 
 impl TriggerDriver for NotifyDriver {
     async fn wait_next<S: Clone>(&mut self, ctx: &WorkerContext<S>) -> bool {
         tokio::select! {
-            _ = ctx.notified() => true,
-            _ = ctx.cancelled() => false,
+            () = ctx.notified() => true,
+            () = ctx.cancelled() => false,
         }
     }
 }
@@ -92,7 +92,7 @@ impl IntervalDriver {
     pub fn new(duration: Duration) -> Self {
         let mut interval = tokio::time::interval(duration);
         interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
-        IntervalDriver { interval }
+        Self { interval }
     }
 }
 
@@ -100,7 +100,7 @@ impl TriggerDriver for IntervalDriver {
     async fn wait_next<S: Clone>(&mut self, ctx: &WorkerContext<S>) -> bool {
         tokio::select! {
             _ = self.interval.tick() => true,
-            _ = ctx.cancelled() => false,
+            () = ctx.cancelled() => false,
         }
     }
 }
@@ -111,19 +111,14 @@ pub(crate) struct CronDriver {
 }
 
 impl CronDriver {
-    pub fn new(cron: croner::Cron) -> Self { CronDriver { cron } }
+    pub const fn new(cron: croner::Cron) -> Self { Self { cron } }
 }
 
 impl TriggerDriver for CronDriver {
     async fn wait_next<S: Clone>(&mut self, ctx: &WorkerContext<S>) -> bool {
-        // Get next occurrence
-        let next = match self.cron.find_next_occurrence(&chrono::Utc::now(), false) {
-            Ok(next) => next,
-            Err(_) => {
-                // No more occurrences, wait for cancellation
-                ctx.cancelled().await;
-                return false;
-            }
+        let Ok(next) = self.cron.find_next_occurrence(&chrono::Utc::now(), false) else {
+            ctx.cancelled().await;
+            return false;
         };
 
         let now = chrono::Utc::now();
@@ -131,11 +126,10 @@ impl TriggerDriver for CronDriver {
             let duration = (next - now).to_std().unwrap_or(Duration::from_secs(0));
 
             tokio::select! {
-                _ = tokio::time::sleep(duration) => true,
-                _ = ctx.cancelled() => false,
+                () = tokio::time::sleep(duration) => true,
+                () = ctx.cancelled() => false,
             }
         } else {
-            // Next occurrence is in the past or now, execute immediately
             true
         }
     }
@@ -150,7 +144,7 @@ impl IntervalOrNotifyDriver {
     pub fn new(duration: Duration) -> Self {
         let mut interval = tokio::time::interval(duration);
         interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
-        IntervalOrNotifyDriver { interval }
+        Self { interval }
     }
 }
 
@@ -158,12 +152,12 @@ impl TriggerDriver for IntervalOrNotifyDriver {
     async fn wait_next<S: Clone>(&mut self, ctx: &WorkerContext<S>) -> bool {
         tokio::select! {
             _ = self.interval.tick() => true,
-            _ = ctx.notified() => {
+            () = ctx.notified() => {
                 // Reset the interval
                 self.interval.reset();
                 true
             },
-            _ = ctx.cancelled() => false,
+            () = ctx.cancelled() => false,
         }
     }
 }
@@ -174,21 +168,16 @@ pub(crate) struct CronOrNotifyDriver {
 }
 
 impl CronOrNotifyDriver {
-    pub fn new(cron: croner::Cron) -> Self { CronOrNotifyDriver { cron } }
+    pub const fn new(cron: croner::Cron) -> Self { Self { cron } }
 }
 
 impl TriggerDriver for CronOrNotifyDriver {
     async fn wait_next<S: Clone>(&mut self, ctx: &WorkerContext<S>) -> bool {
-        // Get next occurrence
-        let next = match self.cron.find_next_occurrence(&chrono::Utc::now(), false) {
-            Ok(next) => next,
-            Err(_) => {
-                // No more occurrences, wait for notification or cancellation
-                return tokio::select! {
-                    _ = ctx.notified() => true,
-                    _ = ctx.cancelled() => false,
-                };
-            }
+        let Ok(next) = self.cron.find_next_occurrence(&chrono::Utc::now(), false) else {
+            return tokio::select! {
+                () = ctx.notified() => true,
+                () = ctx.cancelled() => false,
+            };
         };
 
         let now = chrono::Utc::now();
@@ -196,15 +185,14 @@ impl TriggerDriver for CronOrNotifyDriver {
             let duration = (next - now).to_std().unwrap_or(Duration::from_secs(0));
 
             tokio::select! {
-                _ = tokio::time::sleep(duration) => true,
-                _ = ctx.notified() => true,
-                _ = ctx.cancelled() => false,
+                () = tokio::time::sleep(duration) => true,
+                () = ctx.notified() => true,
+                () = ctx.cancelled() => false,
             }
         } else {
-            // Next occurrence is in the past or now, but also check notification
             tokio::select! {
-                _ = ctx.notified() => true,
-                _ = ctx.cancelled() => false,
+                () = ctx.notified() => true,
+                () = ctx.cancelled() => false,
                 else => true,
             }
         }

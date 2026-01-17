@@ -55,21 +55,26 @@ type Propagator = TraceContextPropagator;
 
 impl TracingContext {
     /// Create context from a specific span.
+    #[must_use]
     pub fn from_span(span: &tracing::Span) -> Self { Self(span.context()) }
 
     /// Create context from the current active span.
+    #[must_use]
     pub fn from_current_span() -> Self { Self::from_span(&tracing::Span::current()) }
 
     /// Create an empty context.
+    #[must_use]
     pub fn new() -> Self { Self(opentelemetry::Context::new()) }
 
     /// Attach a span as a child of this context.
+    #[must_use]
     pub fn attach(&self, span: tracing::Span) -> tracing::Span {
         let _ = span.set_parent(self.0.clone());
         span
     }
 
     /// Convert to W3C trace context format.
+    #[must_use]
     pub fn to_w3c(&self) -> W3cTrace {
         let mut fields = HashMap::new();
         Propagator::new().inject_context(&self.0, &mut fields);
@@ -77,15 +82,18 @@ impl TracingContext {
     }
 
     /// Create from W3C trace context format.
+    #[must_use]
     pub fn from_w3c(fields: &W3cTrace) -> Self {
         let context = Propagator::new().extract(fields);
         Self(context)
     }
 
     /// Serialize to JSON string.
+    #[must_use]
     pub fn to_json(&self) -> String { serde_json::to_string(&self.to_w3c()).unwrap() }
 
     /// Deserialize from JSON string. Returns empty context on invalid JSON.
+    #[must_use]
     pub fn from_json(json: &str) -> Self {
         let fields: W3cTrace = serde_json::from_str(json).unwrap_or_default();
         Self::from_w3c(&fields)

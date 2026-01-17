@@ -66,7 +66,7 @@ impl ErrorExt for ApiError {
 
 impl StackError for ApiError {
     fn debug_fmt(&self, layer: usize, buf: &mut Vec<String>) {
-        buf.push(format!("{}: {}", layer, self))
+        buf.push(format!("{layer}: {self}"));
     }
 
     fn next(&self) -> Option<&dyn StackError> { None }
@@ -84,7 +84,7 @@ impl IntoResponse for ApiError {
 
 impl From<ApiError> for tonic::Status {
     fn from(error: ApiError) -> Self {
-        tonic::Status::new(error.status_code().tonic_code(), error.output_msg())
+        Self::new(error.status_code().tonic_code(), error.output_msg())
     }
 }
 

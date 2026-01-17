@@ -277,10 +277,10 @@ mod tests {
             let file = DataFile::create(&self.data_path, 4096).unwrap();
             let mut offset = 0u64;
             for i in 0..count {
-                let msg = format!("msg-{}", i);
+                let msg = format!("msg-{i}");
                 offset += write_test_message(&file, offset, msg.as_bytes());
             }
-            file.flush(FlushMode::Sync).unwrap();
+            file.flush(&FlushMode::Sync).unwrap();
             (file, offset)
         }
 
@@ -334,14 +334,14 @@ mod tests {
 
         let mut offset = 0u64;
         for i in 0..5 {
-            offset += write_test_message(&file, offset, format!("msg-{}", i).as_bytes());
+            offset += write_test_message(&file, offset, format!("msg-{i}").as_bytes());
         }
         let manifest_offset = offset;
 
         for i in 5..10 {
-            offset += write_test_message(&file, offset, format!("msg-{}", i).as_bytes());
+            offset += write_test_message(&file, offset, format!("msg-{i}").as_bytes());
         }
-        file.flush(FlushMode::Sync).unwrap();
+        file.flush(&FlushMode::Sync).unwrap();
 
         fixture.write_manifest(5, manifest_offset, 5);
 
@@ -360,23 +360,23 @@ mod tests {
 
         let mut offset = 0u64;
         for i in 0..5 {
-            offset += write_test_message(&file, offset, format!("msg-{}", i).as_bytes());
+            offset += write_test_message(&file, offset, format!("msg-{i}").as_bytes());
         }
         let manifest_offset = offset;
 
         for i in 5..8 {
-            offset += write_test_message(&file, offset, format!("msg-{}", i).as_bytes());
+            offset += write_test_message(&file, offset, format!("msg-{i}").as_bytes());
         }
         let valid_offset = offset;
 
         let bad_data = b"corrupted";
-        let bad_crc = 0xDEADBEEFu64;
+        let bad_crc = 0xDEAD_BEEF_u64;
         file.write_at(offset, &(bad_data.len() as u32).to_le_bytes())
             .unwrap();
         file.write_at(offset + 4, bad_data).unwrap();
         file.write_at(offset + 4 + bad_data.len() as u64, &bad_crc.to_le_bytes())
             .unwrap();
-        file.flush(FlushMode::Sync).unwrap();
+        file.flush(&FlushMode::Sync).unwrap();
 
         fixture.write_manifest(5, manifest_offset, 5);
 

@@ -53,7 +53,10 @@ pub struct RuntimeOptions {
 }
 
 pub(crate) fn cpu_threads() -> usize {
-    available_parallelism().map(|n| n.get()).unwrap_or(1).max(1)
+    available_parallelism()
+        .map(std::num::NonZero::get)
+        .unwrap_or(1)
+        .max(1)
 }
 
 pub(crate) fn background_threads() -> usize { cpu_threads().saturating_sub(1).max(1) }

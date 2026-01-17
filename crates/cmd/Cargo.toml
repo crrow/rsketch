@@ -5,6 +5,11 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Command-line interface for rsketch"
 
 [package.metadata.wix]
 upgrade-guid = "3FAE8A69-CCE2-441B-81F1-C9E84D108D7C"

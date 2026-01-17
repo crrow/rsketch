@@ -12,76 +12,110 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use lazy_static::lazy_static;
-use prometheus::*;
+use std::sync::LazyLock;
+
+use prometheus::{
+    HistogramVec, IntCounterVec, IntGaugeVec, register_histogram_vec, register_int_counter_vec,
+    register_int_gauge_vec,
+};
 
 pub const WORKER_LABEL: &str = "worker";
 
-lazy_static! {
-    pub static ref WORKER_STARTED: IntCounterVec = register_int_counter_vec!(
+pub static WORKER_STARTED: LazyLock<IntCounterVec> = LazyLock::new(|| {
+    register_int_counter_vec!(
         "worker_started_total",
         "Total number of workers started",
         &[WORKER_LABEL]
     )
-    .unwrap();
-    pub static ref WORKER_STOPPED: IntCounterVec = register_int_counter_vec!(
+    .unwrap()
+});
+
+pub static WORKER_STOPPED: LazyLock<IntCounterVec> = LazyLock::new(|| {
+    register_int_counter_vec!(
         "worker_stopped_total",
         "Total number of workers stopped gracefully",
         &[WORKER_LABEL]
     )
-    .unwrap();
-    pub static ref WORKER_ERRORS: IntCounterVec = register_int_counter_vec!(
+    .unwrap()
+});
+
+pub static WORKER_ERRORS: LazyLock<IntCounterVec> = LazyLock::new(|| {
+    register_int_counter_vec!(
         "worker_errors_total",
         "Total number of worker errors",
         &[WORKER_LABEL]
     )
-    .unwrap();
-    pub static ref WORKER_START_ERRORS: IntCounterVec = register_int_counter_vec!(
+    .unwrap()
+});
+
+pub static WORKER_START_ERRORS: LazyLock<IntCounterVec> = LazyLock::new(|| {
+    register_int_counter_vec!(
         "worker_start_errors_total",
         "Total number of worker start errors",
         &[WORKER_LABEL]
     )
-    .unwrap();
-    pub static ref WORKER_SHUTDOWN_ERRORS: IntCounterVec = register_int_counter_vec!(
+    .unwrap()
+});
+
+pub static WORKER_SHUTDOWN_ERRORS: LazyLock<IntCounterVec> = LazyLock::new(|| {
+    register_int_counter_vec!(
         "worker_shutdown_errors_total",
         "Total number of worker shutdown errors",
         &[WORKER_LABEL]
     )
-    .unwrap();
-    pub static ref WORKER_EXECUTIONS: IntCounterVec = register_int_counter_vec!(
+    .unwrap()
+});
+
+pub static WORKER_EXECUTIONS: LazyLock<IntCounterVec> = LazyLock::new(|| {
+    register_int_counter_vec!(
         "worker_executions_total",
         "Total number of worker executions",
         &[WORKER_LABEL]
     )
-    .unwrap();
-    pub static ref WORKER_EXECUTION_ERRORS: IntCounterVec = register_int_counter_vec!(
+    .unwrap()
+});
+
+pub static WORKER_EXECUTION_ERRORS: LazyLock<IntCounterVec> = LazyLock::new(|| {
+    register_int_counter_vec!(
         "worker_execution_errors_total",
         "Total number of worker execution errors",
         &[WORKER_LABEL]
     )
-    .unwrap();
-    pub static ref WORKER_PAUSED: IntCounterVec = register_int_counter_vec!(
+    .unwrap()
+});
+
+pub static WORKER_PAUSED: LazyLock<IntCounterVec> = LazyLock::new(|| {
+    register_int_counter_vec!(
         "worker_paused_total",
         "Total number of times workers were paused",
         &[WORKER_LABEL]
     )
-    .unwrap();
-    pub static ref WORKER_RESUMED: IntCounterVec = register_int_counter_vec!(
+    .unwrap()
+});
+
+pub static WORKER_RESUMED: LazyLock<IntCounterVec> = LazyLock::new(|| {
+    register_int_counter_vec!(
         "worker_resumed_total",
         "Total number of times workers were resumed",
         &[WORKER_LABEL]
     )
-    .unwrap();
-    pub static ref WORKER_ACTIVE: IntGaugeVec = register_int_gauge_vec!(
+    .unwrap()
+});
+
+pub static WORKER_ACTIVE: LazyLock<IntGaugeVec> = LazyLock::new(|| {
+    register_int_gauge_vec!(
         "worker_active",
         "Whether the worker is currently active (1) or not (0)",
         &[WORKER_LABEL]
     )
-    .unwrap();
-    pub static ref WORKER_EXECUTION_DURATION_SECONDS: HistogramVec = register_histogram_vec!(
+    .unwrap()
+});
+
+pub static WORKER_EXECUTION_DURATION_SECONDS: LazyLock<HistogramVec> = LazyLock::new(|| {
+    register_histogram_vec!(
         "worker_execution_duration_seconds",
         "Worker execution duration in seconds",
         &[WORKER_LABEL]
     )
-    .unwrap();
-}
+    .unwrap()
+});
