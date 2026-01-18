@@ -1,31 +1,14 @@
-# Workflow to build your docs with mdbook
-# and deploy them to Github Pages
 name: Web
 
-# We're going to push to the gh-pages branch, so we need that permission
 permissions:
   contents: write
 
-# What situations do we want to build docs in?
-# All of these work independently and can be removed / commented out
-# if you don't want mdbook running in that situation
 on:
   workflow_dispatch:
   pull_request:
     paths:
       - docs/**
 
-  # Whenever something gets pushed to main, update the docs!
-  # This is great for getting docs changes live without cutting a full release.
-  #
-  # Note that if you're using dist, this will "race" the Release workflow
-  # that actually builds the Github Release that oranda tries to read (and
-  # this will almost certainly complete first). As a result you will publish
-  # docs for the latest commit but the oranda landing page won't know about
-  # the latest release. The workflow_run trigger below will properly wait for
-  # dist, and so this half-published state will only last for ~10 minutes.
-  #
-  # If you only want docs to update with releases, disable this one.
   push:
     branches:
       - stable
@@ -33,25 +16,23 @@ on:
     paths:
       - docs/**
 
-# Alright, let's do it!
 jobs:
   web:
     name: Build and deploy site and docs
     runs-on: ubuntu-latest
     steps:
-      # Setup
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
         with:
           fetch-depth: 0
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: swatinem/rust-cache@v2
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@4be9e76fd7c4901c61fb841f559994984270fce7 # stable
+      - uses: swatinem/rust-cache@ad397744b0d591a723ab90405b7247fac0e6b8db # v2
 
       - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@main
+        uses: cargo-bins/cargo-binstall@c16daeb34b5092eea7fe01b1204e97f6ab79572a # main
         env:
           BINSTALL_VERSION: v1.16.6
 
-      # Install mdbook plugins
       - name: Install mdbook plugins
         run: |
           cargo binstall --locked --no-confirm mdbook
@@ -63,21 +44,11 @@ jobs:
         run: |
           mdbook build docs
 
-      # Deploy to our gh-pages branch (making it if it doesn't exist)
-      # the "public" dir that oranda made above will become the root dir
-      # of this branch.
-      #
-      # Note that once the gh-pages branch exists, you must
-      # go into repo's settings > pages and set "deploy from branch: gh-pages"
-      # the other defaults work fine.
       - name: Deploy to Github Pages
-        uses: JamesIves/github-pages-deploy-action@v4.8.0
+        uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
         if: ${{ github.event_name == 'push' }}
-        # ONLY if we're on stable (so no PRs or feature branches allowed!)
-        # if: ${{ github.ref == 'refs/heads/stable' || startsWith(github.ref, 'feat') }}
         with:
           branch: gh-pages
-          # mdbook output directory
           folder: docs/book
           token: ${{ secrets.GITHUB_TOKEN }}
           single-commit: true

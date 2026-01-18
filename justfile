@@ -82,7 +82,7 @@ test:
 
 alias t := test
 
-[doc("run linting checks (clippy, docs, buf, golangci)")]
+[doc("run linting checks (clippy, docs, buf, zizmor, cargo-deny)")]
 [group("👆 Code Quality")]
 lint:
     @echo "🔍 Running clippy..."
@@ -91,6 +91,10 @@ lint:
     cargo doc --workspace --all-features --no-deps
     @echo "🔍 Linting protobuf..."
     cd api && buf lint
+    @echo "🔍 Linting GitHub Actions..."
+    zizmor .github/workflows/
+    @echo "🔍 Checking dependencies (advisories & bans)..."
+    cargo deny check
     @echo "✅ All linting checks passed!"
 
 [doc("run `fmt` `clippy` `check` `test` at once")]
