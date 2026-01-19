@@ -123,6 +123,8 @@ cloc:
 build:
     @echo "🔨 Building rsketch..."
     cargo build -p rsketch-cmd
+    @echo "📦 Moving binary to bin/ directory..."
+    mkdir -p bin/ && cp target/debug/rsketch bin/
 
 [doc("build in release mode")]
 [group("🔨 Build")]

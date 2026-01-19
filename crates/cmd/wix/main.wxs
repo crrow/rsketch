@@ -69,6 +69,7 @@
 
         <Package Id='*'
             Keywords='Installer'
+            Description='Command-line interface for rsketch'
             Manufacturer='crrow'
             InstallerVersion='450'
             Languages='1033'
