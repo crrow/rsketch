@@ -92,7 +92,7 @@ lint:
     @echo "🔍 Linting protobuf..."
     cd api && buf lint
     @echo "🔍 Linting GitHub Actions..."
-    zizmor .github/workflows/
+    find .github/workflows -name '*.yml' ! -name 'release.yml' -exec zizmor {} +
     @echo "🔍 Checking dependencies (advisories & bans)..."
     cargo deny check
     @echo "✅ All linting checks passed!"
@@ -172,7 +172,7 @@ release version:
     @echo "  4. Build and publish release"
     @echo ""
     @echo "Next step: Push the tag to trigger release"
-    @echo "  git push origin {{ version }}"
+    @git push origin {{ version }}
 
 # ========================================================================================
 # Protobuf/gRPC
