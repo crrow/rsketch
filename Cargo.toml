@@ -105,6 +105,11 @@ install-updater = false
 release-notes = "RELEASE_NOTES.md"
 # Allow custom modifications to release.yml
 allow-dirty = ["ci"]
+# Use Linux runners for all targets (cargo-zigbuild will handle cross-compilation)
+[workspace.metadata.dist.github-custom-runners]
+aarch64-apple-darwin = "ubuntu-latest"
+x86_64-apple-darwin = "ubuntu-latest"
+x86_64-unknown-linux-musl = "ubuntu-latest"
 
 # The profile that 'cargo dist' will build with
 [profile.dist]

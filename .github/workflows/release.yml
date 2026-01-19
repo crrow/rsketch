@@ -160,6 +160,8 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       BUILD_MANIFEST_NAME: target/distrib/${{ join(matrix.targets, '-') }}-dist-manifest.json
+      # Tell cargo-dist to use cargo-zigbuild for cross-compilation
+      CARGO_BUILD_TARGET: ${{ matrix.targets[0] }}
     steps:
       - name: enable windows longpaths
         run: |
@@ -179,6 +181,22 @@ jobs:
       - name: Install dependencies
         run: |
           ${{ matrix.packages_install }}
+      - name: Install cargo-zigbuild
+        if: runner.os == 'Linux'
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-zigbuild
+      - name: Install Zig
+        if: runner.os == 'Linux'
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.11.0
+      - name: Setup cargo alias for zigbuild
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p ~/.cargo
+          echo "[alias]" >> ~/.cargo/config.toml
+          echo "build = \"zigbuild\"" >> ~/.cargo/config.toml
       - name: Build artifacts
         run: |
           # Actually do builds and make zips and whatnot
