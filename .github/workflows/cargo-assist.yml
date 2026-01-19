@@ -67,7 +67,7 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Run cargo-assist
-        uses: MarcoIeni/cargo-assist@5c6f15ac7e821053e360f7f984451fd41b61bb3f # v0.1
+        uses: MarcoIeni/cargo-assist@dcc6e09df20675c6351c5b34f94dac66ae29a9ea # v0.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           fmt: false
