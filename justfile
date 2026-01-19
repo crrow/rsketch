@@ -154,22 +154,24 @@ changelog-unreleased:
     @echo "📝 Preview unreleased changes..."
     git cliff --unreleased
 
-[doc("prepare release: update changelog and create tag")]
+[doc("create release tag (CI will update version and changelog)")]
 [group("📦 Release")]
 release version:
-    @echo "🚀 Preparing release {{ version }}..."
-    @echo "1️⃣ Generating changelog..."
-    git cliff --unreleased --tag {{ version }} --prepend CHANGELOG.md
-    @echo "2️⃣ Staging CHANGELOG.md..."
-    git add CHANGELOG.md
-    @echo "3️⃣ Creating commit..."
-    git commit -m "chore(release): prepare for {{ version }}"
-    @echo "4️⃣ Creating tag {{ version }}..."
-    git tag -a {{ version }} -m "Release {{ version }}"
-    @echo "✅ Release {{ version }} prepared!"
+    @echo "🚀 Creating release tag {{ version }}..."
+    @echo "📝 Preview of unreleased changes:"
+    @git cliff --unreleased --strip all || true
     @echo ""
-    @echo "Next steps:"
-    @echo "  git push origin main"
+    @echo "Creating tag {{ version }}..."
+    git tag -a {{ version }} -m "Release {{ version }}"
+    @echo "✅ Tag {{ version }} created!"
+    @echo ""
+    @echo "⚠️  CI will automatically:"
+    @echo "  1. Update Cargo.toml version"
+    @echo "  2. Generate CHANGELOG.md"
+    @echo "  3. Commit changes to main"
+    @echo "  4. Build and publish release"
+    @echo ""
+    @echo "Next step: Push the tag to trigger release"
     @echo "  git push origin {{ version }}"
 
 # ========================================================================================

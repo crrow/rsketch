@@ -4,7 +4,7 @@ This project uses [cargo-dist](https://opensource.axo.dev/cargo-dist/) for autom
 
 ## Quick Release (Recommended)
 
-Use the `just release` command to automate the entire process:
+Use the `just release` command to create and push a release tag:
 
 ```bash
 just release v0.1.0
@@ -12,16 +12,22 @@ just release v0.1.0
 
 This will:
 
-1. Generate incremental changelog entry
-2. Update `CHANGELOG.md` with the new release
-3. Create a commit with the changelog
-4. Create an annotated git tag
+1. Show a preview of unreleased changes
+2. Create an annotated git tag
 
-Then push to trigger the release:
+Then push the tag to trigger the automated release:
+
 ```bash
-git push origin main
 git push origin v0.1.0
 ```
+
+**The CI will automatically:**
+
+- Update Cargo.toml version (removes `v` prefix from tag)
+- Generate complete CHANGELOG.md
+- Commit these changes to main branch
+- Build binaries for all platforms
+- Create GitHub Release with artifacts
 
 ## Manual Release Process
 
@@ -30,6 +36,7 @@ If you prefer to do it manually:
 ### 1. Update Version
 
 Update version in `Cargo.toml`:
+
 ```toml
 [workspace.package]
 version = "0.1.0"  # Update this
@@ -38,11 +45,13 @@ version = "0.1.0"  # Update this
 ### 2. Generate Changelog
 
 Preview unreleased changes:
+
 ```bash
 just changelog-unreleased
 ```
 
 Update changelog and create release commit:
+
 ```bash
 # This updates CHANGELOG.md with unreleased changes
 git cliff --unreleased --tag v0.1.0 --prepend CHANGELOG.md
@@ -97,21 +106,25 @@ git cliff --latest --strip all
 After a release is published, users can install via:
 
 ### Shell (macOS/Linux)
+
 ```bash
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/crrow/rsketch/releases/latest/download/rsketch-installer.sh | sh
 ```
 
 ### PowerShell (Windows)
+
 ```powershell
 irm https://github.com/crrow/rsketch/releases/latest/download/rsketch-installer.ps1 | iex
 ```
 
 ### MSI Installer (Windows)
+
 Download the `.msi` file from the [releases page](https://github.com/crrow/rsketch/releases).
 
 ## Testing Release Workflow
 
 You can test the release workflow on pull requests without creating a real release:
+
 ```bash
 git tag v0.1.0-test
 git push origin v0.1.0-test
