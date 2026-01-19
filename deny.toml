@@ -62,7 +62,6 @@ skip = [
     { crate = "windows-link@0.1.3", reason = "windows-core 0.61 uses older version" },
     { crate = "windows-result@0.3.4", reason = "windows-core 0.61 uses older version" },
     { crate = "windows-strings@0.4.2", reason = "windows-core 0.61 uses older version" },
-    { crate = "windows-sys@0.52.0", reason = "rustix 0.38 uses older version" },
     { crate = "windows-sys@0.60.2", reason = "socket2 uses intermediate version" },
     { crate = "windows-targets@0.52.6", reason = "windows-sys 0.52 uses older version" },
 ]
