@@ -29,7 +29,7 @@ jobs:
       - uses: swatinem/rust-cache@ad397744b0d591a723ab90405b7247fac0e6b8db # v2
 
       - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@c16daeb34b5092eea7fe01b1204e97f6ab79572a # main
+        uses: cargo-bins/cargo-binstall@e7cc28468cf17df7cb288daea80c0c5437af360b # main
         env:
           BINSTALL_VERSION: v1.16.6
 
