@@ -21,7 +21,7 @@ snafu.workspace = true
 tracing.workspace = true
 
 [dev-dependencies]
-criterion = "0.5"
+criterion = "0.8"
 tempfile = "3.0"
 test-case = "3.3"
 
