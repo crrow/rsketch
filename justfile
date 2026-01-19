@@ -133,6 +133,46 @@ build-release:
     cargo build -p rsketch-cmd --release
 
 # ========================================================================================
+# Release & Changelog
+# ========================================================================================
+
+[doc("generate full changelog")]
+[group("📦 Release")]
+changelog:
+    @echo "📝 Generating full changelog..."
+    git cliff -o CHANGELOG.md
+
+[doc("generate changelog for a specific tag")]
+[group("📦 Release")]
+changelog-tag tag:
+    @echo "📝 Generating changelog for {{ tag }}..."
+    git cliff --tag {{ tag }} -o CHANGELOG-{{ tag }}.md
+
+[doc("preview unreleased changes")]
+[group("📦 Release")]
+changelog-unreleased:
+    @echo "📝 Preview unreleased changes..."
+    git cliff --unreleased
+
+[doc("prepare release: update changelog and create tag")]
+[group("📦 Release")]
+release version:
+    @echo "🚀 Preparing release {{ version }}..."
+    @echo "1️⃣ Generating changelog..."
+    git cliff --unreleased --tag {{ version }} --prepend CHANGELOG.md
+    @echo "2️⃣ Staging CHANGELOG.md..."
+    git add CHANGELOG.md
+    @echo "3️⃣ Creating commit..."
+    git commit -m "chore(release): prepare for {{ version }}"
+    @echo "4️⃣ Creating tag {{ version }}..."
+    git tag -a {{ version }} -m "Release {{ version }}"
+    @echo "✅ Release {{ version }} prepared!"
+    @echo ""
+    @echo "Next steps:"
+    @echo "  git push origin main"
+    @echo "  git push origin {{ version }}"
+
+# ========================================================================================
 # Protobuf/gRPC
 # ========================================================================================
 

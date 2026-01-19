@@ -1,32 +1,90 @@
 # Release Process
 
-This project uses [cargo-dist](https://opensource.axo.dev/cargo-dist/) for automated releases.
+This project uses [cargo-dist](https://opensource.axo.dev/cargo-dist/) for automated releases and [git-cliff](https://git-cliff.org/) for changelog generation.
 
-## How to Create a Release
+## Quick Release (Recommended)
 
-1. **Update version** in `Cargo.toml`:
-   ```toml
-   [workspace.package]
-   version = "0.1.0"  # Update this
-   ```
+Use the `just release` command to automate the entire process:
 
-2. **Commit the version change**:
-   ```bash
-   git add Cargo.toml
-   git commit -m "chore: bump version to 0.1.0"
-   ```
+```bash
+just release v0.1.0
+```
 
-3. **Create and push a git tag**:
-   ```bash
-   git tag v0.1.0
-   git push origin main --tags
-   ```
+This will:
 
-4. **GitHub Actions will automatically**:
-   - Build binaries for all supported platforms
-   - Create installers (shell, PowerShell, MSI)
-   - Generate checksums
-   - Create a GitHub Release with all artifacts
+1. Generate incremental changelog entry
+2. Update `CHANGELOG.md` with the new release
+3. Create a commit with the changelog
+4. Create an annotated git tag
+
+Then push to trigger the release:
+```bash
+git push origin main
+git push origin v0.1.0
+```
+
+## Manual Release Process
+
+If you prefer to do it manually:
+
+### 1. Update Version
+
+Update version in `Cargo.toml`:
+```toml
+[workspace.package]
+version = "0.1.0"  # Update this
+```
+
+### 2. Generate Changelog
+
+Preview unreleased changes:
+```bash
+just changelog-unreleased
+```
+
+Update changelog and create release commit:
+```bash
+# This updates CHANGELOG.md with unreleased changes
+git cliff --unreleased --tag v0.1.0 --prepend CHANGELOG.md
+git add CHANGELOG.md
+git commit -m "chore(release): prepare for v0.1.0"
+```
+
+### 3. Create and Push Tag
+
+```bash
+git tag -a v0.1.0 -m "Release v0.1.0"
+git push origin main
+git push origin v0.1.0
+```
+
+### 4. Automated Release Workflow
+
+GitHub Actions will automatically:
+
+- Generate **incremental** release notes using git-cliff
+- Build binaries for all supported platforms
+- Create installers (shell, PowerShell, MSI)
+- Generate checksums
+- Create a GitHub Release with all artifacts and release notes
+
+## Changelog Management
+
+### Full Changelog (CHANGELOG.md)
+
+The full changelog is automatically updated on every push to `main` via CI. It contains the complete project history.
+
+You can also generate it manually:
+```bash
+just changelog
+```
+
+### Incremental Release Notes
+
+Each GitHub Release gets incremental release notes containing only changes since the last release. This is automatically generated during the release workflow using:
+```bash
+git cliff --latest --strip all
+```
 
 ## Supported Platforms
 
@@ -60,3 +118,11 @@ git push origin v0.1.0-test
 ```
 
 The workflow will run but won't publish artifacts.
+
+## Useful Just Commands
+
+```bash
+just changelog                # Generate full changelog
+just changelog-unreleased     # Preview unreleased changes
+just release v0.1.0          # Prepare release (recommended)
+```
