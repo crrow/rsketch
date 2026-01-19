@@ -46,6 +46,8 @@ skip = [
     # linux-raw-sys/rustix: procfs (v0.38/v0.4) vs tempfile (v1.x/v0.11)
     { crate = "linux-raw-sys@0.4.15", reason = "procfs -> rustix uses older version" },
     { crate = "rustix@0.38.44", reason = "procfs uses older version" },
+    # windows-sys: rustix 0.38 uses older version (only affects Windows platform builds)
+    { crate = "windows-sys@0.59.0", reason = "rustix 0.38 uses older version" },
     # thiserror: various crates still on v1
     { crate = "thiserror@1.0.69", reason = "ecosystem transition to v2 in progress" },
     { crate = "thiserror-impl@1.0.69", reason = "transitive from thiserror 1.x" },
