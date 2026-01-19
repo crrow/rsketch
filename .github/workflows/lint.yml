@@ -100,7 +100,7 @@ jobs:
           persist-credentials: false
 
       - name: Check advisories and bans
-        uses: EmbarkStudios/cargo-deny-action@8e63a579d8ac61faa6e00d3d4ecde495bf138540 # 0.19.0
+        uses: EmbarkStudios/cargo-deny-action@3fd3802e88374d3fe9159b834c7714ec57d6c979 # v2.0.15
 
   lint-success:
     name: Lint Success
