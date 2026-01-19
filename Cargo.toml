@@ -45,7 +45,7 @@ members = [
 [workspace.dependencies]
 async-trait = "^0.1"
 axum = "^0.8"
-axum-tracing-opentelemetry = "0.32.0"
+axum-tracing-opentelemetry = "0.33.0"
 bon = "^3.6"
 bytes = "^1.11"
 chrono = "^0.4"
