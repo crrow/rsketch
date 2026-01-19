@@ -38,14 +38,8 @@ enum Commands {
 
 #[derive(Debug, Clone, Args)]
 #[command(flatten_help = true)]
-#[command(long_about = r"
-
-Print hello.
-Examples:
-
-rsketch hello
-
-")]
+#[command(about = "Print hello")]
+#[command(long_about = "Print hello.\n\nExamples:\n  rsketch hello")]
 struct HelloArgs {}
 
 impl HelloArgs {
@@ -56,14 +50,8 @@ impl HelloArgs {
 
 #[derive(Debug, Clone, Args)]
 #[command(flatten_help = true)]
-#[command(long_about = r"
-
-Starts the rsketch server.
-Examples:
-
-rsketch server
-
-")]
+#[command(about = "Start the rsketch server")]
+#[command(long_about = "Start the rsketch server.\n\nExamples:\n  rsketch server")]
 struct ServerArgs {}
 
 impl ServerArgs {
