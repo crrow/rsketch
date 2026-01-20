@@ -1,13 +1,14 @@
 name: Release-plz
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
     types: [closed]
     branches:
       - main
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
 
 jobs:
 
@@ -84,11 +85,11 @@ jobs:
           echo "✓ Created and pushed tag $TAG"
 
   # Create a PR with the new versions and changelog, preparing the next release.
-  # Skip if the commit is from release-plz (e.g., "chore: release" commits)
+  # Runs after CI completes successfully
   release-plz-pr:
     name: Release-plz PR
     runs-on: ubuntu-latest
-    if: "${{ github.repository_owner == 'crrow' && github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'chore: release') }}"
+    if: "${{ github.repository_owner == 'crrow' && github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}"
     permissions:
       contents: write
       pull-requests: write
