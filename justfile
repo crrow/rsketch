@@ -41,6 +41,8 @@ fmt: fmt-proto
     cargo +nightly fmt --all
     @echo "🔧 Formatting TOML files..."
     taplo format
+    @echo "🔧 Formatting YAML files..."
+    yamllint-rs --fix --recursive .
     @echo "🔧 Formatting with hawkeye..."
     hawkeye format
     @echo "✅ All formatting complete!"
@@ -82,7 +84,7 @@ test:
 
 alias t := test
 
-[doc("run linting checks (clippy, docs, buf, zizmor, yamllint, cargo-deny)")]
+[doc("run linting checks (clippy, docs, buf, zizmor, yamllint-rs, cargo-deny)")]
 [group("👆 Code Quality")]
 lint:
     @echo "🔍 Running clippy..."
@@ -92,7 +94,7 @@ lint:
     @echo "🔍 Linting protobuf..."
     cd api && buf lint
     @echo "🔍 Linting YAML files..."
-    yamllint .github/workflows/
+    yamllint-rs .
     @echo "🔍 Linting GitHub Actions..."
     find .github/workflows -name '*.yml' ! -name 'release.yml' -exec zizmor {} +
     @echo "🔍 Checking dependencies (advisories & bans)..."

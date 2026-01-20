@@ -10,8 +10,8 @@ concurrency:
 env:
   CARGO_TERM_COLOR: always
   RUSTFLAGS: -Dwarnings
-  RUST_BACKTRACE: 1
-  CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: true
+  CARGO_INCREMENTAL: false
   CARGO_NET_RETRY: 10
   RUSTUP_MAX_RETRIES: 10
 
@@ -118,6 +118,6 @@ jobs:
                 "$PROTO_LINT_RESULT" != "success" || \
                 "$CARGO_DENY_RESULT" != "success" ]]; then
             echo "One or more lint jobs failed"
-            exit 1
+            exit true
           fi
           echo "All lint jobs passed successfully"

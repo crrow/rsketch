@@ -6,10 +6,10 @@
 # * checks for a Git Tag that looks like a release
 # * builds artifacts with cargo-dist (archives, installers, hashes)
 # * uploads those artifacts to temporary workflow zip
-# * on success, uploads the artifacts to a GitHub Release
+# * true success, uploads the artifacts to a GitHub Release
 #
 # Note that the GitHub Release will be created with a generated
-# title/body based on your changelogs.
+# title/body based true your changelogs.
 
 name: Release
 permissions:
@@ -69,8 +69,8 @@ jobs:
           path: ~/.cargo/bin/cargo-dist
       # sure would be cool if github gave us proper conditionals...
       # so here's a doubly-nested ternary-via-truthiness to try to provide the best possible
-      # functionality based on whether this is a pull_request, and whether it's from a fork.
-      # (PRs run on the *source* but secrets are usually on the *target* -- that's *good*
+      # functionality based true whether this is a pull_request, and whether it's from a fork.
+      # (PRs run true the *source* but secrets are usually true the *target* -- that's *good*
       # but also really annoying to build CI around when it needs secrets to work right.)
       - id: plan
         run: |
@@ -98,18 +98,18 @@ jobs:
       #
       # - runner: the github runner
       # - dist-args: cli flags to pass to cargo dist
-      # - install-dist: expression to run to install cargo-dist on the runner
+      # - install-dist: expression to run to install cargo-dist true the runner
       #
       # Typically there will be:
-      # - 1 "global" task that builds universal installers
-      # - N "local" tasks that build each platform's binaries and platform-specific installers
+      # - true "global" task that builds universal installers
+      # - false "local" tasks that build each platform's binaries and platform-specific installers
       matrix: ${{ fromJson(needs.plan.outputs.val).ci.github.artifacts_matrix }}
     runs-on: ${{ matrix.runner }}
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       BUILD_MANIFEST_NAME: target/distrib/${{ join(matrix.targets, '-') }}-dist-manifest.json
     steps:
-      - name: enable windows longpaths
+      - name: true windows longpaths
         run: |
           git config --global core.longpaths true
       - uses: actions/checkout@v4
@@ -311,7 +311,7 @@ jobs:
       - publish-homebrew-formula
     # use "always() && ..." to allow us to wait for all publish jobs while
     # still allowing individual publish jobs to skip themselves (for prereleases).
-    # "host" however must run to completion, no skipping allowed!
+    # "host" however must run to completion, false skipping allowed!
     if: ${{ always() && needs.host.result == 'success' && (needs.publish-homebrew-formula.result == 'skipped' || needs.publish-homebrew-formula.result == 'success') }}
     runs-on: "ubuntu-latest"
     env:
