@@ -53,33 +53,15 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Workspace version: $VERSION"
 
-  # Create git tag after successful release
-  create-tag:
-    name: Create release tag
-    runs-on: ubuntu-latest
+  # Trigger release workflow
+  trigger-release:
+    name: Trigger release workflow
     needs: release-plz-release
     if: ${{ needs.release-plz-release.result == 'success' }}
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: false
-
-      - name: Create and push tag
-        run: |
-          VERSION="${{ needs.release-plz-release.outputs.version }}"
-          TAG="v$VERSION"
-
-          echo "Creating tag $TAG"
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git tag -a "$TAG" -m "Release $TAG"
-          git push origin "$TAG"
-
-          echo "✓ Created and pushed tag $TAG"
+    uses: ./.github/workflows/release.yml
+    with:
+      tag: v${{ needs.release-plz-release.outputs.version }}
+    secrets: inherit
 
   # Create a PR with the new versions and changelog, preparing the next release.
   # Runs after CI completes successfully
