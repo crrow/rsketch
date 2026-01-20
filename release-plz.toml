@@ -8,10 +8,11 @@ changelog_update = true
 # update dependencies with `cargo update`
 dependencies_update = true
 
-# create tags for the releases
+# create a single tag for the workspace release (e.g., v0.0.14)
 git_tag_enable = true
+git_tag_name = "v{{ version }}"
 
-# disable GitHub releases
+# disable GitHub releases (cargo-dist will handle this)
 git_release_enable = false
 
 # labels for the release PR
@@ -25,3 +26,7 @@ publish_allow_dirty = false
 
 # disable running `cargo-semver-checks`
 semver_check = false
+
+# Disable individual package tags - only use workspace tag
+[package_defaults]
+git_tag_enable = false
