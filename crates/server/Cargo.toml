@@ -21,9 +21,9 @@ smart-default = { workspace = true }
 # fastrace = { workspace = true }
 axum-tracing-opentelemetry = { workspace = true }
 futures = { workspace = true }
-rsketch-api = { path = "../../api" }
-rsketch-base = { path = "../common/base" }
-rsketch-error = { path = "../common/error" }
+rsketch-api = { workspace = true }
+rsketch-base = { workspace = true }
+rsketch-error = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 snafu = { workspace = true }

@@ -14,8 +14,8 @@ description = "Application orchestration and lifecycle management for rsketch"
 [dependencies]
 bon = { workspace = true }
 derive_more = { workspace = true }
-rsketch-common-telemetry = { path = "../common/telemetry" }
-rsketch-server = { path = "../server" }
+rsketch-common-telemetry = { workspace = true }
+rsketch-server = { workspace = true }
 smart-default = { workspace = true }
 snafu = { workspace = true }
 tokio = { workspace = true }
