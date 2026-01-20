@@ -24,6 +24,12 @@ jobs:
       - &install-rust
         name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+      - &install-protoc
+        name: Install protoc
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
+        with:
+          version: '25.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Run release-plz
         uses: release-plz/action@v0.5
         with:
@@ -46,6 +52,7 @@ jobs:
     steps:
       - *checkout
       - *install-rust
+      - *install-protoc
       - name: Run release-plz
         uses: release-plz/action@v0.5
         with:
