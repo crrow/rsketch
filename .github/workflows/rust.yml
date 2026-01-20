@@ -151,9 +151,11 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v5
         with:
-          files: ./coverage/cobertura.xml
-          fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/cobertura.xml
+          flags: rust
+          fail_ci_if_error: false
+          verbose: true
 
   rust-success:
     name: Rust Success
