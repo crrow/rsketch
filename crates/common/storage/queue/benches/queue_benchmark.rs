@@ -24,7 +24,7 @@ use std::{hint::black_box, time::Duration};
 
 use bytes::Bytes;
 use criterion::{BatchSize, BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
-use rsketch_common_storage_queue::{FlushMode, QueueBuilder, RollStrategy};
+use rsketch_common_storage_queue::{FlushMode, Queue, QueueBuilder, RollStrategy};
 use tempfile::TempDir;
 
 /// Message sizes to benchmark (bytes)
@@ -34,7 +34,7 @@ const MESSAGE_SIZES: &[usize] = &[64, 256, 1024, 4096, 16384];
 const BATCH_SIZE: usize = 10_000;
 
 /// Create a queue with the given flush mode in a temporary directory
-fn create_queue(temp_dir: &TempDir, flush_mode: FlushMode) -> queue::Queue {
+fn create_queue(temp_dir: &TempDir, flush_mode: FlushMode) -> Queue {
     QueueBuilder::new(temp_dir.path())
         .file_size(256 * 1024 * 1024) // 256MB
         .roll_strategy(RollStrategy::BySize(256 * 1024 * 1024))
