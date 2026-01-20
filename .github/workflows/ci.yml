@@ -23,6 +23,7 @@ jobs:
   rust:
     name: Rust
     uses: ./.github/workflows/rust.yml
+    secrets: inherit
 
   test:
     name: Test
