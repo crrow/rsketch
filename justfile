@@ -82,7 +82,7 @@ test:
 
 alias t := test
 
-[doc("run linting checks (clippy, docs, buf, zizmor, cargo-deny)")]
+[doc("run linting checks (clippy, docs, buf, zizmor, yamllint, cargo-deny)")]
 [group("👆 Code Quality")]
 lint:
     @echo "🔍 Running clippy..."
@@ -91,6 +91,8 @@ lint:
     cargo doc --workspace --all-features --no-deps
     @echo "🔍 Linting protobuf..."
     cd api && buf lint
+    @echo "🔍 Linting YAML files..."
+    yamllint .github/workflows/
     @echo "🔍 Linting GitHub Actions..."
     find .github/workflows -name '*.yml' ! -name 'release.yml' -exec zizmor {} +
     @echo "🔍 Checking dependencies (advisories & bans)..."
