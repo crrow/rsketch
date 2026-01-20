@@ -16,6 +16,8 @@ jobs:
     name: Release-plz release
     runs-on: ubuntu-latest
     if: ${{ github.repository_owner == 'crrow' && github.event_name == 'pull_request' && github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'release') }}
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
     permissions:
       contents: write
     steps:
@@ -41,6 +43,41 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Get workspace version
+        id: get-version
+        run: |
+          VERSION=$(grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Workspace version: $VERSION"
+
+  # Create git tag after successful release
+  create-tag:
+    name: Create release tag
+    runs-on: ubuntu-latest
+    needs: release-plz-release
+    if: ${{ needs.release-plz-release.result == 'success' }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Create and push tag
+        run: |
+          VERSION="${{ needs.release-plz-release.outputs.version }}"
+          TAG="v$VERSION"
+
+          echo "Creating tag $TAG"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+
+          echo "✓ Created and pushed tag $TAG"
 
   # Create a PR with the new versions and changelog, preparing the next release.
   # Skip if the commit is from release-plz (e.g., "chore: release" commits)
