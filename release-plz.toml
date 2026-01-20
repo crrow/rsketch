@@ -8,12 +8,18 @@ changelog_update = true
 # update dependencies with `cargo update`
 dependencies_update = true
 
-# create a single tag for the workspace release (e.g., v0.0.14)
-git_tag_enable = true
-git_tag_name = "v{{ version }}"
+# disable per-package tags by default
+git_tag_enable = false
 
 # disable GitHub releases (cargo-dist will handle this)
 git_release_enable = false
+
+# Create workspace tag when publishing rsketch-api
+# Uses package version which matches workspace version
+[[package]]
+name = "rsketch-api"
+git_tag_enable = true
+git_tag_name = "v{{ version }}"
 
 # labels for the release PR
 pr_labels = ["release"]
