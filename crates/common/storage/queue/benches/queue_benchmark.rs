@@ -20,12 +20,10 @@
 //! - Batch append performance
 //! - Read (tailer) throughput
 
-use std::time::Duration;
+use std::{hint::black_box, time::Duration};
 
 use bytes::Bytes;
-use criterion::{
-    BatchSize, BenchmarkId, Criterion, Throughput, black_box, criterion_group, criterion_main,
-};
+use criterion::{BatchSize, BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
 use queue::{FlushMode, QueueBuilder, RollStrategy};
 use tempfile::TempDir;
 
