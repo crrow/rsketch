@@ -1,5 +1,5 @@
 [package]
-name = "queue"
+name = "rsketch-common-storage-queue"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

@@ -15,7 +15,7 @@
 use std::time::Duration;
 
 use bytes::Bytes;
-use queue::{FlushMode, QueueBuilder, RollStrategy};
+use rsketch_common_storage_queue::{FlushMode, QueueBuilder, RollStrategy};
 use tempfile::TempDir;
 
 #[test]
