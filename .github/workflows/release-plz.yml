@@ -4,14 +4,18 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    types: [closed]
+    branches:
+      - main
 
 jobs:
 
-  # Release unpublished packages.
+  # Release unpublished packages (only when release PR is merged).
   release-plz-release:
     name: Release-plz release
     runs-on: ubuntu-latest
-    if: ${{ github.repository_owner == 'crrow' }}
+    if: ${{ github.repository_owner == 'crrow' && github.event_name == 'pull_request' && github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'release') }}
     permissions:
       contents: write
     steps:
@@ -42,7 +46,7 @@ jobs:
   release-plz-pr:
     name: Release-plz PR
     runs-on: ubuntu-latest
-    if: ${{ github.repository_owner == 'crrow' }}
+    if: ${{ github.repository_owner == 'crrow' && github.event_name == 'push' }}
     permissions:
       contents: write
       pull-requests: write
