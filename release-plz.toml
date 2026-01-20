@@ -26,7 +26,3 @@ publish_allow_dirty = false
 
 # disable running `cargo-semver-checks`
 semver_check = false
-
-# Disable individual package tags - only use workspace tag
-[package_defaults]
-git_tag_enable = false

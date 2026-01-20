@@ -108,7 +108,7 @@ jobs:
     name: Coverage
     runs-on: ubuntu-latest
     needs: rust-version
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout code
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
@@ -148,13 +148,12 @@ jobs:
             --out xml \
             --output-dir ./coverage
 
-      - name: Upload coverage reports
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v5
         with:
-          name: coverage-report
-          path: ./coverage/
-          if-no-files-found: error
-          retention-days: 30
+          files: ./coverage/cobertura.xml
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   rust-success:
     name: Rust Success
