@@ -58,6 +58,8 @@ jobs:
     name: Trigger release workflow
     needs: release-plz-release
     if: ${{ needs.release-plz-release.result == 'success' }}
+    permissions:
+      contents: write
     uses: ./.github/workflows/release.yml
     with:
       tag: v${{ needs.release-plz-release.outputs.version }}
