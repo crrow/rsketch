@@ -42,9 +42,9 @@ jobs:
 
       - name: Install mdbook plugins
         run: |
-          cargo binstall mdbook-toc@0.11.2
-          cargo binstall mdbook-mermaid@0.17.0
-          cargo binstall mdbook-linkcheck@0.7.7
+          cargo binstall -y mdbook-toc
+          cargo binstall -y mdbook-mermaid
+          cargo binstall -y mdbook-linkcheck
 
       - name: Build mdbook
         run: mdbook build docs
