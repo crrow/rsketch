@@ -43,11 +43,10 @@ jobs:
           cargo binstall --locked --no-confirm mdbook-toc@0.11.2
           cargo binstall --locked --no-confirm mdbook-mermaid@0.17.0
           cargo binstall --locked --no-confirm mdbook-linkcheck@0.7.7
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Build mdbook
         run: |
-          mdbook build docs
+          $HOME/.cargo/bin/mdbook build docs
 
       - name: Deploy to Github Pages
         uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
