@@ -39,6 +39,8 @@ members = [
     "crates/common/storage/queue",
     "crates/common/telemetry",
     "crates/common/worker",
+    "crates/gui",
+    "crates/macos/vz",
     "crates/server",
 ]
 

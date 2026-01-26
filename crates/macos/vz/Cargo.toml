@@ -1,0 +1,35 @@
+[package]
+name = "vz"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+objc2 = "0.6.3"
+objc2-virtualization = "0.3.2"
+objc2-foundation = "0.3.2"
+block2 = "0.6.2"
+
+[lints.rust]
+# FFI bindings require unsafe code
+unsafe_code = "warn"
+rust_2024_compatibility = { level = "warn", priority = -1 }
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+multiple_crate_versions = "allow"
+doc_markdown = "allow"
+items_after_statements = "allow"
+redundant_pub_crate = "allow"
+significant_drop_tightening = "allow"
+future_not_send = "allow"
+missing_errors_doc = "allow"
