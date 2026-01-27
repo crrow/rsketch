@@ -139,12 +139,23 @@ impl ParallelDownloadManager {
         let mut errors = Vec::new();
 
         for handle in handles {
-            if let Ok(Err((index, e))) = handle.await {
-                errors.push((index, e));
-            } else {
-                // Chunk completed successfully
-                // Task was cancelled or panicked
-                // Just skip it for now
+            match handle.await {
+                Ok(Ok(_index)) => {
+                    // Chunk completed successfully
+                }
+                Ok(Err((index, e))) => {
+                    errors.push((index, e));
+                }
+                Err(join_error) => {
+                    // Task was cancelled or panicked
+                    if join_error.is_panic() {
+                        return Err(DownloadError::TaskPanic {
+                            reason: join_error.to_string(),
+                        });
+                    }
+                    // Task was cancelled - treat as error
+                    return Err(DownloadError::TaskCancelled);
+                }
             }
         }
 

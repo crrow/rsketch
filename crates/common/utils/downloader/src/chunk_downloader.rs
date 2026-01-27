@@ -16,7 +16,6 @@ use std::time::Duration;
 
 use backon::{ExponentialBuilder, Retryable};
 use futures::StreamExt;
-use reqwest::StatusCode;
 use snafu::{ResultExt, ensure};
 use tokio::{
     fs::{self, File},
@@ -71,10 +70,10 @@ impl ChunkDownloader {
             .await
             .context(NetworkSnafu)?;
 
-        // Check for successful response (200 OK or 206 Partial Content)
+        // Check for successful response (206 is already included in is_success())
         let status = response.status();
         ensure!(
-            status.is_success() || status == StatusCode::PARTIAL_CONTENT,
+            status.is_success(),
             HttpSnafu {
                 status: status.as_u16(),
                 url:    &self.url,

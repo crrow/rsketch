@@ -328,7 +328,7 @@ impl Downloader {
     }
 
     fn verify_sha256(&self, actual: &str, expected: &str) -> Result<(), DownloadError> {
-        if actual != expected {
+        if !actual.eq_ignore_ascii_case(expected) {
             return Sha256MismatchSnafu {
                 expected: expected.to_string(),
                 actual:   actual.to_string(),

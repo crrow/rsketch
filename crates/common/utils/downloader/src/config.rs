@@ -104,9 +104,9 @@ mod tests {
     #[test]
     fn test_chunk_calculation_medium_file() {
         let config = ChunkingConfig::default();
-        // 50MB - should be 2-4 chunks
+        // 50MB = 52,428,800 bytes / 5MB min_chunk_size = 10, clamped to max 4
         let chunks = config.calculate_chunks(50 * 1024 * 1024);
-        assert!((2..=4).contains(&chunks));
+        assert_eq!(chunks, 4);
     }
 
     #[test]

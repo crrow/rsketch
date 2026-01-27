@@ -61,6 +61,10 @@ impl SingleThreadDownloader {
 
         // Download to a temp file first, then rename
         let temp_path = request.output_path.with_extension("download");
+
+        // Create cleanup guard to ensure temp file is removed on error
+        let cleanup_guard = TempFileCleanupGuard::new(&temp_path);
+
         let mut file = File::create(&temp_path).await.context(FileWriteSnafu)?;
         let mut hasher = Sha256::new();
         let mut total_size = 0u64;
@@ -81,7 +85,39 @@ impl SingleThreadDownloader {
             .await
             .context(FileWriteSnafu)?;
 
+        // Disarm the cleanup guard since we successfully renamed
+        cleanup_guard.disarm();
+
         let sha256 = format!("{:x}", hasher.finalize());
         Ok((total_size, sha256))
+    }
+}
+
+/// Guard that ensures temporary files are cleaned up on drop
+struct TempFileCleanupGuard {
+    path:  std::path::PathBuf,
+    armed: std::sync::Arc<std::sync::atomic::AtomicBool>,
+}
+
+impl TempFileCleanupGuard {
+    fn new(path: &std::path::Path) -> Self {
+        Self {
+            path:  path.to_path_buf(),
+            armed: std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true)),
+        }
+    }
+
+    fn disarm(&self) {
+        self.armed
+            .store(false, std::sync::atomic::Ordering::Release);
+    }
+}
+
+impl Drop for TempFileCleanupGuard {
+    fn drop(&mut self) {
+        if self.armed.load(std::sync::atomic::Ordering::Acquire) {
+            // Best-effort cleanup - ignore errors
+            let _ = std::fs::remove_file(&self.path);
+        }
     }
 }

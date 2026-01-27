@@ -17,10 +17,7 @@ use std::path::{Path, PathBuf};
 use jiff::Timestamp;
 use sha2::{Digest, Sha256};
 use snafu::ResultExt;
-use tokio::{
-    fs,
-    io::{AsyncReadExt, BufReader},
-};
+use tokio::{fs, io::AsyncReadExt};
 
 use crate::{
     error::{DownloadError, FileReadSnafu, FileWriteSnafu},
@@ -126,13 +123,12 @@ impl CacheManager {
 
     /// Compute SHA256 hash of a file with optimized buffered reading
     async fn compute_sha256(path: &Path) -> Result<String, DownloadError> {
-        let file = fs::File::open(path).await.context(FileReadSnafu)?;
-        let mut reader = BufReader::with_capacity(512 * 1024, file); // 512KB buffer
+        let mut file = fs::File::open(path).await.context(FileReadSnafu)?;
         let mut hasher = Sha256::new();
         let mut buffer = vec![0u8; 512 * 1024]; // 512KB buffer
 
         loop {
-            let n = reader.read(&mut buffer).await.context(FileReadSnafu)?;
+            let n = file.read(&mut buffer).await.context(FileReadSnafu)?;
             if n == 0 {
                 break;
             }

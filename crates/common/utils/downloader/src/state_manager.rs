@@ -127,10 +127,14 @@ impl StateManager {
             && state.file_size == file_size
     }
 
-    /// Clean up state file and temporary chunks
+    /// Clean up state file, temporary chunks, and lock file
     pub async fn cleanup(&self, url: &str) -> Result<(), DownloadError> {
         let state_path = self.state_path(url);
         let _ = fs::remove_file(&state_path).await;
+
+        // Remove lock file
+        let lock_path = self.lock_path(url);
+        let _ = fs::remove_file(&lock_path).await;
 
         // Remove temporary chunk files
         let url_hash = hash_url(url);
@@ -172,6 +176,11 @@ fn hash_url(url: &str) -> String {
 /// Calculate chunk boundaries for parallel download
 #[must_use]
 pub fn calculate_chunk_boundaries(file_size: u64, num_chunks: usize) -> Vec<(u64, u64)> {
+    // Guard against zero chunks or zero file size
+    if num_chunks == 0 || file_size == 0 {
+        return Vec::new();
+    }
+
     let chunk_size = file_size / num_chunks as u64;
     let mut boundaries = Vec::with_capacity(num_chunks);
 

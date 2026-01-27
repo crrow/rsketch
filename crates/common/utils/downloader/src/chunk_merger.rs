@@ -60,11 +60,11 @@ impl ChunkMerger {
         let mut buffered_writer = BufWriter::with_capacity(512 * 1024, output_file); // 512KB buffer
         let mut hasher = Sha256::new();
         let mut total_size = 0u64;
+        let mut buffer = vec![0u8; 512 * 1024]; // 512KB buffer - reused across chunks
 
         for chunk in &chunks {
             let chunk_file = File::open(&chunk.temp_file).await.context(FileReadSnafu)?;
             let mut reader = BufReader::with_capacity(512 * 1024, chunk_file); // 512KB buffer
-            let mut buffer = vec![0u8; 512 * 1024]; // 512KB buffer
 
             // Read and write with hashing
             loop {

@@ -13,6 +13,7 @@ categories.workspace = true
 
 [dependencies]
 backon = { workspace = true }
+base64 = "0.22"
 bon = { workspace = true }
 dirs = { workspace = true }
 fd-lock = "4.0"

@@ -72,8 +72,7 @@ impl FileInfoFetcher {
     }
 
     /// Extract SHA256 checksum from HTTP headers
-    /// Tries common header names: X-Checksum-SHA256, X-Amz-Meta-Sha256, Digest,
-    /// ETag
+    /// Tries common header names: X-Checksum-SHA256, X-Amz-Meta-Sha256, Digest
     fn extract_checksum(headers: &reqwest::header::HeaderMap) -> Option<String> {
         // Try X-Checksum-SHA256 (common custom header)
         if let Some(value) = headers.get("x-checksum-sha256")
@@ -89,7 +88,7 @@ impl FileInfoFetcher {
             return Some(s.to_lowercase());
         }
 
-        // Try Digest header (RFC 3230)
+        // Try Digest header (RFC 5843 - standard base64, RFC 3230 - legacy hex)
         if let Some(value) = headers.get(reqwest::header::HeaderName::from_static("digest"))
             && let Ok(s) = value.to_str()
         {
@@ -101,6 +100,22 @@ impl FileInfoFetcher {
                 // If it looks like hex (64 chars), use it directly
                 if hash.len() == 64 && hash.chars().all(|c| c.is_ascii_hexdigit()) {
                     return Some(hash.to_lowercase());
+                }
+
+                // Try Base64 decoding (RFC 5843 standard)
+                use base64::Engine;
+                if let Ok(decoded) = base64::engine::general_purpose::STANDARD.decode(hash) {
+                    // SHA-256 should be exactly 32 bytes
+                    if decoded.len() == 32 {
+                        return Some(decoded.iter().fold(
+                            String::with_capacity(64),
+                            |mut acc, b| {
+                                use std::fmt::Write;
+                                let _ = write!(acc, "{b:02x}");
+                                acc
+                            },
+                        ));
+                    }
                 }
             }
         }

@@ -53,6 +53,12 @@ pub enum DownloadError {
     #[snafu(display("Thread panicked: {message}"))]
     ThreadPanic { message: String },
 
+    #[snafu(display("Task panicked: {reason}"))]
+    TaskPanic { reason: String },
+
+    #[snafu(display("Task was cancelled"))]
+    TaskCancelled,
+
     #[snafu(display("State file error at {}: {message}", path.display()))]
     StateFile { path: PathBuf, message: String },
 
