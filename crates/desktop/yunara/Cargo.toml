@@ -1,0 +1,31 @@
+[package]
+name = "yunara"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+core-text = "=21.0.0"
+gpui.workspace = true
+gpui-component = "0.5.0"
+jiff.workspace = true
+rsketch-common-telemetry.workspace = true
+shadow-rs = "^1.6"
+snafu.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+yunara-assets.workspace = true
+yunara-paths.workspace = true
+
+[build-dependencies]
+shadow-rs = "^1.6"
+
+[lints]
+workspace = true

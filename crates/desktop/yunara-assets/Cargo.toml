@@ -1,6 +1,6 @@
 [package]
-name = "gui"
-version.workspace = true
+name = "yunara-assets"
+version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 authors.workspace = true
@@ -11,11 +11,9 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-anyhow = "1.0.100"
-core-text = "=21.0.0"
-gpui = "0.2.2"
-gpui-component = "0.5.0"
-snafu.workspace = true
+anyhow.workspace = true
+gpui.workspace = true
+rust-embed.workspace = true
 
 [lints]
 workspace = true

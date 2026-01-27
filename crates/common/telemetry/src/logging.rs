@@ -122,6 +122,7 @@ pub static RELOAD_HANDLE: OnceCell<tracing_subscriber::reload::Handle<filter::Ta
 /// the logging infrastructure, including output destinations, formats,
 /// OpenTelemetry integration, and performance tuning options.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, SmartDefault, Builder)]
+#[builder(on(String, into))]
 #[serde(default)]
 pub struct LoggingOptions {
     /// Directory path for storing log files.
@@ -131,6 +132,7 @@ pub struct LoggingOptions {
     /// logging will be used. The directory will be created if it doesn't
     /// exist.
     #[default = ""]
+    #[builder(default)]
     pub dir: String,
 
     /// Log level filter string.
@@ -147,6 +149,7 @@ pub struct LoggingOptions {
     /// - `Json`: Machine-parseable JSON format ideal for log aggregation
     ///   systems
     #[serde(default, deserialize_with = "empty_string_as_default")]
+    #[builder(default)]
     pub log_format: LogFormat,
 
     /// Maximum number of rotated log files to retain.
@@ -155,6 +158,7 @@ pub struct LoggingOptions {
     /// when this limit is reached. Default is 720 files (30 days of hourly
     /// logs). This applies to both main logs and error-specific logs.
     #[default = 720]
+    #[builder(default = 720)]
     pub max_log_files: usize,
 
     /// Whether to output logs to stdout in addition to files.
@@ -162,6 +166,7 @@ pub struct LoggingOptions {
     /// When true, logs will be written to both stdout and files (if file
     /// logging is enabled). When false, logs only go to files. Default is true.
     #[default = true]
+    #[builder(default = true)]
     pub append_stdout: bool,
 
     /// Enable OpenTelemetry Protocol (OTLP) tracing integration.
@@ -170,6 +175,7 @@ pub struct LoggingOptions {
     /// backend like Jaeger, Tempo, or other observability platforms.
     /// Default is false.
     #[default = false]
+    #[builder(default = false)]
     pub enable_otlp_tracing: bool,
 
     /// Custom OTLP endpoint URL.
@@ -202,6 +208,7 @@ pub struct LoggingOptions {
     /// Only applies when using HTTP export protocol.
     #[serde(skip_serializing_if = "HashMap::is_empty")]
     #[default(_code = "HashMap::new()")]
+    #[builder(default)]
     pub otlp_headers: HashMap<String, String>,
 }
 

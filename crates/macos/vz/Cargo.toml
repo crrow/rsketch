@@ -11,10 +11,10 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-objc2 = "0.6.3"
-objc2-virtualization = "0.3.2"
-objc2-foundation = "0.3.2"
 block2 = "0.6.2"
+objc2 = "0.6.3"
+objc2-foundation = "0.3.2"
+objc2-virtualization = "0.3.2"
 
 [lints.rust]
 # FFI bindings require unsafe code
