@@ -76,26 +76,26 @@ async fn handle_get(headers: HeaderMap, State(state): State<AppState>) -> Respon
         .and_then(|value| value.to_str().ok())
         .and_then(|value| parse_range(value, total_len));
 
-    if state.accept_ranges {
-        if let Some((start, end)) = range {
-            let slice = &state.content[start..=end];
-            let mut response_headers = HeaderMap::new();
-            response_headers.insert(header::ACCEPT_RANGES, HeaderValue::from_static("bytes"));
-            response_headers.insert(
-                header::CONTENT_RANGE,
-                HeaderValue::from_str(&format!("bytes {}-{}/{}", start, end, total_len)).unwrap(),
-            );
-            response_headers.insert(
-                header::CONTENT_LENGTH,
-                HeaderValue::from_str(&slice.len().to_string()).unwrap(),
-            );
-            return (
-                StatusCode::PARTIAL_CONTENT,
-                response_headers,
-                Bytes::copy_from_slice(slice),
-            )
-                .into_response();
-        }
+    if state.accept_ranges
+        && let Some((start, end)) = range
+    {
+        let slice = &state.content[start..=end];
+        let mut response_headers = HeaderMap::new();
+        response_headers.insert(header::ACCEPT_RANGES, HeaderValue::from_static("bytes"));
+        response_headers.insert(
+            header::CONTENT_RANGE,
+            HeaderValue::from_str(&format!("bytes {start}-{end}/{total_len}")).unwrap(),
+        );
+        response_headers.insert(
+            header::CONTENT_LENGTH,
+            HeaderValue::from_str(&slice.len().to_string()).unwrap(),
+        );
+        return (
+            StatusCode::PARTIAL_CONTENT,
+            response_headers,
+            Bytes::copy_from_slice(slice),
+        )
+            .into_response();
     }
 
     let mut response_headers = HeaderMap::new();
@@ -125,7 +125,7 @@ fn parse_range(value: &str, total: usize) -> Option<(usize, usize)> {
 
 fn create_temp_dir(prefix: &str) -> TempDir {
     tempfile::Builder::new()
-        .prefix(&format!("downloader-{}-", prefix))
+        .prefix(&format!("downloader-{prefix}-"))
         .tempdir()
         .expect("failed to create temp dir")
 }
@@ -150,9 +150,9 @@ fn get_file_url(server: &TestServer) -> String {
         .to_string();
     // server_address() may or may not include a trailing slash, handle both cases
     if base.ends_with('/') {
-        format!("{}file", base)
+        format!("{base}file")
     } else {
-        format!("{}/file", base)
+        format!("{base}/file")
     }
 }
 
@@ -194,8 +194,8 @@ async fn download_single_and_cache_hit() {
 
     let result = downloader.download(request.clone()).await.unwrap();
     assert!(!result.from_cache);
-    let downloaded = tokio::fs::read(&output_path).await.unwrap();
-    assert_eq!(downloaded, content);
+    let file_content = tokio::fs::read(&output_path).await.unwrap();
+    assert_eq!(file_content, content);
 
     let output_path_2 = output_dir.path().join("file-cache.bin");
     let request_2 = DownloadRequest {
@@ -244,8 +244,8 @@ async fn download_parallel_with_range_support() {
 
     let result = downloader.download(request).await.unwrap();
     assert!(!result.from_cache);
-    let downloaded = tokio::fs::read(&result.path).await.unwrap();
-    assert_eq!(downloaded, content);
+    let file_content = tokio::fs::read(&result.path).await.unwrap();
+    assert_eq!(file_content, content);
 }
 
 #[tokio::test]
@@ -346,7 +346,8 @@ async fn download_resumes_after_interruption() {
     let boundaries = calculate_chunk_boundaries(content.len() as u64, 3);
     let temp_dir_path = temp_dir.path();
 
-    // Manually create download state, simulating first chunk completed, others pending
+    // Manually create download state, simulating first chunk completed, others
+    // pending
     let url_hash = {
         use sha2::{Digest, Sha256};
         let mut hasher = Sha256::new();
@@ -366,13 +367,14 @@ async fn download_resumes_after_interruption() {
             } else {
                 ChunkStatus::Pending
             },
-            temp_file: temp_dir_path.join(format!("{}.part{}", url_hash, index)),
+            temp_file: temp_dir_path.join(format!("{url_hash}.part{index}")),
             retry_count: 0,
         })
         .collect();
 
     // Create the first chunk file (simulating already downloaded part)
     let first_chunk = &chunks[0];
+    #[allow(clippy::cast_possible_truncation)]
     tokio::fs::write(
         &first_chunk.temp_file,
         &content[first_chunk.start as usize..=first_chunk.end as usize],
@@ -394,7 +396,7 @@ async fn download_resumes_after_interruption() {
     };
 
     // Save state file
-    let state_path = temp_dir_path.join(format!("{}.state.json", url_hash));
+    let state_path = temp_dir_path.join(format!("{url_hash}.state.json"));
     let state_json =
         serde_json::to_string_pretty(&download_state).expect("failed to serialize state");
     tokio::fs::write(&state_path, state_json)
@@ -405,13 +407,23 @@ async fn download_resumes_after_interruption() {
     let result = downloader.download(request).await.unwrap();
 
     // Verify results
-    assert!(!result.from_cache, "should be fresh download, not from cache");
+    assert!(
+        !result.from_cache,
+        "should be fresh download, not from cache"
+    );
     assert_eq!(result.size, content.len() as u64, "file size should match");
 
     // Verify downloaded content is correct
-    let downloaded = tokio::fs::read(&output_path).await.unwrap();
-    assert_eq!(downloaded.len(), content.len(), "downloaded file size should match");
-    assert_eq!(downloaded, content, "downloaded content should match original");
+    let file_content = tokio::fs::read(&output_path).await.unwrap();
+    assert_eq!(
+        file_content.len(),
+        content.len(),
+        "downloaded file size should match"
+    );
+    assert_eq!(
+        file_content, content,
+        "downloaded content should match original"
+    );
 
     // Verify state file has been cleaned up
     assert!(

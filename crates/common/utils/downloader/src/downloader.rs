@@ -66,7 +66,7 @@ impl Downloader {
         let state = StateManager::new(config.temp_dir.clone());
         let file_info = FileInfoFetcher::new(client.clone());
         let single = SingleThreadDownloader::new(client.clone());
-        let parallel = ParallelDownloadManager::new(client.clone(), config.max_retries);
+        let parallel = ParallelDownloadManager::new(client, config.max_retries);
 
         Self {
             config,
@@ -112,6 +112,7 @@ impl Downloader {
         let file = std::fs::OpenOptions::new()
             .write(true)
             .create(true)
+            .truncate(true)
             .open(&lock_path)
             .context(FileWriteSnafu)?;
         let mut lock = RwLock::new(file);
@@ -127,10 +128,10 @@ impl Downloader {
         };
 
         // Resume if a valid state exists, otherwise start a fresh download.
-        if let Some(saved_state) = self.state.load(&request.url).await? {
-            if let Some(result) = self.resume_inner(&request, saved_state, start_time).await? {
-                return Ok(result);
-            }
+        if let Some(saved_state) = self.state.load(&request.url).await?
+            && let Some(result) = self.resume_inner(&request, saved_state, start_time).await?
+        {
+            return Ok(result);
         }
 
         // Perform download (lock will be released when function returns)

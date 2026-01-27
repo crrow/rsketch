@@ -106,7 +106,7 @@ mod tests {
         let config = ChunkingConfig::default();
         // 50MB - should be 2-4 chunks
         let chunks = config.calculate_chunks(50 * 1024 * 1024);
-        assert!(chunks >= 2 && chunks <= 4);
+        assert!((2..=4).contains(&chunks));
     }
 
     #[test]

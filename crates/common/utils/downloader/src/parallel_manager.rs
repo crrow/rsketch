@@ -139,17 +139,12 @@ impl ParallelDownloadManager {
         let mut errors = Vec::new();
 
         for handle in handles {
-            match handle.await {
-                Ok(Ok(_)) => {
-                    // Chunk completed successfully
-                }
-                Ok(Err((index, e))) => {
-                    errors.push((index, e));
-                }
-                Err(_) => {
-                    // Task was cancelled or panicked
-                    // Just skip it for now
-                }
+            if let Ok(Err((index, e))) = handle.await {
+                errors.push((index, e));
+            } else {
+                // Chunk completed successfully
+                // Task was cancelled or panicked
+                // Just skip it for now
             }
         }
 

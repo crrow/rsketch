@@ -76,31 +76,31 @@ impl FileInfoFetcher {
     /// ETag
     fn extract_checksum(headers: &reqwest::header::HeaderMap) -> Option<String> {
         // Try X-Checksum-SHA256 (common custom header)
-        if let Some(value) = headers.get("x-checksum-sha256") {
-            if let Ok(s) = value.to_str() {
-                return Some(s.to_lowercase());
-            }
+        if let Some(value) = headers.get("x-checksum-sha256")
+            && let Ok(s) = value.to_str()
+        {
+            return Some(s.to_lowercase());
         }
 
         // Try X-Amz-Meta-Sha256 (AWS S3)
-        if let Some(value) = headers.get("x-amz-meta-sha256") {
-            if let Ok(s) = value.to_str() {
-                return Some(s.to_lowercase());
-            }
+        if let Some(value) = headers.get("x-amz-meta-sha256")
+            && let Ok(s) = value.to_str()
+        {
+            return Some(s.to_lowercase());
         }
 
         // Try Digest header (RFC 3230)
-        if let Some(value) = headers.get(reqwest::header::HeaderName::from_static("digest")) {
-            if let Ok(s) = value.to_str() {
-                // Format: "SHA-256=base64hash" or "sha-256=hexhash"
-                if let Some(hash) = s
-                    .strip_prefix("SHA-256=")
-                    .or_else(|| s.strip_prefix("sha-256="))
-                {
-                    // If it looks like hex (64 chars), use it directly
-                    if hash.len() == 64 && hash.chars().all(|c| c.is_ascii_hexdigit()) {
-                        return Some(hash.to_lowercase());
-                    }
+        if let Some(value) = headers.get(reqwest::header::HeaderName::from_static("digest"))
+            && let Ok(s) = value.to_str()
+        {
+            // Format: "SHA-256=base64hash" or "sha-256=hexhash"
+            if let Some(hash) = s
+                .strip_prefix("SHA-256=")
+                .or_else(|| s.strip_prefix("sha-256="))
+            {
+                // If it looks like hex (64 chars), use it directly
+                if hash.len() == 64 && hash.chars().all(|c| c.is_ascii_hexdigit()) {
+                    return Some(hash.to_lowercase());
                 }
             }
         }
