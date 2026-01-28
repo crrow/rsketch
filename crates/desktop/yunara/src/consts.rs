@@ -12,12 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod config;
-pub mod db;
-pub mod err;
-pub mod kv;
-
-pub use config::DatabaseConfig;
-pub use db::DBStore;
-pub use err::{Error, Result};
-pub use kv::KVStore;
+pub const APP_NAME: &str = "Yunara";

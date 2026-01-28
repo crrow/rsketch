@@ -12,12 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod config;
-pub mod db;
-pub mod err;
-pub mod kv;
+#[derive(
+    Debug, Clone, derive_more::FromStr, derive_more::Display, derive_more::Into, PartialEq, Eq,
+)]
+pub struct YunaraVersion(String);
 
-pub use config::DatabaseConfig;
-pub use db::DBStore;
-pub use err::{Error, Result};
-pub use kv::KVStore;
+impl YunaraVersion {
+    pub fn load(pkg_version: &str, commit_sha: &str) -> Self {
+        #[cfg(feature = "release-dev")]
+        let channel = "dev";
+        #[cfg(feature = "release-preview")]
+        let channel = "preview";
+        #[cfg(feature = "release-stable")]
+        let channel = "stable";
+
+        YunaraVersion(format!("{pkg_version}-{channel}+{commit_sha}"))
+    }
+}

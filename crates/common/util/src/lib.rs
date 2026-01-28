@@ -11,3 +11,24 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+// Ensure exactly one release channel feature is enabled
+#[cfg(all(feature = "release-dev", feature = "release-preview"))]
+compile_error!("Features `release-dev` and `release-preview` are mutually exclusive");
+
+#[cfg(all(feature = "release-dev", feature = "release-stable"))]
+compile_error!("Features `release-dev` and `release-stable` are mutually exclusive");
+
+#[cfg(all(feature = "release-preview", feature = "release-stable"))]
+compile_error!("Features `release-preview` and `release-stable` are mutually exclusive");
+
+#[cfg(not(any(
+    feature = "release-dev",
+    feature = "release-preview",
+    feature = "release-stable"
+)))]
+compile_error!("One of `release-dev`, `release-preview`, or `release-stable` must be enabled");
+
+pub mod crashes;
+pub mod ensure_single_instance;
+pub mod version;

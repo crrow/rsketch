@@ -1,0 +1,31 @@
+# Test crash handler with minidump generation
+test-crash-preview:
+    cargo run --bin test_crash --no-default-features --features release-preview
+
+# Test crash handler in dev mode (backtrace only)
+test-crash-dev:
+    cargo run --bin test_crash --no-default-features --features release-dev
+
+# Show generated crash files
+show-crash:
+    @echo "Crash files:"
+    @ls -lh /tmp/rsketch-crash-test/ 2>/dev/null || echo "No crash files found"
+    @echo ""
+    @if [ -f /tmp/rsketch-crash-test/*.json ]; then \
+        echo "Crash info:"; \
+        cat /tmp/rsketch-crash-test/*.json; \
+    fi
+
+# Clean crash files
+clean-crash:
+    rm -rf /tmp/rsketch-crash-test/
+    @echo "Cleaned crash files"
+
+# Full test: clean, run, show results
+test: clean-crash test-crash-preview show-crash
+
+# Check compilation
+check:
+    cargo check --all-targets --no-default-features --features release-dev
+    cargo check --all-targets --no-default-features --features release-preview
+    cargo check --all-targets --no-default-features --features release-stable

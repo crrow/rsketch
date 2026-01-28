@@ -110,7 +110,7 @@ pub(crate) fn files_not_created_on_launch(errors: HashMap<io::ErrorKind, Vec<&Pa
         })
 }
 
-fn fail_to_open_window(e: anyhow::Error, _cx: &mut App) {
+pub(crate) fn fail_to_open_window(e: anyhow::Error, _cx: &mut App) {
     eprintln!(
         "Yunara failed to open a window: {e:?}. See https://github.com/crrow/rsketch for \
          troubleshooting steps."

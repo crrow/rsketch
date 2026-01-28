@@ -12,12 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod config;
-pub mod db;
-pub mod err;
-pub mod kv;
+use yunara_store::DatabaseConfig;
 
-pub use config::DatabaseConfig;
-pub use db::DBStore;
-pub use err::{Error, Result};
-pub use kv::KVStore;
+/// Application configuration
+#[derive(Debug, Clone, Default, bon::Builder)]
+pub struct AppConfig {
+    /// Database configuration
+    #[builder(getter)]
+    pub database: DatabaseConfig,
+    /// Application-level configuration
+    #[builder(getter)]
+    pub app:      ApplicationConfig,
+}
+
+/// Application-level configuration
+#[derive(Debug, Clone, Default, bon::Builder)]
+pub struct ApplicationConfig {
+    // Application-specific settings can be added here
+    // For example: log_level, theme, window settings, etc.
+}

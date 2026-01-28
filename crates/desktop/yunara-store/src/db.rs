@@ -12,14 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::path::Path;
-
 use sqlx::{
     Sqlite, SqlitePool,
     sqlite::{SqliteConnectOptions, SqlitePoolOptions},
 };
 
-use crate::{err::*, kv::KVStore};
+use crate::{config::DatabaseConfig, err::*, kv::KVStore};
 
 /// Database store that manages the SQLite connection pool
 #[derive(Clone)]
@@ -28,24 +26,35 @@ pub struct DBStore {
 }
 
 impl DBStore {
-    /// Create a new database store
+    /// Create a new database store with the given configuration
     ///
     /// # Arguments
-    /// * `db_path` - Path to the SQLite database file
-    #[tracing::instrument(level = "trace", err)]
-    pub async fn new(db_path: impl AsRef<Path> + std::fmt::Debug) -> Result<Self> {
-        let db_path = db_path.as_ref();
-
+    /// * `config` - Database configuration
+    #[tracing::instrument(level = "trace", skip(config), fields(db_path = ?config.db_path), err)]
+    pub async fn new(config: DatabaseConfig) -> Result<Self> {
         let options = SqliteConnectOptions::new()
-            .filename(db_path)
+            .filename(&config.db_path)
             .create_if_missing(true);
 
-        let pool = SqlitePoolOptions::new()
-            .max_connections(10)
-            .connect_with(options)
-            .await?;
+        let mut pool_options = SqlitePoolOptions::new()
+            .max_connections(config.max_connections)
+            .min_connections(config.min_connections)
+            .acquire_timeout(config.connect_timeout);
 
-        tracing::trace!("Initialized DBStore with path: {}", db_path.display());
+        if let Some(max_lifetime) = config.max_lifetime {
+            pool_options = pool_options.max_lifetime(max_lifetime);
+        }
+
+        if let Some(idle_timeout) = config.idle_timeout {
+            pool_options = pool_options.idle_timeout(idle_timeout);
+        }
+
+        let pool = pool_options.connect_with(options).await?;
+
+        tracing::trace!(
+            "Initialized DBStore with path: {}",
+            config.db_path.display()
+        );
 
         Ok(Self { pool })
     }

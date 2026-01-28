@@ -12,12 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#[allow(dead_code)]
+mod app_state;
+#[allow(dead_code)]
+mod config;
+mod consts;
 mod helper;
+mod services;
 mod util;
 
+use app_state::AppState;
 use gpui::Application;
+use rsketch_common_util::crashes::{self, CrashConfig, InitCrashHandler};
 use shadow_rs::shadow;
-use uuid::Uuid;
+use yunara_store::DatabaseConfig;
+
+use crate::config::ApplicationConfig;
 
 shadow!(build);
 
@@ -44,12 +54,42 @@ fn main() {
         build::COMMIT_HASH,
     );
 
-    let _app = Application::new().with_assets(yunara_assets::Assets);
+    let app = Application::new().with_assets(yunara_assets::Assets);
+    let app_state = app
+        .foreground_executor()
+        .block_on(async {
+            AppState::new(
+                config::AppConfig::builder()
+                    .database(
+                        DatabaseConfig::builder()
+                            .db_path(yunara_paths::database_dir())
+                            .build(),
+                    )
+                    .app(ApplicationConfig::default())
+                    .build(),
+            )
+            .await
+        })
+        .expect("unable to initialize application state");
 
-    // let system_id = app.background_executor().spawn(system_id());
-    // let installation_id = app.background_executor().spawn(installation_id());
-    let _session_id = Uuid::new_v4().to_string();
-    // let session = app
-    //     .background_executor()
-    //     .spawn(Session::new(session_id.clone()));
+    app.background_executor()
+        .spawn(crashes::init(
+            CrashConfig::builder()
+                .app_name(consts::APP_NAME)
+                .logs_dir(yunara_paths::logs_dir())
+                .temp_dir(yunara_paths::temp_dir())
+                .build(),
+            InitCrashHandler::builder()
+                .session_id(app_state.get_session_id())
+                .app_version(rsketch_common_util::version::YunaraVersion::load(
+                    build::VERSION,
+                    build::COMMIT_HASH,
+                ))
+                .binary(consts::APP_NAME)
+                .commit_sha(build::COMMIT_HASH)
+                .build(),
+        ))
+        .detach();
+
+    // TODO: set crash handler
 }

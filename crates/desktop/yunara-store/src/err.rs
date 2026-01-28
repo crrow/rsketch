@@ -39,4 +39,7 @@ pub enum Error {
         #[snafu(implicit)]
         loc:    snafu::Location,
     },
+
+    #[snafu(display("Invalid time configuration: {message}"))]
+    InvalidTimeConfig { message: String },
 }

@@ -12,12 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod config;
-pub mod db;
-pub mod err;
-pub mod kv;
+//! Business service modules
+//!
+//! Each service module should define:
+//! - A service handler struct (e.g., UserServiceHandler)
+//! - An extension trait for AppState (e.g., UserServiceExt)
+//!
+//! This keeps the code modular and allows each service to be developed
+//! independently.
 
-pub use config::DatabaseConfig;
-pub use db::DBStore;
-pub use err::{Error, Result};
-pub use kv::KVStore;
+// Example service module (commented out until needed)
+// pub mod user_service;
+
+// Re-export extension traits for convenience
+// pub use user_service::UserServiceExt;

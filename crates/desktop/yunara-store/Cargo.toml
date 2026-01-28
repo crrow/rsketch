@@ -15,11 +15,17 @@ workspace = true
 
 [dependencies]
 async-trait.workspace = true
+bon.workspace = true
+futures.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+smart-default = "0.7"
 snafu.workspace = true
 sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite"] }
+strum.workspace = true
+strum_macros.workspace = true
 tracing.workspace = true
+uuid = { workspace = true, features = ["v4"] }
 
 [dev-dependencies]
 tempfile = "3.0"

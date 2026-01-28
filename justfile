@@ -7,6 +7,8 @@ RUST_TOOLCHAIN := `grep 'channel = ' rust-toolchain.toml | cut -d '"' -f 2`
 TARGET_PLATFORM := env("TARGET_PLATFORM", "linux/arm64")
 DISTRI_PLATFORM := env("DISTRI_PLATFORM", "ubuntu")
 DOCKER_TAG := env("DOCKER_TAG", "rsketch:latest")
+# Release channel: release-dev (default), release-preview, release-stable
+RELEASE_CHANNEL := env("RELEASE_CHANNEL", "release-dev")
 
 # ========================================================================================
 # Default Recipe & Help
@@ -29,6 +31,7 @@ env:
     @echo "  TARGET_PLATFORM: {{TARGET_PLATFORM}}"
     @echo "  DISTRI_PLATFORM: {{DISTRI_PLATFORM}}"
     @echo "  DOCKER_TAG: {{DOCKER_TAG}}"
+    @echo "  RELEASE_CHANNEL: {{RELEASE_CHANNEL}}"
 
 # ========================================================================================
 # Code Quality
@@ -65,32 +68,32 @@ fmt-check:
 [doc("run `cargo clippy`")]
 [group("👆 Code Quality")]
 clippy:
-    @echo "🔍 Running clippy checks..."
-    cargo clippy --workspace --all-targets --all-features --no-deps -- -D warnings
+    @echo "🔍 Running clippy checks (channel: {{RELEASE_CHANNEL}})..."
+    cargo clippy --workspace --all-targets --no-default-features --features {{RELEASE_CHANNEL}} --no-deps -- -D warnings
 
 [doc("run `cargo check`")]
 [group("👆 Code Quality")]
 check:
-    @echo "🔨 Running compilation check..."
-    cargo check --all --all-features --all-targets
+    @echo "🔨 Running compilation check (channel: {{RELEASE_CHANNEL}})..."
+    cargo check --all --all-targets --no-default-features --features {{RELEASE_CHANNEL}}
 
 alias c := check
 
 [doc("run `cargo test`")]
 [group("👆 Code Quality")]
 test:
-    @echo "🧪 Running tests with nextest..."
-    cargo nextest run --workspace --all-features
+    @echo "🧪 Running tests with nextest (channel: {{RELEASE_CHANNEL}})..."
+    cargo nextest run --workspace --no-default-features --features {{RELEASE_CHANNEL}}
 
 alias t := test
 
 [doc("run linting checks (clippy, docs, buf, zizmor, yamllint-rs, cargo-deny)")]
 [group("👆 Code Quality")]
 lint:
-    @echo "🔍 Running clippy..."
-    cargo clippy --workspace --all-targets --all-features --no-deps -- -D warnings
+    @echo "🔍 Running clippy (channel: {{RELEASE_CHANNEL}})..."
+    cargo clippy --workspace --all-targets --no-default-features --features {{RELEASE_CHANNEL}} --no-deps -- -D warnings
     @echo "📚 Building documentation..."
-    cargo doc --workspace --all-features --no-deps
+    cargo doc --workspace --no-default-features --features {{RELEASE_CHANNEL}} --no-deps
     @echo "🔍 Linting protobuf..."
     cd api && buf lint
     @echo "🔍 Linting YAML files..."
@@ -208,8 +211,8 @@ docs-build:
 [doc("open cargo docs in browser")]
 [group("📚 Documentation")]
 docs-open:
-    @echo "📚 Opening cargo documentation..."
-    cargo doc --workspace --all-features --no-deps --document-private-items --open
+    @echo "📚 Opening cargo documentation (channel: {{RELEASE_CHANNEL}})..."
+    cargo doc --workspace --no-default-features --features {{RELEASE_CHANNEL}} --no-deps --document-private-items --open
 
 # ========================================================================================
 # Running & Examples
