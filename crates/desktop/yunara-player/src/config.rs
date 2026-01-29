@@ -12,12 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Yunara Player - Core application logic for Yunara music player
-//!
-//! This crate contains all application state, business logic, and UI components
-//! for the Yunara desktop music player. The main binary crate handles only
-//! platform-specific startup and initialization.
+use yunara_store::DatabaseConfig;
 
-pub mod config;
+/// Application configuration
+#[derive(Debug, Clone, Default, bon::Builder)]
+pub struct AppConfig {
+    /// Database configuration
+    #[builder(getter)]
+    pub database: DatabaseConfig,
+    /// Application-level configuration
+    #[builder(getter)]
+    pub app:      ApplicationConfig,
+}
 
-pub use config::{AppConfig, ApplicationConfig};
+/// Application-level configuration
+#[derive(Debug, Clone, Default, bon::Builder)]
+pub struct ApplicationConfig {
+    // Application-specific settings can be added here
+    // For example: log_level, theme, window settings, etc.
+}
