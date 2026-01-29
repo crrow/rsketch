@@ -12,24 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Yunara Player - Core application logic for Yunara music player
+//! Business service modules
 //!
-//! This crate contains all application state, business logic, and UI components
-//! for the Yunara desktop music player. The main binary crate handles only
-//! platform-specific startup and initialization.
+//! Each service module should define:
+//! - A service handler struct (e.g., UserServiceHandler)
+//! - An extension trait for AppState (e.g., UserServiceExt)
+//!
+//! This keeps the code modular and allows each service to be developed
+//! independently.
 
-pub mod config;
+// Example service module (commented out until needed)
+// pub mod user_service;
 
-pub use config::{AppConfig, ApplicationConfig};
-
-pub mod app_state;
-
-pub use app_state::{AppState, IdentifierKey};
-
-pub mod state;
-
-pub use state::{
-    AppView, NowPlayingInfo, PlaybackControls, PlayerState, ProgressSlider, VolumeControl,
-};
-
-pub mod services;
+// Re-export extension traits for convenience
+// pub use user_service::UserServiceExt;
