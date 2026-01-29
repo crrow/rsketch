@@ -25,3 +25,9 @@ pub use config::{AppConfig, ApplicationConfig};
 pub mod app_state;
 
 pub use app_state::{AppState, IdentifierKey};
+
+pub mod state;
+
+pub use state::{
+    AppView, NowPlayingInfo, PlaybackControls, PlayerState, ProgressSlider, VolumeControl,
+};
