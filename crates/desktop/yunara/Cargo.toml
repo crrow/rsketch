@@ -14,20 +14,27 @@ categories.workspace = true
 anyhow.workspace = true
 bon.workspace = true
 core-text = "=21.0.0"
+futures.workspace = true
 gpui.workspace = true
 gpui-component = "0.5.0"
+gpui_tokio.workspace = true
 jiff.workspace = true
+notify.workspace = true
+reqwest.workspace = true
 rsketch-common-telemetry.workspace = true
 rsketch-common-util.workspace = true
 shadow-rs = "^1.6"
 snafu.workspace = true
 strum.workspace = true
 strum_macros.workspace = true
+tokio.workspace = true
 tracing.workspace = true
 uuid.workspace = true
 yunara-assets.workspace = true
 yunara-paths.workspace = true
 yunara-store.workspace = true
+yunara-ui.workspace = true
+yunara-player.workspace = true
 
 [build-dependencies]
 shadow-rs = "^1.6"

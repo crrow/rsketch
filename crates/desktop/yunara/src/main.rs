@@ -12,22 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[allow(dead_code)]
-mod app_state;
-#[allow(dead_code)]
-mod config;
-mod consts;
 mod helper;
-mod services;
-mod util;
 
-use app_state::AppState;
-use gpui::Application;
-use rsketch_common_util::crashes::{self, CrashConfig, InitCrashHandler};
+use gpui::{px, AppContext, Application, WindowBounds, WindowOptions};
+use rsketch_common_util::{
+    crashes::{self, CrashConfig, InitCrashHandler},
+    ensure_single_instance::ensure_only_instance,
+    version::YunaraVersion,
+};
 use shadow_rs::shadow;
+use yunara_player::{consts, config::ApplicationConfig, AppConfig, AppState, AppView};
 use yunara_store::DatabaseConfig;
-
-use crate::config::ApplicationConfig;
+use yunara_ui::components::theme::ThemeProvider;
 
 shadow!(build);
 
@@ -40,7 +36,7 @@ fn main() {
     }
     // Initialize tracing subscriber
     let _guards = rsketch_common_telemetry::logging::init_global_logging(
-        "Yunara",
+        consts::YUNARA,
         &rsketch_common_telemetry::logging::LoggingOptions::builder()
             .dir(yunara_paths::logs_dir().to_string_lossy())
             .append_stdout(helper::stdout_is_a_pty())
@@ -49,20 +45,31 @@ fn main() {
         None,
     );
     tracing::info!(
-        "========== starting yunara version {}, sha {} ==========",
+        "Starting Yunara desktop application version {}, sha {}",
         build::VERSION,
-        build::COMMIT_HASH,
+        build::COMMIT_HASH
     );
 
+    // Create Tokio runtime for async operations (multi-threaded for better
+    // concurrency)
+    let rt = tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(2)
+        .enable_all()
+        .build()
+        .expect("Failed to create tokio runtime");
+
+    let handle = rt.handle().clone();
+
     let app = Application::new().with_assets(yunara_assets::Assets);
-    let app_state = app
-        .foreground_executor()
+
+    // Initialize app state using the tokio runtime
+    let app_state = handle
         .block_on(async {
             AppState::new(
-                config::AppConfig::builder()
+                AppConfig::builder()
                     .database(
                         DatabaseConfig::builder()
-                            .db_path(yunara_paths::database_dir())
+                            .db_path(yunara_paths::database_dir().join(consts::YUNARA_DB_FILE))
                             .build(),
                     )
                     .app(ApplicationConfig::default())
@@ -72,24 +79,58 @@ fn main() {
         })
         .expect("unable to initialize application state");
 
+    let app_version = YunaraVersion::load(build::VERSION, build::COMMIT_HASH);
     app.background_executor()
         .spawn(crashes::init(
             CrashConfig::builder()
-                .app_name(consts::APP_NAME)
+                .app_name(consts::YUNARA)
                 .logs_dir(yunara_paths::logs_dir())
                 .temp_dir(yunara_paths::temp_dir())
                 .build(),
             InitCrashHandler::builder()
                 .session_id(app_state.get_session_id())
-                .app_version(rsketch_common_util::version::YunaraVersion::load(
-                    build::VERSION,
-                    build::COMMIT_HASH,
-                ))
-                .binary(consts::APP_NAME)
+                .app_version(app_version.clone())
+                .binary(consts::YUNARA)
                 .commit_sha(build::COMMIT_HASH)
                 .build(),
         ))
         .detach();
 
-    // TODO: set crash handler
+    if matches!(
+        ensure_only_instance(),
+        rsketch_common_util::ensure_single_instance::IsOnlyInstance::No
+    ) {
+        tracing::info!("Another instance is already running, exiting.");
+        return;
+    }
+
+    app.run(move |cx| {
+        // Initialize gpui_tokio with our runtime handle
+        gpui_tokio::init_from_handle(cx, handle);
+
+        // Initialize the theme provider with default YTMusic dark theme
+        ThemeProvider::init(cx);
+
+        // Create app state entity
+        let app_state_entity = cx.new(|_cx| app_state.clone());
+
+        // Open the main window
+        let bounds = WindowBounds::Windowed(gpui::Bounds {
+            origin: gpui::Point::default(),
+            size:   gpui::Size {
+                width:  px(1280.0),
+                height: px(800.0),
+            },
+        });
+
+        let options = WindowOptions {
+            window_bounds: Some(bounds),
+            ..Default::default()
+        };
+
+        cx.open_window(options, move |_window, cx| {
+            cx.new(|_cx| AppView::new(app_state_entity.clone()))
+        })
+        .expect("Failed to open main window");
+    });
 }
