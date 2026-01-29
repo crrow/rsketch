@@ -23,6 +23,8 @@ mod pane;
 mod pane_group;
 mod pane_item;
 
+pub mod items;
+
 pub use pane::Pane;
 pub use pane_group::{Axis, PaneGroup};
 pub use pane_item::{PaneItem, PaneItemHandle};

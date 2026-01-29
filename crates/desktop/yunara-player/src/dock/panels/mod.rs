@@ -12,17 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Dock system for collapsible side panels.
-//!
-//! Provides a dock system similar to Zed's, with:
-//! - [`Dock`]: Collapsible panel container
-//! - [`DockPanel`]: Trait for content that can be displayed in docks
-//! - [`DockPosition`]: Where docks can be positioned (left, right, bottom)
+//! Concrete implementations of dock panels.
 
-mod dock;
-mod dock_position;
+pub mod library_panel;
+pub mod queue_panel;
 
-pub mod panels;
-
-pub use dock::{Dock, DockPanel, DockPanelHandle};
-pub use dock_position::DockPosition;
+pub use library_panel::LibraryPanel;
+pub use queue_panel::QueuePanel;
