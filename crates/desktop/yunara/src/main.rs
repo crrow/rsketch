@@ -14,14 +14,16 @@
 
 mod helper;
 
-use gpui::{px, AppContext, Application, WindowBounds, WindowOptions};
+use gpui::{AppContext, Application, WindowBounds, WindowOptions, px};
 use rsketch_common_util::{
     crashes::{self, CrashConfig, InitCrashHandler},
     ensure_single_instance::ensure_only_instance,
     version::YunaraVersion,
 };
 use shadow_rs::shadow;
-use yunara_player::{consts, config::ApplicationConfig, AppConfig, AppState, AppView};
+use yunara_player::{
+    AppConfig, AppState, YunaraPlayer, config::ApplicationConfig, consts,
+};
 use yunara_store::DatabaseConfig;
 use yunara_ui::components::theme::ThemeProvider;
 
@@ -129,7 +131,7 @@ fn main() {
         };
 
         cx.open_window(options, move |_window, cx| {
-            cx.new(|_cx| AppView::new(app_state_entity.clone()))
+            cx.new(|_cx| YunaraPlayer::new(app_state_entity.clone()))
         })
         .expect("Failed to open main window");
     });
