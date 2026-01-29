@@ -21,3 +21,7 @@
 pub mod config;
 
 pub use config::{AppConfig, ApplicationConfig};
+
+pub mod app_state;
+
+pub use app_state::{AppState, IdentifierKey};
