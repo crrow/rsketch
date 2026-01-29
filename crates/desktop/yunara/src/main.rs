@@ -131,7 +131,7 @@ fn main() {
         };
 
         cx.open_window(options, move |_window, cx| {
-            cx.new(|_cx| YunaraPlayer::new(app_state_entity.clone()))
+            cx.new(|cx| YunaraPlayer::new(app_state_entity.clone(), cx))
         })
         .expect("Failed to open main window");
     });
