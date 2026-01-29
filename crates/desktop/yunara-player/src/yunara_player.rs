@@ -33,3 +33,6 @@ pub use state::{
 };
 
 pub mod services;
+
+pub mod client;
+pub mod util;
