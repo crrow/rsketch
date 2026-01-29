@@ -36,3 +36,5 @@ pub mod services;
 
 pub mod client;
 pub mod util;
+
+pub mod consts;
