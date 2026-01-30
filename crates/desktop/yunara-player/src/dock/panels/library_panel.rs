@@ -55,7 +55,7 @@ impl Render for LibraryPanel {
         let theme = cx.theme();
 
         // Navigation item helper
-        let nav_item = |icon: &'static str, label: &'static str, active: bool| {
+        let nav_item = |icon_path: &'static str, label: &'static str, active: bool| {
             let base = gpui::div()
                 .flex()
                 .items_center()
@@ -67,13 +67,14 @@ impl Render for LibraryPanel {
             let styled = if active { base.bg(theme.active) } else { base };
             styled
                 .child(
-                    gpui::div()
+                    gpui::svg()
+                        .path(icon_path)
+                        .size(gpui::px(24.0))
                         .text_color(if active {
                             theme.text_primary
                         } else {
                             theme.text_secondary
-                        })
-                        .child(icon),
+                        }),
                 )
                 .child(
                     gpui::div()
@@ -140,9 +141,9 @@ impl Render for LibraryPanel {
                     .flex()
                     .flex_col()
                     .py(gpui::px(8.0))
-                    .child(nav_item("🏠", "Home", false))
-                    .child(nav_item("🔍", "Explore", false))
-                    .child(nav_item("📚", "Library", true)),
+                    .child(nav_item(yunara_assets::icons::HOME, "Home", false))
+                    .child(nav_item(yunara_assets::icons::EXPLORE, "Explore", false))
+                    .child(nav_item(yunara_assets::icons::LIBRARY, "Library", true)),
             )
             // New playlist button
             .child(

@@ -21,6 +21,11 @@ pub mod icons {
     /// Logo with "Music" text for dark theme
     pub const LOGO_DARK: &str = "icons/on_platform_logo_dark.svg";
 
+    // Navigation icons (SVG)
+    pub const HOME: &str = "icons/home.svg";
+    pub const EXPLORE: &str = "icons/explore.svg";
+    pub const LIBRARY: &str = "icons/library.svg";
+
     // Volume control icons (SVG)
     pub const VOLUME: &str = "icons/volume.svg";
     pub const VOLUME_MUTED: &str = "icons/volume-muted.svg";

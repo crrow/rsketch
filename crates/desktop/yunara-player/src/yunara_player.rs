@@ -22,6 +22,7 @@
 
 use gpui::{
     AppContext, Context, Entity, IntoElement, ParentElement, Render, Styled, WeakEntity, px,
+    prelude::FluentBuilder,
 };
 use yunara_ui::components::{layout::Header, theme::ThemeExt};
 
@@ -141,12 +142,21 @@ impl YunaraPlayer {
 impl Render for YunaraPlayer {
     fn render(&mut self, _window: &mut gpui::Window, _cx: &mut Context<Self>) -> impl IntoElement {
         let theme = _cx.theme();
+        let viewport_size = _window.viewport_size();
+
+        // Calculate aspect ratio to determine layout orientation
+        // Common ratios: 16:9 ≈ 1.78, 16:10 = 1.6, 4:3 ≈ 1.33, 3:2 = 1.5
+        // Use landscape layout (right panel on side) if aspect ratio >= 1.5
+        let width_f32: f32 = viewport_size.width.into();
+        let height_f32: f32 = viewport_size.height.into();
+        let aspect_ratio = width_f32 / height_f32;
+        let show_right_on_side = aspect_ratio >= 1.5;
 
         let header = Header::new("app-header").logo(yunara_assets::icons::LOGO_DARK);
 
-        let content = gpui::div()
-            .flex_1()
+        let main_content = gpui::div()
             .flex()
+            .flex_1()
             .overflow_hidden()
             .child(
                 gpui::div()
@@ -161,12 +171,33 @@ impl Render for YunaraPlayer {
                     .bg(theme.background_primary)
                     .child(self.center.render_element()),
             )
-            .child(
-                gpui::div()
-                    .w(px(320.0))
-                    .h_full()
-                    .child(gpui::AnyView::from(self.right_dock.clone())),
-            );
+            .when(show_right_on_side, |div| {
+                div.child(
+                    gpui::div()
+                        .w(px(320.0))
+                        .h_full()
+                        .child(gpui::AnyView::from(self.right_dock.clone())),
+                )
+            });
+
+        let content = if show_right_on_side {
+            // Wide layout: left | center | right
+            gpui::div().flex_1().flex().overflow_hidden().child(main_content)
+        } else {
+            // Narrow layout: (left | center) / right-below
+            gpui::div()
+                .flex_1()
+                .flex()
+                .flex_col()
+                .overflow_hidden()
+                .child(main_content)
+                .child(
+                    gpui::div()
+                        .w_full()
+                        .h(px(280.0))
+                        .child(gpui::AnyView::from(self.right_dock.clone())),
+                )
+        };
 
         gpui::div()
             .flex()
