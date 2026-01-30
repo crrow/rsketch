@@ -401,9 +401,6 @@ mod tests {
         let db = DBStore::new(config).await.unwrap();
         let kv = db.kv_store();
 
-        // Run migrations
-        sqlx::migrate!("./migrations").run(db.pool()).await.unwrap();
-
         // Test string
         kv.set("str_key", &"hello".to_string()).await.unwrap();
         assert_eq!(kv.get::<String>("str_key").await.unwrap().unwrap(), "hello");

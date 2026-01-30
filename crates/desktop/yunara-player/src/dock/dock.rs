@@ -17,7 +17,8 @@
 //! Docks are collapsible panels that can be positioned on the left, right, or bottom
 //! of the workspace. Similar to VS Code's or Zed's sidebar/panel system.
 
-use gpui::{AnyView, Context, IntoElement, ParentElement, Render};
+use gpui::{AnyView, Context, IntoElement, ParentElement, Render, Styled};
+use yunara_ui::components::theme::ThemeExt;
 
 use super::dock_position::DockPosition;
 
@@ -160,10 +161,28 @@ impl Render for Dock {
     fn render(
         &mut self,
         _window: &mut gpui::Window,
-        _cx: &mut Context<Self>,
+        cx: &mut Context<Self>,
     ) -> impl IntoElement {
-        // TODO: Render dock with panels and visibility toggle
-        // For now, just return a placeholder
-        gpui::div().child("Dock placeholder")
+        let theme = cx.theme();
+        let active_panel: Option<AnyView> = self.active_panel().map(|panel| panel.view().clone());
+
+        // Render panel content directly without title bar
+        match active_panel {
+            Some(view) => gpui::div()
+                .flex()
+                .flex_col()
+                .w_full()
+                .h_full()
+                .bg(theme.background_primary)
+                .child(view),
+            None => gpui::div()
+                .flex()
+                .flex_col()
+                .w_full()
+                .h_full()
+                .bg(theme.background_primary)
+                .text_color(theme.text_secondary)
+                .child("No panel available"),
+        }
     }
 }

@@ -16,12 +16,23 @@
 //!
 //! Displays the contents of a specific playlist with songs, metadata, etc.
 
-use gpui::{AnyView, Context, Entity, EntityId, IntoElement, ParentElement, Render, Styled};
+use gpui::{
+    AnyView,
+    Context,
+    Entity,
+    EntityId,
+    IntoElement,
+    ParentElement,
+    Render,
+    Styled,
+    WeakEntity,
+};
 
 use crate::{app_state::AppState, pane::PaneItem};
 
 /// View displaying a specific playlist's contents.
 pub struct PlaylistView {
+    weak_self: WeakEntity<Self>,
     app_state: Entity<AppState>,
     playlist_id: String,
     playlist_name: String,
@@ -33,9 +44,10 @@ impl PlaylistView {
         app_state: Entity<AppState>,
         playlist_id: String,
         playlist_name: String,
-        _cx: &mut Context<Self>,
+        cx: &mut Context<Self>,
     ) -> Self {
         Self {
+            weak_self: cx.weak_entity(),
             app_state,
             playlist_id,
             playlist_name,
@@ -45,7 +57,7 @@ impl PlaylistView {
 
 impl PaneItem for PlaylistView {
     fn entity_id(&self) -> EntityId {
-        self.app_state.entity_id()
+        self.weak_self.entity_id()
     }
 
     fn tab_title(&self) -> String {
@@ -53,7 +65,10 @@ impl PaneItem for PlaylistView {
     }
 
     fn to_any_view(&self) -> AnyView {
-        todo!("Implement to_any_view for PlaylistView")
+        self.weak_self
+            .upgrade()
+            .map(AnyView::from)
+            .expect("PlaylistView should still be alive")
     }
 
     fn can_close(&self) -> bool {

@@ -14,16 +14,14 @@
 
 mod helper;
 
-use gpui::{AppContext, Application, WindowBounds, WindowOptions, px};
+use gpui::{AppContext, Application, TitlebarOptions, WindowBounds, WindowOptions, point, px};
 use rsketch_common_util::{
     crashes::{self, CrashConfig, InitCrashHandler},
     ensure_single_instance::ensure_only_instance,
     version::YunaraVersion,
 };
 use shadow_rs::shadow;
-use yunara_player::{
-    AppConfig, AppState, YunaraPlayer, config::ApplicationConfig, consts,
-};
+use yunara_player::{AppConfig, AppState, YunaraPlayer, config::ApplicationConfig, consts};
 use yunara_store::DatabaseConfig;
 use yunara_ui::components::theme::ThemeProvider;
 
@@ -113,9 +111,6 @@ fn main() {
         // Initialize the theme provider with default YTMusic dark theme
         ThemeProvider::init(cx);
 
-        // Create app state entity
-        let app_state_entity = cx.new(|_cx| app_state.clone());
-
         // Open the main window
         let bounds = WindowBounds::Windowed(gpui::Bounds {
             origin: gpui::Point::default(),
@@ -127,11 +122,16 @@ fn main() {
 
         let options = WindowOptions {
             window_bounds: Some(bounds),
+            titlebar: Some(TitlebarOptions {
+                title: None,
+                appears_transparent: true,
+                traffic_light_position: None,
+            }),
             ..Default::default()
         };
 
         cx.open_window(options, move |_window, cx| {
-            cx.new(|cx| YunaraPlayer::new(app_state_entity.clone(), cx))
+            cx.new(|cx| YunaraPlayer::new(app_state, cx))
         })
         .expect("Failed to open main window");
     });

@@ -16,6 +16,15 @@ use anyhow::Context as _;
 use gpui::{App, AssetSource, Result, SharedString};
 use rust_embed::RustEmbed;
 
+/// Icon asset paths for use with `gpui::svg().path()`.
+pub mod icons {
+    /// Logo with "Music" text for dark theme
+    pub const LOGO_DARK: &str = "icons/on_platform_logo_dark.svg";
+
+    pub const VOLUME: &str = "icons/volume.svg";
+    pub const VOLUME_MUTED: &str = "icons/volume-muted.svg";
+}
+
 #[derive(RustEmbed)]
 #[folder = "../assets"]
 #[include = "fonts/**/*"]

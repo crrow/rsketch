@@ -1,0 +1,47 @@
+# Justfile for Yunara Desktop Application
+[group("📒 Help")]
+[private]
+default:
+    @just --list
+
+[doc("show help")]
+[group("📒 Help")]
+help: default
+
+# Run the application in debug mode
+run:
+    cargo run -p yunara
+
+# Run the application in release mode
+run-release:
+    cargo run -p yunara --release
+
+# Build the application in debug mode
+build:
+    cargo build -p yunara 
+
+# Build the application in release mode
+build-release:
+    cargo build -p yunara --release
+
+# Run tests for yunara and yunara-ui
+test:
+    cargo test -p yunara -p yunara-ui
+
+# Check the code without building
+check:
+    cargo check -p yunara
+
+alias c := check    
+
+# Run clippy linter
+clippy:
+    cargo clippy -p yunara -p yunara-ui -- -D warnings
+
+# Format the code
+fmt:
+    cargo fmt -p yunara -p yunara-ui
+
+# Clean build artifacts
+clean:
+    cargo clean -p yunara

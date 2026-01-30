@@ -17,7 +17,9 @@
 //! A Pane is a container that holds one or more PaneItems and manages
 //! which one is currently active. Similar to tabs in a browser or editor.
 
-use gpui::{Context, IntoElement, ParentElement, Render};
+use gpui::{Context, IntoElement, ParentElement, Render, Styled, px};
+use gpui::prelude::FluentBuilder as _;
+use yunara_ui::components::theme::ThemeExt;
 
 use super::pane_item::PaneItemHandle;
 
@@ -119,10 +121,62 @@ impl Render for Pane {
     fn render(
         &mut self,
         _window: &mut gpui::Window,
-        _cx: &mut Context<Self>,
+        cx: &mut Context<Self>,
     ) -> impl IntoElement {
-        // TODO: Render tab bar and active item content
-        // For now, just return a placeholder
-        gpui::div().child("Pane placeholder")
+        let theme = cx.theme();
+        let active_index = self.active_item_index;
+        let active_view = self.active_item().map(|item| item.view().clone());
+        let content = match active_view {
+            Some(view) => gpui::div().flex_1().p_4().child(view),
+            None => gpui::div()
+                .flex_1()
+                .p_4()
+                .text_color(theme.text_secondary)
+                .child("No content"),
+        };
+
+        // Only show tab bar when there are multiple items
+        let show_tabs = self.items.len() > 1;
+
+        let mut container = gpui::div()
+            .flex()
+            .flex_col()
+            .w_full()
+            .h_full()
+            .bg(theme.background_primary);
+
+        if show_tabs {
+            container = container.child(
+                gpui::div()
+                    .h(px(40.0))
+                    .flex()
+                    .items_center()
+                    .gap_2()
+                    .px(px(12.0))
+                    .child({
+                        let mut tabs = gpui::div().flex().items_center().gap_2();
+                        for (index, item) in self.items.iter().enumerate() {
+                            let is_active = index == active_index;
+                            tabs = tabs.child(
+                                gpui::div()
+                                    .px(px(10.0))
+                                    .py(px(6.0))
+                                    .rounded(px(6.0))
+                                    .text_sm()
+                                    .when(is_active, |el| el.bg(theme.active))
+                                    .text_color(if is_active {
+                                        theme.text_primary
+                                    } else {
+                                        theme.text_secondary
+                                    })
+                                    .child(item.title().to_string()),
+                            );
+                        }
+                        tabs
+                    }),
+            );
+        }
+
+        container.child(content)
     }
 }

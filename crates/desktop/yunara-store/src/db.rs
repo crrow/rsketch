@@ -48,13 +48,14 @@ impl DBStore {
         if let Some(idle_timeout) = config.idle_timeout {
             pool_options = pool_options.idle_timeout(idle_timeout);
         }
-
         let pool = pool_options.connect_with(options).await?;
 
-        tracing::trace!(
+        tracing::info!(
             "Initialized DBStore with path: {}",
             config.db_path.display()
         );
+
+        sqlx::migrate!("./migrations").run(&pool).await?;
 
         Ok(Self { pool })
     }

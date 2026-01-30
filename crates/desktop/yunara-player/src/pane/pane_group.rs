@@ -17,7 +17,7 @@
 //! Similar to Zed's PaneGroup, this enables hierarchical split layouts
 //! where panes can be arranged horizontally or vertically.
 
-use gpui::{Context, Entity, IntoElement, ParentElement, Render};
+use gpui::{Context, Entity, IntoElement, ParentElement, Render, Styled};
 
 use super::pane::Pane;
 
@@ -55,6 +55,24 @@ pub enum PaneGroup {
 }
 
 impl PaneGroup {
+    pub fn render_element(&self) -> impl IntoElement {
+        match self {
+            PaneGroup::Pane(pane) => gpui::div()
+                .flex_1()
+                .w_full()
+                .h_full()
+                .child(gpui::AnyView::from(pane.clone())),
+            PaneGroup::Split { axis, first, second, .. } => {
+                let mut container = gpui::div().flex().w_full().h_full();
+                if *axis == Axis::Vertical {
+                    container = container.flex_col();
+                }
+                container
+                    .child(first.render_element())
+                    .child(second.render_element())
+            }
+        }
+    }
     /// Creates a new pane group with a single pane.
     pub fn new(pane: Entity<Pane>) -> Self {
         PaneGroup::Pane(pane)
@@ -132,8 +150,6 @@ impl Render for PaneGroup {
         _window: &mut gpui::Window,
         _cx: &mut Context<Self>,
     ) -> impl IntoElement {
-        // TODO: Render split layout with proper flexbox
-        // For now, just return a placeholder
-        gpui::div().child("PaneGroup placeholder")
+        self.render_element()
     }
 }
