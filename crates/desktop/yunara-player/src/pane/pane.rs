@@ -17,8 +17,7 @@
 //! A Pane is a container that holds one or more PaneItems and manages
 //! which one is currently active. Similar to tabs in a browser or editor.
 
-use gpui::{Context, IntoElement, ParentElement, Render, Styled, px};
-use gpui::prelude::FluentBuilder as _;
+use gpui::{Context, IntoElement, ParentElement, Render, Styled, prelude::FluentBuilder as _, px};
 use yunara_ui::components::theme::ThemeExt;
 
 use super::pane_item::PaneItemHandle;
@@ -42,9 +41,9 @@ impl Pane {
     /// Creates a new empty pane.
     pub fn new() -> Self {
         Self {
-            items: Vec::new(),
+            items:             Vec::new(),
             active_item_index: 0,
-            has_focus: false,
+            has_focus:         false,
         }
     }
 
@@ -57,19 +56,13 @@ impl Pane {
     }
 
     /// Returns the currently active item, if any.
-    pub fn active_item(&self) -> Option<&PaneItemHandle> {
-        self.items.get(self.active_item_index)
-    }
+    pub fn active_item(&self) -> Option<&PaneItemHandle> { self.items.get(self.active_item_index) }
 
     /// Returns all items in this pane.
-    pub fn items(&self) -> &[PaneItemHandle] {
-        &self.items
-    }
+    pub fn items(&self) -> &[PaneItemHandle] { &self.items }
 
     /// Returns the index of the active item.
-    pub fn active_item_index(&self) -> usize {
-        self.active_item_index
-    }
+    pub fn active_item_index(&self) -> usize { self.active_item_index }
 
     /// Activates the item at the given index.
     pub fn activate_item(&mut self, index: usize) {
@@ -91,38 +84,24 @@ impl Pane {
     }
 
     /// Returns whether this pane has focus.
-    pub fn has_focus(&self) -> bool {
-        self.has_focus
-    }
+    pub fn has_focus(&self) -> bool { self.has_focus }
 
     /// Sets the focus state of this pane.
-    pub fn set_focus(&mut self, focus: bool) {
-        self.has_focus = focus;
-    }
+    pub fn set_focus(&mut self, focus: bool) { self.has_focus = focus; }
 
     /// Returns whether this pane is empty.
-    pub fn is_empty(&self) -> bool {
-        self.items.is_empty()
-    }
+    pub fn is_empty(&self) -> bool { self.items.is_empty() }
 
     /// Returns the number of items in this pane.
-    pub fn item_count(&self) -> usize {
-        self.items.len()
-    }
+    pub fn item_count(&self) -> usize { self.items.len() }
 }
 
 impl Default for Pane {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }
 
 impl Render for Pane {
-    fn render(
-        &mut self,
-        _window: &mut gpui::Window,
-        cx: &mut Context<Self>,
-    ) -> impl IntoElement {
+    fn render(&mut self, _window: &mut gpui::Window, cx: &mut Context<Self>) -> impl IntoElement {
         let theme = cx.theme();
         let active_index = self.active_item_index;
         let active_view = self.active_item().map(|item| item.view().clone());

@@ -1,8 +1,21 @@
+// Copyright 2025 Crrow
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /// Navigation models for routing within the application.
 ///
 /// Defines the routes available in the app and navigation item structures
 /// for the sidebar.
-
 use gpui::SharedString;
 
 /// Application routes for navigation.
@@ -23,9 +36,7 @@ pub enum Route {
 
 impl Route {
     /// Returns whether this route represents a playlist detail view.
-    pub fn is_playlist(&self) -> bool {
-        matches!(self, Self::Playlist(_))
-    }
+    pub fn is_playlist(&self) -> bool { matches!(self, Self::Playlist(_)) }
 
     /// Returns the playlist ID if this is a playlist route.
     pub fn playlist_id(&self) -> Option<&str> {
@@ -63,7 +74,7 @@ pub enum Icon {
 #[derive(Debug, Clone)]
 pub struct NavItem {
     /// Icon to display alongside the label
-    pub icon: Icon,
+    pub icon:  Icon,
     /// Display text for the navigation item
     pub label: SharedString,
     /// Target route when clicked

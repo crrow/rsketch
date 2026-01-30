@@ -14,13 +14,14 @@
 
 use std::{collections::HashMap, sync::Arc};
 
+use parking_lot::RwLock;
 use strum::{EnumProperty, IntoEnumIterator};
 use yunara_store::{
     DBStore,
     kv::{IdType, KVStoreExt, KeyRequest},
 };
 
-use crate::config::AppConfig;
+use crate::{config::AppConfig, state::PlayerState};
 
 /// Application state that holds the lifecycle of the desktop application
 ///
@@ -43,13 +44,16 @@ impl AppState {
     pub fn config(&self) -> AppConfig { self.inner.config.clone() }
 
     pub fn db(&self) -> DBStore { self.inner.db.clone() }
+
+    pub fn player_state(&self) -> &RwLock<PlayerState> { &self.inner.player_state }
 }
 
 struct AppStateInner {
-    config:     AppConfig,
-    db:         DBStore,
-    keys:       HashMap<String, IdType>,
-    session_id: uuid::Uuid,
+    config:       AppConfig,
+    db:           DBStore,
+    keys:         HashMap<String, IdType>,
+    session_id:   uuid::Uuid,
+    player_state: RwLock<PlayerState>,
 }
 
 impl AppState {
@@ -73,6 +77,7 @@ impl AppState {
                 db,
                 keys: key_map,
                 session_id: uuid::Uuid::new_v4(),
+                player_state: RwLock::new(PlayerState::new()),
             }),
         })
     }

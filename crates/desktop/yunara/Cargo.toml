@@ -32,9 +32,9 @@ tracing.workspace = true
 uuid.workspace = true
 yunara-assets.workspace = true
 yunara-paths.workspace = true
+yunara-player.workspace = true
 yunara-store.workspace = true
 yunara-ui.workspace = true
-yunara-player.workspace = true
 
 [build-dependencies]
 shadow-rs = "^1.6"

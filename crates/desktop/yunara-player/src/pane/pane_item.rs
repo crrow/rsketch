@@ -30,7 +30,8 @@ pub trait PaneItem: Send + Sync {
     /// Returns a unique identifier for this item.
     fn entity_id(&self) -> EntityId;
 
-    /// Returns a human-readable title for this item (e.g., "Liked Songs", "Album: Dark Side").
+    /// Returns a human-readable title for this item (e.g., "Liked Songs",
+    /// "Album: Dark Side").
     fn tab_title(&self) -> String;
 
     /// Renders the item's content as a view.
@@ -43,21 +44,17 @@ pub trait PaneItem: Send + Sync {
     fn on_blur(&mut self) {}
 
     /// Whether this item can be closed by the user.
-    fn can_close(&self) -> bool {
-        true
-    }
+    fn can_close(&self) -> bool { true }
 
     /// Whether this item has unsaved changes.
-    fn is_dirty(&self) -> bool {
-        false
-    }
+    fn is_dirty(&self) -> bool { false }
 }
 
 /// Type-erased handle to a pane item.
 pub struct PaneItemHandle {
     entity_id: EntityId,
-    title: String,
-    view: AnyView,
+    title:     String,
+    view:      AnyView,
 }
 
 impl PaneItemHandle {
@@ -65,23 +62,17 @@ impl PaneItemHandle {
     pub fn new(item: &impl PaneItem) -> Self {
         Self {
             entity_id: item.entity_id(),
-            title: item.tab_title(),
-            view: item.to_any_view(),
+            title:     item.tab_title(),
+            view:      item.to_any_view(),
         }
     }
 
     /// Returns the entity ID of this item.
-    pub fn entity_id(&self) -> EntityId {
-        self.entity_id
-    }
+    pub fn entity_id(&self) -> EntityId { self.entity_id }
 
     /// Returns the title of this item.
-    pub fn title(&self) -> &str {
-        &self.title
-    }
+    pub fn title(&self) -> &str { &self.title }
 
     /// Returns the view for rendering.
-    pub fn view(&self) -> &AnyView {
-        &self.view
-    }
+    pub fn view(&self) -> &AnyView { &self.view }
 }

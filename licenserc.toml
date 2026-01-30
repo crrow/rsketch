@@ -49,6 +49,7 @@ excludes = [
     "**/*.yapf",
     "**/*.test",
     "**/*.txt",
+    "**/assets/**",
 ]
 
 [properties]

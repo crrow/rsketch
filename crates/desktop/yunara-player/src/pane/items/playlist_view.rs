@@ -17,24 +17,16 @@
 //! Displays the contents of a specific playlist with songs, metadata, etc.
 
 use gpui::{
-    AnyView,
-    Context,
-    Entity,
-    EntityId,
-    IntoElement,
-    ParentElement,
-    Render,
-    Styled,
-    WeakEntity,
+    AnyView, Context, Entity, EntityId, IntoElement, ParentElement, Render, Styled, WeakEntity,
 };
 
 use crate::{app_state::AppState, pane::PaneItem};
 
 /// View displaying a specific playlist's contents.
 pub struct PlaylistView {
-    weak_self: WeakEntity<Self>,
-    app_state: Entity<AppState>,
-    playlist_id: String,
+    weak_self:     WeakEntity<Self>,
+    app_state:     Entity<AppState>,
+    playlist_id:   String,
     playlist_name: String,
 }
 
@@ -56,13 +48,9 @@ impl PlaylistView {
 }
 
 impl PaneItem for PlaylistView {
-    fn entity_id(&self) -> EntityId {
-        self.weak_self.entity_id()
-    }
+    fn entity_id(&self) -> EntityId { self.weak_self.entity_id() }
 
-    fn tab_title(&self) -> String {
-        self.playlist_name.clone()
-    }
+    fn tab_title(&self) -> String { self.playlist_name.clone() }
 
     fn to_any_view(&self) -> AnyView {
         self.weak_self
@@ -71,17 +59,11 @@ impl PaneItem for PlaylistView {
             .expect("PlaylistView should still be alive")
     }
 
-    fn can_close(&self) -> bool {
-        true
-    }
+    fn can_close(&self) -> bool { true }
 }
 
 impl Render for PlaylistView {
-    fn render(
-        &mut self,
-        _window: &mut gpui::Window,
-        _cx: &mut Context<Self>,
-    ) -> impl IntoElement {
+    fn render(&mut self, _window: &mut gpui::Window, _cx: &mut Context<Self>) -> impl IntoElement {
         gpui::div()
             .flex()
             .flex_col()

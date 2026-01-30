@@ -1,11 +1,22 @@
+// Copyright 2025 Crrow
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /// Sidebar component for navigation and playlist listing.
 ///
 /// Contains main navigation items (Home, Explore, Library) and
 /// a scrollable list of user playlists.
-
-use gpui::{
-    div, prelude::*, px, App, ElementId, IntoElement, ParentElement, Styled, Window,
-};
+use gpui::{App, ElementId, IntoElement, ParentElement, Styled, Window, div, prelude::*, px};
 
 use crate::{
     components::{media::PlaylistItem, theme::ThemeExt},
@@ -30,22 +41,22 @@ use crate::{
 /// ```
 #[derive(IntoElement)]
 pub struct Sidebar {
-    id: ElementId,
-    nav_items: Vec<NavItem>,
-    playlists: Vec<PlaylistSummary>,
+    id:            ElementId,
+    nav_items:     Vec<NavItem>,
+    playlists:     Vec<PlaylistSummary>,
     current_route: Option<Route>,
-    on_navigate: Option<Box<dyn Fn(Route, &mut Window, &mut App) + 'static>>,
+    on_navigate:   Option<Box<dyn Fn(Route, &mut Window, &mut App) + 'static>>,
 }
 
 impl Sidebar {
     /// Creates a new sidebar.
     pub fn new(id: impl Into<ElementId>) -> Self {
         Self {
-            id: id.into(),
-            nav_items: NavItem::default_nav_items(),
-            playlists: Vec::new(),
+            id:            id.into(),
+            nav_items:     NavItem::default_nav_items(),
+            playlists:     Vec::new(),
             current_route: None,
-            on_navigate: None,
+            on_navigate:   None,
         }
     }
 

@@ -113,9 +113,9 @@ rsketch-error = { path = "crates/common/error" }
 rsketch-server = { path = "crates/server" }
 yunara-assets = { path = "crates/desktop/yunara-assets" }
 yunara-paths = { path = "crates/desktop/yunara-paths" }
+yunara-player = { path = "crates/desktop/yunara-player" }
 yunara-store = { path = "crates/desktop/yunara-store" }
 yunara-ui = { path = "crates/desktop/yunara-ui" }
-yunara-player = { path = "crates/desktop/yunara-player" }
 
 # Config for 'cargo dist'
 [workspace.metadata.dist]

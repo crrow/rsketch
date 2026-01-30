@@ -1,11 +1,24 @@
+// Copyright 2025 Crrow
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /// Track item component for displaying a single track in a list.
 ///
 /// Shows track cover art, title, artist, album, duration, and like status.
 /// Supports hover states and playing indicator.
-
 use gpui::{
-    div, prelude::*, px, App, ElementId, InteractiveElement, IntoElement, ParentElement,
-    SharedString, StatefulInteractiveElement, Styled, Window,
+    App, ElementId, InteractiveElement, IntoElement, ParentElement, SharedString,
+    StatefulInteractiveElement, Styled, Window, div, prelude::*, px,
 };
 
 use crate::{components::theme::ThemeExt, models::Track};
@@ -21,11 +34,11 @@ use crate::{components::theme::ThemeExt, models::Track};
 /// ```
 #[derive(IntoElement)]
 pub struct TrackItem {
-    id: ElementId,
-    track: Track,
+    id:         ElementId,
+    track:      Track,
     is_playing: bool,
     show_index: Option<usize>,
-    on_click: Option<Box<dyn Fn(&Track, &mut Window, &mut App) + 'static>>,
+    on_click:   Option<Box<dyn Fn(&Track, &mut Window, &mut App) + 'static>>,
 }
 
 impl TrackItem {
@@ -53,10 +66,7 @@ impl TrackItem {
     }
 
     /// Sets the click handler for when the track is selected.
-    pub fn on_click(
-        mut self,
-        handler: impl Fn(&Track, &mut Window, &mut App) + 'static,
-    ) -> Self {
+    pub fn on_click(mut self, handler: impl Fn(&Track, &mut Window, &mut App) + 'static) -> Self {
         self.on_click = Some(Box::new(handler));
         self
     }

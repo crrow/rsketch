@@ -37,11 +37,13 @@ pub mod util;
 
 pub mod consts;
 
-pub mod pane;
 pub mod dock;
+pub mod pane;
 
+pub mod player_bar;
 pub mod yunara_player;
 
-pub use yunara_player::YunaraPlayer;
-pub use pane::{Axis, Pane, PaneGroup, PaneItem, PaneItemHandle};
 pub use dock::{Dock, DockPanel, DockPanelHandle, DockPosition};
+pub use pane::{Axis, Pane, PaneGroup, PaneItem, PaneItemHandle};
+pub use player_bar::PlayerBar;
+pub use yunara_player::YunaraPlayer;

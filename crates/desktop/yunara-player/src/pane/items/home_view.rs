@@ -14,18 +14,11 @@
 
 //! Home view pane item.
 //!
-//! Displays the main landing page with recently played, recommended content, etc.
+//! Displays the main landing page with recently played, recommended content,
+//! etc.
 
 use gpui::{
-    AnyView,
-    Context,
-    EntityId,
-    IntoElement,
-    ParentElement,
-    Render,
-    Styled,
-    WeakEntity,
-    px,
+    AnyView, Context, EntityId, IntoElement, ParentElement, Render, Styled, WeakEntity, px,
 };
 use yunara_ui::components::theme::ThemeExt;
 
@@ -48,13 +41,9 @@ impl HomeView {
 }
 
 impl PaneItem for HomeView {
-    fn entity_id(&self) -> EntityId {
-        self.weak_self.entity_id()
-    }
+    fn entity_id(&self) -> EntityId { self.weak_self.entity_id() }
 
-    fn tab_title(&self) -> String {
-        "Home".to_string()
-    }
+    fn tab_title(&self) -> String { "Home".to_string() }
 
     fn to_any_view(&self) -> AnyView {
         self.weak_self
@@ -69,11 +58,7 @@ impl PaneItem for HomeView {
 }
 
 impl Render for HomeView {
-    fn render(
-        &mut self,
-        _window: &mut gpui::Window,
-        cx: &mut Context<Self>,
-    ) -> impl IntoElement {
+    fn render(&mut self, _window: &mut gpui::Window, cx: &mut Context<Self>) -> impl IntoElement {
         let theme = cx.theme();
 
         // Song/Video toggle tab
@@ -85,9 +70,11 @@ impl Render for HomeView {
                 .cursor_pointer()
                 .text_sm();
             let styled = if active {
-                base.bg(theme.text_primary).text_color(theme.background_primary)
+                base.bg(theme.text_primary)
+                    .text_color(theme.background_primary)
             } else {
-                base.bg(theme.background_elevated).text_color(theme.text_secondary)
+                base.bg(theme.background_elevated)
+                    .text_color(theme.text_secondary)
             };
             styled.child(label)
         };

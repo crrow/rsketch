@@ -1,17 +1,27 @@
+// Copyright 2025 Crrow
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /// Playlist item component for sidebar display.
 ///
 /// Shows playlist name and owner in a compact format suitable for
 /// the sidebar playlist listing.
-
 use gpui::{
-    div, prelude::*, px, App, ElementId, InteractiveElement, IntoElement, ParentElement,
-    StatefulInteractiveElement, Styled, Window,
+    App, ElementId, InteractiveElement, IntoElement, ParentElement, StatefulInteractiveElement,
+    Styled, Window, div, prelude::*, px,
 };
 
-use crate::{
-    components::theme::ThemeExt,
-    models::PlaylistSummary,
-};
+use crate::{components::theme::ThemeExt, models::PlaylistSummary};
 
 /// A compact playlist item for sidebar listings.
 ///
@@ -24,10 +34,10 @@ use crate::{
 /// ```
 #[derive(IntoElement)]
 pub struct PlaylistItem {
-    id: ElementId,
-    playlist: PlaylistSummary,
+    id:          ElementId,
+    playlist:    PlaylistSummary,
     is_selected: bool,
-    on_click: Option<Box<dyn Fn(&PlaylistSummary, &mut Window, &mut App) + 'static>>,
+    on_click:    Option<Box<dyn Fn(&PlaylistSummary, &mut Window, &mut App) + 'static>>,
 }
 
 impl PlaylistItem {
@@ -90,7 +100,7 @@ impl RenderOnce for PlaylistItem {
                     .line_height(px(18.0))
                     .overflow_hidden()
                     .text_ellipsis()
-                    .child(self.playlist.name.clone())
+                    .child(self.playlist.name.clone()),
             )
             .child(
                 div()
@@ -99,7 +109,7 @@ impl RenderOnce for PlaylistItem {
                     .line_height(px(16.0))
                     .overflow_hidden()
                     .text_ellipsis()
-                    .child(self.playlist.owner.clone())
+                    .child(self.playlist.owner.clone()),
             )
     }
 }

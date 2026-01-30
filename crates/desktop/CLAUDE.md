@@ -1,10 +1,55 @@
 # Rust coding guidelines
 
+## Crate Responsibilities
+
+### yunara-ui
+**Purpose**: Provides reusable, presentation-only UI components
+
+**Scope**:
+- Basic UI primitives (Button, Icon, Label, etc.)
+- Layout components (AppShell, Sidebar, Header, etc.)
+- Generic display components (TrackItem, PlaylistItem, etc.)
+- Theme system and styling utilities
+
+**NOT included**:
+- Business logic or state management
+- Application-specific components that contain domain logic
+- Components that directly interact with AppState or player state
+- Complete feature implementations (use these components to build features in yunara-player)
+
+**Example**: A `Button` component is in yunara-ui. A `PlaybackControls` component that manages playback state belongs in yunara-player.
+
+### yunara-player
+**Purpose**: Application business logic and feature implementation
+
+**Scope**:
+- Feature components that combine yunara-ui primitives with business logic
+- State management (PlayerState, AppState integration)
+- Application-specific views (PlayerBar, LibraryPanel, QueuePanel, etc.)
+- Workspace and layout management (YunaraPlayer, Pane, Dock)
+- Integration with services and data layer
+
+**Example**: `PlayerBar` in yunara-player uses yunara-ui components like `div`, `img`, `svg` to build the player bar UI, while managing player state through AppState.
+
+### yunara-assets
+**Purpose**: Static asset management and path constants
+
+**Scope**:
+- Icon path constants
+- Image asset paths
+- Font paths
+- Other static resources
+
+**Critical**: Always use constants from yunara-assets (e.g., `yunara_assets::icons::VOLUME`) instead of hardcoding paths.
+
+---
+
 * Prioritize code correctness and clarity. Speed and efficiency are secondary priorities unless otherwise specified.
 * Do not write organizational or comments that summarize the code. Comments should only be written in order to explain "why" the code is written in some way in the case there is a reason that is tricky / non-obvious.
 * Prefer implementing functionality in existing files unless it is a new logical component. Avoid creating many small files.
 * Avoid using functions that panic like `unwrap()`, instead use mechanisms like `?` to propagate errors.
 * Be careful with operations like indexing which may panic if the indexes are out of bounds.
+* **CRITICAL: Asset paths** - NEVER hardcode asset paths as strings (e.g., `"icons/volume.svg"`). ALWAYS use constants from `yunara_assets::icons` module (e.g., `yunara_assets::icons::VOLUME`). This ensures consistency and prevents typos. Add new constants to `crates/desktop/yunara-assets/src/lib.rs` when adding new assets.
 * Never silently discard errors with `let _ =` on fallible operations. Always handle errors appropriately:
   - Propagate errors with `?` when the calling function should handle them
   - Use `.log_err()` or similar when you need to ignore errors but want visibility

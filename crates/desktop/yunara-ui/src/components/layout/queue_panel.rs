@@ -1,11 +1,24 @@
+// Copyright 2025 Crrow
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /// Queue panel component for displaying the playback queue.
 ///
 /// Shows the current playback queue with tabs for Up Next, Lyrics, and Related.
 /// Only visible when a playlist is actively playing.
-
 use gpui::{
-    div, prelude::*, px, App, ElementId, InteractiveElement, IntoElement, ParentElement, Styled,
-    Window,
+    App, ElementId, InteractiveElement, IntoElement, ParentElement, Styled, Window, div,
+    prelude::*, px,
 };
 
 use crate::{
@@ -50,11 +63,11 @@ impl QueueTab {
 /// ```
 #[derive(IntoElement)]
 pub struct QueuePanel {
-    id: ElementId,
-    active_tab: QueueTab,
-    queue: Vec<Track>,
-    current_index: Option<usize>,
-    on_tab_change: Option<Box<dyn Fn(QueueTab, &mut Window, &mut App) + 'static>>,
+    id:              ElementId,
+    active_tab:      QueueTab,
+    queue:           Vec<Track>,
+    current_index:   Option<usize>,
+    on_tab_change:   Option<Box<dyn Fn(QueueTab, &mut Window, &mut App) + 'static>>,
     on_track_select: Option<Box<dyn Fn(usize, &mut Window, &mut App) + 'static>>,
 }
 
@@ -62,11 +75,11 @@ impl QueuePanel {
     /// Creates a new queue panel.
     pub fn new(id: impl Into<ElementId>) -> Self {
         Self {
-            id: id.into(),
-            active_tab: QueueTab::default(),
-            queue: Vec::new(),
-            current_index: None,
-            on_tab_change: None,
+            id:              id.into(),
+            active_tab:      QueueTab::default(),
+            queue:           Vec::new(),
+            current_index:   None,
+            on_tab_change:   None,
             on_track_select: None,
         }
     }

@@ -1,8 +1,21 @@
+// Copyright 2025 Crrow
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /// Playlist data models for representing playlist metadata and summaries.
 ///
 /// Contains both the full Playlist model (used in detail views) and the
 /// lightweight PlaylistSummary (used in sidebar listings).
-
 use std::time::Duration;
 
 use gpui::SharedString;
@@ -62,23 +75,23 @@ impl SortOrder {
 #[derive(Debug, Clone)]
 pub struct Playlist {
     /// Unique identifier for the playlist
-    pub id: String,
+    pub id:             String,
     /// Playlist name/title
-    pub name: SharedString,
+    pub name:           SharedString,
     /// Owner/creator username
-    pub owner: SharedString,
+    pub owner:          SharedString,
     /// Visibility setting (public, private, unlisted)
-    pub visibility: Visibility,
+    pub visibility:     Visibility,
     /// Year the playlist was created
-    pub year: u16,
+    pub year:           u16,
     /// Number of times the playlist has been viewed
-    pub view_count: u32,
+    pub view_count:     u32,
     /// Number of tracks in the playlist
-    pub track_count: usize,
+    pub track_count:    usize,
     /// Total duration of all tracks combined
     pub total_duration: Duration,
     /// URLs to cover images (1-4 images for mosaic display)
-    pub cover_images: Vec<SharedString>,
+    pub cover_images:   Vec<SharedString>,
 }
 
 impl Playlist {
@@ -117,11 +130,11 @@ impl Playlist {
 #[derive(Debug, Clone)]
 pub struct PlaylistSummary {
     /// Unique identifier for the playlist
-    pub id: String,
+    pub id:          String,
     /// Playlist name/title
-    pub name: SharedString,
+    pub name:        SharedString,
     /// Owner/creator username
-    pub owner: SharedString,
+    pub owner:       SharedString,
     /// Number of tracks in the playlist
     pub track_count: usize,
 }

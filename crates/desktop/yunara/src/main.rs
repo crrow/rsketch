@@ -123,8 +123,8 @@ fn main() {
         let options = WindowOptions {
             window_bounds: Some(bounds),
             titlebar: Some(TitlebarOptions {
-                title: None,
-                appears_transparent: true,
+                title:                  None,
+                appears_transparent:    true,
                 traffic_light_position: None,
             }),
             ..Default::default()

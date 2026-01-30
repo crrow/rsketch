@@ -38,10 +38,6 @@ alias c := check
 clippy:
     cargo clippy -p yunara -p yunara-ui -- -D warnings
 
-# Format the code
-fmt:
-    cargo fmt -p yunara -p yunara-ui
-
 # Clean build artifacts
 clean:
     cargo clean -p yunara

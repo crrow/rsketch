@@ -64,11 +64,7 @@ impl Render for LibraryPanel {
                 .py(gpui::px(10.0))
                 .rounded(gpui::px(8.0))
                 .cursor_pointer();
-            let styled = if active {
-                base.bg(theme.active)
-            } else {
-                base
-            };
+            let styled = if active { base.bg(theme.active) } else { base };
             styled
                 .child(
                     gpui::div()

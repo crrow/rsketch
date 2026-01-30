@@ -22,7 +22,6 @@ use std::{
 use gpui::{App, AppContext, Application, QuitMode};
 use jiff::Timestamp;
 use yunara_paths;
-
 use yunara_player::util::ResultExt;
 
 static STARTUP_TIME: OnceLock<Timestamp> = OnceLock::new();

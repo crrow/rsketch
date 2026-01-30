@@ -75,9 +75,11 @@ impl Render for QueuePanel {
         };
 
         // Queue item with thumbnail and duration
-        let queue_item =
-            |thumbnail: &'static str, title: &'static str, artist: &'static str, duration: &'static str| {
-                gpui::div()
+        let queue_item = |thumbnail: &'static str,
+                          title: &'static str,
+                          artist: &'static str,
+                          duration: &'static str| {
+            gpui::div()
                     .flex()
                     .items_center()
                     .gap_3()
@@ -127,7 +129,7 @@ impl Render for QueuePanel {
                             .text_color(theme.text_muted)
                             .child(duration),
                     )
-            };
+        };
 
         gpui::div()
             .flex()

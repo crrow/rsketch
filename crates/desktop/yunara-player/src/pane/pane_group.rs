@@ -30,7 +30,8 @@ pub enum Axis {
     Vertical,
 }
 
-/// A recursive structure representing either a single pane or a split of pane groups.
+/// A recursive structure representing either a single pane or a split of pane
+/// groups.
 ///
 /// This enables flexible layouts like:
 /// - Single pane
@@ -44,13 +45,13 @@ pub enum PaneGroup {
     /// A split containing two pane groups
     Split {
         /// Direction of the split
-        axis: Axis,
+        axis:   Axis,
         /// First group (left or top)
-        first: Box<PaneGroup>,
+        first:  Box<PaneGroup>,
         /// Second group (right or bottom)
         second: Box<PaneGroup>,
         /// Split ratio (0.0 to 1.0, where first group takes this proportion)
-        ratio: f32,
+        ratio:  f32,
     },
 }
 
@@ -62,7 +63,12 @@ impl PaneGroup {
                 .w_full()
                 .h_full()
                 .child(gpui::AnyView::from(pane.clone())),
-            PaneGroup::Split { axis, first, second, .. } => {
+            PaneGroup::Split {
+                axis,
+                first,
+                second,
+                ..
+            } => {
                 let mut container = gpui::div().flex().w_full().h_full();
                 if *axis == Axis::Vertical {
                     container = container.flex_col();
@@ -73,28 +79,27 @@ impl PaneGroup {
             }
         }
     }
+
     /// Creates a new pane group with a single pane.
-    pub fn new(pane: Entity<Pane>) -> Self {
-        PaneGroup::Pane(pane)
-    }
+    pub fn new(pane: Entity<Pane>) -> Self { PaneGroup::Pane(pane) }
 
     /// Creates a horizontal split between two groups.
     pub fn horizontal_split(first: PaneGroup, second: PaneGroup, ratio: f32) -> Self {
         PaneGroup::Split {
-            axis: Axis::Horizontal,
-            first: Box::new(first),
+            axis:   Axis::Horizontal,
+            first:  Box::new(first),
             second: Box::new(second),
-            ratio: ratio.clamp(0.0, 1.0),
+            ratio:  ratio.clamp(0.0, 1.0),
         }
     }
 
     /// Creates a vertical split between two groups.
     pub fn vertical_split(first: PaneGroup, second: PaneGroup, ratio: f32) -> Self {
         PaneGroup::Split {
-            axis: Axis::Vertical,
-            first: Box::new(first),
+            axis:   Axis::Vertical,
+            first:  Box::new(first),
             second: Box::new(second),
-            ratio: ratio.clamp(0.0, 1.0),
+            ratio:  ratio.clamp(0.0, 1.0),
         }
     }
 
@@ -123,9 +128,7 @@ impl PaneGroup {
     }
 
     /// Returns whether this group is a split.
-    pub fn is_split(&self) -> bool {
-        matches!(self, PaneGroup::Split { .. })
-    }
+    pub fn is_split(&self) -> bool { matches!(self, PaneGroup::Split { .. }) }
 
     /// Returns the split axis if this is a split, otherwise None.
     pub fn axis(&self) -> Option<Axis> {
@@ -145,11 +148,7 @@ impl PaneGroup {
 }
 
 impl Render for PaneGroup {
-    fn render(
-        &mut self,
-        _window: &mut gpui::Window,
-        _cx: &mut Context<Self>,
-    ) -> impl IntoElement {
+    fn render(&mut self, _window: &mut gpui::Window, _cx: &mut Context<Self>) -> impl IntoElement {
         self.render_element()
     }
 }

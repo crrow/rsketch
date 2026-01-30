@@ -16,6 +16,7 @@ futures.workspace = true
 gpui.workspace = true
 gpui-component.workspace = true
 tracing.workspace = true
+yunara-assets.workspace = true
 
 [lints]
 workspace = true

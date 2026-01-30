@@ -14,8 +14,8 @@
 
 //! Dock implementation for collapsible side panels.
 //!
-//! Docks are collapsible panels that can be positioned on the left, right, or bottom
-//! of the workspace. Similar to VS Code's or Zed's sidebar/panel system.
+//! Docks are collapsible panels that can be positioned on the left, right, or
+//! bottom of the workspace. Similar to VS Code's or Zed's sidebar/panel system.
 
 use gpui::{AnyView, Context, IntoElement, ParentElement, Render, Styled};
 use yunara_ui::components::theme::ThemeExt;
@@ -28,9 +28,7 @@ pub trait DockPanel: Send + Sync {
     fn title(&self) -> String;
 
     /// Returns the icon name for this panel (if any).
-    fn icon(&self) -> Option<&'static str> {
-        None
-    }
+    fn icon(&self) -> Option<&'static str> { None }
 
     /// Renders the panel's content.
     fn to_any_view(&self) -> AnyView;
@@ -39,8 +37,8 @@ pub trait DockPanel: Send + Sync {
 /// Type-erased handle to a dock panel.
 pub struct DockPanelHandle {
     title: String,
-    icon: Option<&'static str>,
-    view: AnyView,
+    icon:  Option<&'static str>,
+    view:  AnyView,
 }
 
 impl DockPanelHandle {
@@ -48,25 +46,19 @@ impl DockPanelHandle {
     pub fn new(panel: &impl DockPanel) -> Self {
         Self {
             title: panel.title(),
-            icon: panel.icon(),
-            view: panel.to_any_view(),
+            icon:  panel.icon(),
+            view:  panel.to_any_view(),
         }
     }
 
     /// Returns the title of this panel.
-    pub fn title(&self) -> &str {
-        &self.title
-    }
+    pub fn title(&self) -> &str { &self.title }
 
     /// Returns the icon name for this panel.
-    pub fn icon(&self) -> Option<&'static str> {
-        self.icon
-    }
+    pub fn icon(&self) -> Option<&'static str> { self.icon }
 
     /// Returns the view for rendering.
-    pub fn view(&self) -> &AnyView {
-        &self.view
-    }
+    pub fn view(&self) -> &AnyView { &self.view }
 }
 
 /// A collapsible dock that contains multiple panels.
@@ -100,9 +92,7 @@ impl Dock {
     }
 
     /// Adds a panel to this dock.
-    pub fn add_panel(&mut self, panel: DockPanelHandle) {
-        self.panels.push(panel);
-    }
+    pub fn add_panel(&mut self, panel: DockPanelHandle) { self.panels.push(panel); }
 
     /// Returns the currently active panel, if any.
     pub fn active_panel(&self) -> Option<&DockPanelHandle> {
@@ -110,9 +100,7 @@ impl Dock {
     }
 
     /// Returns all panels in this dock.
-    pub fn panels(&self) -> &[DockPanelHandle] {
-        &self.panels
-    }
+    pub fn panels(&self) -> &[DockPanelHandle] { &self.panels }
 
     /// Activates the panel at the given index.
     pub fn activate_panel(&mut self, index: usize) {
@@ -122,47 +110,29 @@ impl Dock {
     }
 
     /// Returns the position of this dock.
-    pub fn position(&self) -> DockPosition {
-        self.position
-    }
+    pub fn position(&self) -> DockPosition { self.position }
 
     /// Returns whether this dock is visible.
-    pub fn is_visible(&self) -> bool {
-        self.visible
-    }
+    pub fn is_visible(&self) -> bool { self.visible }
 
     /// Sets the visibility of this dock.
-    pub fn set_visible(&mut self, visible: bool) {
-        self.visible = visible;
-    }
+    pub fn set_visible(&mut self, visible: bool) { self.visible = visible; }
 
     /// Toggles the visibility of this dock.
-    pub fn toggle_visibility(&mut self) {
-        self.visible = !self.visible;
-    }
+    pub fn toggle_visibility(&mut self) { self.visible = !self.visible; }
 
     /// Returns the size of this dock (width for left/right, height for bottom).
-    pub fn size(&self) -> f32 {
-        self.size
-    }
+    pub fn size(&self) -> f32 { self.size }
 
     /// Sets the size of this dock.
-    pub fn set_size(&mut self, size: f32) {
-        self.size = size.max(0.0);
-    }
+    pub fn set_size(&mut self, size: f32) { self.size = size.max(0.0); }
 
     /// Returns whether this dock is empty.
-    pub fn is_empty(&self) -> bool {
-        self.panels.is_empty()
-    }
+    pub fn is_empty(&self) -> bool { self.panels.is_empty() }
 }
 
 impl Render for Dock {
-    fn render(
-        &mut self,
-        _window: &mut gpui::Window,
-        cx: &mut Context<Self>,
-    ) -> impl IntoElement {
+    fn render(&mut self, _window: &mut gpui::Window, cx: &mut Context<Self>) -> impl IntoElement {
         let theme = cx.theme();
         let active_panel: Option<AnyView> = self.active_panel().map(|panel| panel.view().clone());
 

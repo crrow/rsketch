@@ -27,12 +27,8 @@ pub enum DockPosition {
 
 impl DockPosition {
     /// Returns whether this dock is positioned horizontally (left or right).
-    pub fn is_horizontal(&self) -> bool {
-        matches!(self, DockPosition::Left | DockPosition::Right)
-    }
+    pub fn is_horizontal(&self) -> bool { matches!(self, DockPosition::Left | DockPosition::Right) }
 
     /// Returns whether this dock is positioned vertically (bottom).
-    pub fn is_vertical(&self) -> bool {
-        matches!(self, DockPosition::Bottom)
-    }
+    pub fn is_vertical(&self) -> bool { matches!(self, DockPosition::Bottom) }
 }
