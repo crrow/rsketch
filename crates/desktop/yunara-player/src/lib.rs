@@ -18,32 +18,25 @@
 //! for the Yunara desktop music player. The main binary crate handles only
 //! platform-specific startup and initialization.
 
-pub mod config;
-
-pub use config::{AppConfig, ApplicationConfig};
-
+pub mod actions;
 pub mod app_state;
-
-pub use app_state::{AppState, IdentifierKey};
-
-pub mod state;
-
-pub use state::{NowPlayingInfo, PlaybackControls, PlayerState, ProgressSlider, VolumeControl};
-
-pub mod services;
-
 pub mod client;
-pub mod util;
-
+pub mod config;
 pub mod consts;
-
 pub mod dock;
 pub mod pane;
-
 pub mod player_bar;
+pub mod services;
+pub mod state;
+pub mod util;
+pub mod ytapi;
 pub mod yunara_player;
 
+pub use app_state::{AppState, IdentifierKey};
+pub use config::{AppConfig, ApplicationConfig};
 pub use dock::{Dock, DockPanel, DockPanelHandle, DockPosition};
 pub use pane::{Axis, Pane, PaneGroup, PaneItem, PaneItemHandle};
 pub use player_bar::PlayerBar;
+pub use state::{NowPlayingInfo, PlaybackControls, PlayerState, ProgressSlider, VolumeControl};
+pub use actions::NavigateAction;
 pub use yunara_player::YunaraPlayer;
