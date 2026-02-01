@@ -21,7 +21,7 @@
 //! - Bottom Dock: Player bar (collapsible)
 
 use gpui::{
-    Context, Entity, IntoElement, ParentElement, Render, Styled, WeakEntity,
+    AppContext, Context, Entity, IntoElement, ParentElement, Render, Styled, WeakEntity,
     prelude::FluentBuilder, px,
 };
 use yunara_ui::components::{layout::Header, theme::ThemeExt};
@@ -69,8 +69,14 @@ impl YunaraPlayer {
         let home_handle = home_view.update(cx, |view, _| PaneItemHandle::new(view));
         center.update(cx, |pane, _| pane.navigate_to(home_handle));
 
-        // Create sidebar with navigation callback
+        // Create sidebar
         let sidebar = cx.new(|cx| Sidebar::new(app_state.clone(), cx));
+
+        // Set workspace reference on sidebar for navigation
+        let weak_self_for_sidebar = weak_self.clone();
+        sidebar.update(cx, |sidebar, _| {
+            sidebar.set_workspace(weak_self_for_sidebar);
+        });
 
         // Create right dock with QueuePanel
         let right_dock = cx.new(|_cx| Dock::new(DockPosition::Right));

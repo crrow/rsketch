@@ -38,8 +38,8 @@ pub struct Sidebar {
     weak_self: WeakEntity<Self>,
     app_state: AppState,
     active_nav: NavItem,
-    /// Callback when a navigation item is clicked
-    on_navigate: Option<Box<dyn Fn(NavigateAction) + Send + Sync>>,
+    /// Reference to the workspace for navigation
+    workspace: Option<WeakEntity<crate::yunara_player::YunaraPlayer>>,
 }
 
 impl Sidebar {
@@ -49,17 +49,13 @@ impl Sidebar {
             weak_self: cx.weak_entity(),
             app_state,
             active_nav: NavItem::Home,
-            on_navigate: None,
+            workspace: None,
         }
     }
 
-    /// Sets the navigation callback.
-    pub fn on_navigate(
-        mut self,
-        callback: impl Fn(NavigateAction) + Send + Sync + 'static,
-    ) -> Self {
-        self.on_navigate = Some(Box::new(callback));
-        self
+    /// Sets the workspace reference for navigation.
+    pub fn set_workspace(&mut self, workspace: WeakEntity<crate::yunara_player::YunaraPlayer>) {
+        self.workspace = Some(workspace);
     }
 
     /// Sets the active navigation item.
@@ -70,35 +66,33 @@ impl Sidebar {
     /// Handle navigation item click
     fn handle_nav_click(&mut self, nav: NavItem, cx: &mut Context<Self>) {
         self.active_nav = nav;
-        if let Some(ref callback) = self.on_navigate {
-            let action = match nav {
-                NavItem::Home => NavigateAction::Home,
-                NavItem::Explore => NavigateAction::Explore,
-                NavItem::Library => NavigateAction::Library,
-            };
-            callback(action);
-        }
-        cx.notify();
-    }
+        let action = match nav {
+            NavItem::Home => NavigateAction::Home,
+            NavItem::Explore => NavigateAction::Explore,
+            NavItem::Library => NavigateAction::Library,
+        };
 
-    /// Handle playlist click
-    fn handle_playlist_click(&self, id: String, name: String) {
-        if let Some(ref callback) = self.on_navigate {
-            callback(NavigateAction::Playlist { id, name });
+        if let Some(ref workspace) = self.workspace {
+            workspace
+                .update(cx, |player, cx| {
+                    player.handle_navigate(action, cx);
+                })
+                .ok();
         }
+
+        cx.notify();
     }
 
     /// Render a navigation item
     fn render_nav_item(
-        &self,
         nav: NavItem,
         icon_path: &'static str,
         label: &'static str,
-        cx: &mut Context<Self>,
+        is_active: bool,
+        weak_self: WeakEntity<Self>,
+        cx: &Context<Self>,
     ) -> impl IntoElement {
         let theme = cx.theme();
-        let is_active = self.active_nav == nav;
-        let weak_self = self.weak_self.clone();
 
         div()
             .id(label)
@@ -146,6 +140,9 @@ impl Render for Sidebar {
         let viewport_width: f32 = window.viewport_size().width.into();
         let show_playlists = viewport_width > 900.0;
 
+        let active_nav = self.active_nav;
+        let weak_self = self.weak_self.clone();
+
         div()
             .flex()
             .flex_col()
@@ -158,22 +155,28 @@ impl Render for Sidebar {
                     .flex()
                     .flex_col()
                     .py(px(8.0))
-                    .child(self.render_nav_item(
+                    .child(Self::render_nav_item(
                         NavItem::Home,
                         yunara_assets::icons::HOME,
                         "Home",
+                        active_nav == NavItem::Home,
+                        weak_self.clone(),
                         cx,
                     ))
-                    .child(self.render_nav_item(
+                    .child(Self::render_nav_item(
                         NavItem::Explore,
                         yunara_assets::icons::EXPLORE,
                         "Explore",
+                        active_nav == NavItem::Explore,
+                        weak_self.clone(),
                         cx,
                     ))
-                    .child(self.render_nav_item(
+                    .child(Self::render_nav_item(
                         NavItem::Library,
                         yunara_assets::icons::LIBRARY,
                         "Library",
+                        active_nav == NavItem::Library,
+                        weak_self,
                         cx,
                     )),
             )
