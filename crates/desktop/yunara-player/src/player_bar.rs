@@ -17,12 +17,12 @@
 use std::time::Duration;
 
 use gpui::{
-    Context, InteractiveElement, IntoElement, ParentElement, Render, StatefulInteractiveElement,
-    Styled, WeakEntity, Window, div, img, prelude::*, px, svg,
+    AnyView, Context, InteractiveElement, IntoElement, ParentElement, Render,
+    StatefulInteractiveElement, Styled, WeakEntity, Window, div, img, prelude::*, px, svg,
 };
 use yunara_ui::components::theme::ThemeExt;
 
-use crate::AppState;
+use crate::{AppState, dock::DockPanel};
 
 /// Player bar component that manages playback controls and state.
 ///
@@ -312,5 +312,22 @@ impl Render for PlayerBar {
                             }),
                     ),
             )
+    }
+}
+
+impl DockPanel for PlayerBar {
+    fn title(&self) -> String {
+        "Player".to_string()
+    }
+
+    fn icon(&self) -> Option<&'static str> {
+        None
+    }
+
+    fn to_any_view(&self) -> AnyView {
+        self.weak_self
+            .upgrade()
+            .map(AnyView::from)
+            .expect("PlayerBar view should still be alive")
     }
 }
