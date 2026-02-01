@@ -33,12 +33,12 @@ pub mod util;
 pub mod ytapi;
 pub mod yunara_player;
 
+pub use actions::NavigateAction;
 pub use app_state::{AppState, IdentifierKey};
 pub use config::{AppConfig, ApplicationConfig};
 pub use dock::{Dock, DockPanel, DockPanelHandle, DockPosition};
 pub use pane::{Axis, Pane, PaneGroup, PaneItem, PaneItemHandle};
 pub use player_bar::PlayerBar;
-pub use state::{NowPlayingInfo, PlaybackControls, PlayerState, ProgressSlider, VolumeControl};
-pub use actions::NavigateAction;
 pub use sidebar::Sidebar;
+pub use state::{NowPlayingInfo, PlaybackControls, PlayerState, ProgressSlider, VolumeControl};
 pub use yunara_player::YunaraPlayer;

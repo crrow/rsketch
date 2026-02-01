@@ -310,13 +310,9 @@ impl Render for PlayerBar {
 }
 
 impl DockPanel for PlayerBar {
-    fn title(&self) -> String {
-        "Player".to_string()
-    }
+    fn title(&self) -> String { "Player".to_string() }
 
-    fn icon(&self) -> Option<&'static str> {
-        None
-    }
+    fn icon(&self) -> Option<&'static str> { None }
 
     fn to_any_view(&self) -> AnyView {
         self.weak_self

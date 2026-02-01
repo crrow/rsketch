@@ -14,10 +14,11 @@
 
 //! Library view pane item.
 //!
-//! Displays the user's music library including songs, albums, artists, and playlists.
+//! Displays the user's music library including songs, albums, artists, and
+//! playlists.
 
 use gpui::{
-    px, AnyView, Context, EntityId, IntoElement, ParentElement, Render, Styled, WeakEntity,
+    AnyView, Context, EntityId, IntoElement, ParentElement, Render, Styled, WeakEntity, px,
 };
 use yunara_ui::components::theme::ThemeExt;
 
@@ -40,13 +41,9 @@ impl LibraryView {
 }
 
 impl PaneItem for LibraryView {
-    fn entity_id(&self) -> EntityId {
-        self.weak_self.entity_id()
-    }
+    fn entity_id(&self) -> EntityId { self.weak_self.entity_id() }
 
-    fn tab_title(&self) -> String {
-        "Library".to_string()
-    }
+    fn tab_title(&self) -> String { "Library".to_string() }
 
     fn to_any_view(&self) -> AnyView {
         self.weak_self
@@ -55,9 +52,7 @@ impl PaneItem for LibraryView {
             .expect("LibraryView should still be alive")
     }
 
-    fn can_close(&self) -> bool {
-        false
-    }
+    fn can_close(&self) -> bool { false }
 }
 
 impl Render for LibraryView {

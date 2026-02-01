@@ -14,7 +14,8 @@
 
 //! Core pane implementation for managing a single pane item.
 //!
-//! Simplified from multi-tab to single-view mode for this music player use case.
+//! Simplified from multi-tab to single-view mode for this music player use
+//! case.
 
 use gpui::{Context, IntoElement, ParentElement, Render, Styled};
 use yunara_ui::components::theme::ThemeExt;
@@ -23,7 +24,8 @@ use super::pane_item::PaneItemHandle;
 
 /// A pane that displays a single content view.
 ///
-/// Simplified from multi-tab to single-view mode for this music player use case.
+/// Simplified from multi-tab to single-view mode for this music player use
+/// case.
 pub struct Pane {
     /// Current item in this pane
     current_item: Option<PaneItemHandle>,
@@ -31,35 +33,23 @@ pub struct Pane {
 
 impl Pane {
     /// Creates a new empty pane.
-    pub fn new() -> Self {
-        Self { current_item: None }
-    }
+    pub fn new() -> Self { Self { current_item: None } }
 
     /// Navigates to a new item, replacing the current one.
-    pub fn navigate_to(&mut self, item: PaneItemHandle) {
-        self.current_item = Some(item);
-    }
+    pub fn navigate_to(&mut self, item: PaneItemHandle) { self.current_item = Some(item); }
 
     /// Returns the current item, if any.
-    pub fn current_item(&self) -> Option<&PaneItemHandle> {
-        self.current_item.as_ref()
-    }
+    pub fn current_item(&self) -> Option<&PaneItemHandle> { self.current_item.as_ref() }
 
     /// Returns whether this pane is empty.
-    pub fn is_empty(&self) -> bool {
-        self.current_item.is_none()
-    }
+    pub fn is_empty(&self) -> bool { self.current_item.is_none() }
 
     /// Clears the current item.
-    pub fn clear(&mut self) {
-        self.current_item = None;
-    }
+    pub fn clear(&mut self) { self.current_item = None; }
 }
 
 impl Default for Pane {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }
 
 impl Render for Pane {

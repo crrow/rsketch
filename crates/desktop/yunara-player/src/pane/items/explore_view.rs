@@ -16,9 +16,7 @@
 //!
 //! Displays discovery content, trending music, and recommendations.
 
-use gpui::{
-    AnyView, Context, EntityId, IntoElement, ParentElement, Render, Styled, WeakEntity,
-};
+use gpui::{AnyView, Context, EntityId, IntoElement, ParentElement, Render, Styled, WeakEntity};
 use yunara_ui::components::theme::ThemeExt;
 
 use crate::{app_state::AppState, pane::PaneItem};
@@ -40,13 +38,9 @@ impl ExploreView {
 }
 
 impl PaneItem for ExploreView {
-    fn entity_id(&self) -> EntityId {
-        self.weak_self.entity_id()
-    }
+    fn entity_id(&self) -> EntityId { self.weak_self.entity_id() }
 
-    fn tab_title(&self) -> String {
-        "Explore".to_string()
-    }
+    fn tab_title(&self) -> String { "Explore".to_string() }
 
     fn to_any_view(&self) -> AnyView {
         self.weak_self
@@ -55,9 +49,7 @@ impl PaneItem for ExploreView {
             .expect("ExploreView should still be alive")
     }
 
-    fn can_close(&self) -> bool {
-        false
-    }
+    fn can_close(&self) -> bool { false }
 }
 
 impl Render for ExploreView {
@@ -79,9 +71,9 @@ impl Render for ExploreView {
                     .child("Explore"),
             )
             .child(
-                gpui::div()
-                    .text_color(theme.text_secondary)
-                    .child("Discover new music, trending tracks, and personalized recommendations."),
+                gpui::div().text_color(theme.text_secondary).child(
+                    "Discover new music, trending tracks, and personalized recommendations.",
+                ),
             )
             .child(
                 gpui::div()

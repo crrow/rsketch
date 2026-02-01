@@ -16,7 +16,8 @@
 //!
 //! Manages the application layout:
 //! - Sidebar (left): Navigation and playlists
-//! - Center Pane: Main content (HomeView, ExploreView, LibraryView, PlaylistView)
+//! - Center Pane: Main content (HomeView, ExploreView, LibraryView,
+//!   PlaylistView)
 //! - Right Dock: Queue panel (collapsible)
 //! - Bottom Dock: Player bar (collapsible)
 
@@ -29,8 +30,12 @@ use yunara_ui::components::{layout::Header, theme::ThemeExt};
 use crate::{
     actions::NavigateAction,
     app_state::AppState,
+    consts,
     dock::{Dock, DockPanelHandle, DockPosition, panels::QueuePanel},
-    pane::{Pane, PaneItemHandle, items::{HomeView, ExploreView, LibraryView}},
+    pane::{
+        Pane, PaneItemHandle,
+        items::{ExploreView, HomeView, LibraryView},
+    },
     player_bar::PlayerBar,
     sidebar::Sidebar,
 };
@@ -149,12 +154,14 @@ impl Render for YunaraPlayer {
         let width_f32: f32 = viewport_size.width.into();
         let height_f32: f32 = viewport_size.height.into();
         let aspect_ratio = width_f32 / height_f32;
-        let show_right_on_side = aspect_ratio >= 1.5;
-
-        let header = Header::new("app-header").logo(yunara_assets::icons::LOGO_DARK);
+        let show_right_on_side = aspect_ratio >= consts::NARROW_LAYOUT_ASPECT_RATIO;
 
         // Sidebar width
         let sidebar_width = if width_f32 > 900.0 { 240.0 } else { 72.0 };
+
+        let header = Header::new("app-header")
+            .logo(yunara_assets::icons::LOGO_DARK)
+            .sidebar_width(sidebar_width);
 
         let main_content = gpui::div()
             .flex()

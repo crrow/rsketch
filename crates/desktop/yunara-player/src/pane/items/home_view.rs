@@ -18,8 +18,8 @@
 //! etc.
 
 use gpui::{
-    AnyView, Context, EntityId, IntoElement, ParentElement, Render, Styled, WeakEntity, px,
-    prelude::FluentBuilder,
+    AnyView, Context, EntityId, IntoElement, ParentElement, Render, Styled, WeakEntity,
+    prelude::FluentBuilder, px,
 };
 use yunara_ui::components::theme::ThemeExt;
 
@@ -67,7 +67,10 @@ impl Render for HomeView {
         let now_playing = player_state.now_playing.clone();
         drop(player_state);
 
-        let has_cover = now_playing.as_ref().and_then(|n| n.cover_url.as_ref()).is_some();
+        let has_cover = now_playing
+            .as_ref()
+            .and_then(|n| n.cover_url.as_ref())
+            .is_some();
         let cover_url = now_playing
             .as_ref()
             .and_then(|n| n.cover_url.as_ref())

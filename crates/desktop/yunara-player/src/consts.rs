@@ -14,3 +14,6 @@
 
 pub const YUNARA: &str = "Yunara";
 pub const YUNARA_DB_FILE: &str = "yunara.db";
+
+// Below this aspect ratio we switch to narrow layouts (phone-like).
+pub const NARROW_LAYOUT_ASPECT_RATIO: f32 = 0.8;

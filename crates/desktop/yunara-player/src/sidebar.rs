@@ -18,8 +18,8 @@
 //! optionally displays the user's playlists when the window is wide enough.
 
 use gpui::{
-    div, px, svg, Context, InteractiveElement, IntoElement, ParentElement, Render,
-    StatefulInteractiveElement, Styled, WeakEntity, Window, prelude::FluentBuilder,
+    Context, InteractiveElement, IntoElement, ParentElement, Render, StatefulInteractiveElement,
+    Styled, WeakEntity, Window, div, prelude::FluentBuilder, px, svg,
 };
 use yunara_ui::components::theme::ThemeExt;
 
@@ -36,17 +36,17 @@ pub enum NavItem {
 /// Layout mode for navigation items
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum NavItemMode {
-    Horizontal,  // Icon and text side by side
-    Compact,     // Icon on top, text below
+    Horizontal, // Icon and text side by side
+    Compact,    // Icon on top, text below
 }
 
 /// Sidebar component for navigation and playlist display.
 pub struct Sidebar {
-    weak_self: WeakEntity<Self>,
-    app_state: AppState,
+    weak_self:  WeakEntity<Self>,
+    app_state:  AppState,
     active_nav: NavItem,
     /// Reference to the workspace for navigation
-    workspace: Option<WeakEntity<crate::yunara_player::YunaraPlayer>>,
+    workspace:  Option<WeakEntity<crate::yunara_player::YunaraPlayer>>,
 }
 
 impl Sidebar {
@@ -66,9 +66,7 @@ impl Sidebar {
     }
 
     /// Sets the active navigation item.
-    pub fn set_active_nav(&mut self, nav: NavItem) {
-        self.active_nav = nav;
-    }
+    pub fn set_active_nav(&mut self, nav: NavItem) { self.active_nav = nav; }
 
     /// Handle navigation item click
     fn handle_nav_click(&mut self, nav: NavItem, cx: &mut Context<Self>) {
@@ -102,7 +100,11 @@ impl Sidebar {
         cx: &Context<Self>,
     ) -> impl IntoElement {
         let theme = cx.theme();
-        let selected_icon = if is_active { icon_filled_path } else { icon_path };
+        let selected_icon = if is_active {
+            icon_filled_path
+        } else {
+            icon_path
+        };
 
         div()
             .id(label)
@@ -123,6 +125,8 @@ impl Sidebar {
             .when(mode == NavItemMode::Horizontal, |el| {
                 // Horizontal: icon and text side by side
                 el.flex_row()
+                    .w_full()
+                    .justify_start()
                     .gap_3()
                     .px(px(12.0))
                     .py(px(10.0))
@@ -136,15 +140,23 @@ impl Sidebar {
                     .gap(px(4.0))
             })
             .child(
-                svg()
-                    .path(selected_icon)
-                    .text_color(if is_active {
-                        theme.text_primary
-                    } else {
-                        theme.text_secondary
-                    })
-                    .when(mode == NavItemMode::Horizontal, |el| el.size(px(24.0)))
-                    .when(mode == NavItemMode::Compact, |el| el.size(px(20.0))),
+                div()
+                    .w(px(24.0))
+                    .h(px(24.0))
+                    .flex()
+                    .items_center()
+                    .justify_center()
+                    .child(
+                        svg()
+                            .path(selected_icon)
+                            .text_color(if is_active {
+                                theme.text_primary
+                            } else {
+                                theme.text_secondary
+                            })
+                            .when(mode == NavItemMode::Horizontal, |el| el.size(px(24.0)))
+                            .when(mode == NavItemMode::Compact, |el| el.size(px(20.0))),
+                    ),
             )
             .child(
                 div()
@@ -157,7 +169,6 @@ impl Sidebar {
                     .child(label),
             )
     }
-
 }
 
 impl Render for Sidebar {
@@ -167,14 +178,16 @@ impl Render for Sidebar {
         let viewport_width: f32 = viewport_size.width.into();
         let viewport_height: f32 = viewport_size.height.into();
 
-        // Determine layout mode based on viewport dimensions
-        let nav_mode = if viewport_width >= viewport_height {
+        // Determine layout mode based on viewport aspect ratio
+        let aspect_ratio = viewport_width / viewport_height;
+        let nav_mode = if aspect_ratio >= crate::consts::NARROW_LAYOUT_ASPECT_RATIO {
             NavItemMode::Horizontal
         } else {
             NavItemMode::Compact
         };
 
-        let show_playlists = viewport_width >= viewport_height && viewport_width > 900.0;
+        let show_playlists =
+            aspect_ratio >= crate::consts::NARROW_LAYOUT_ASPECT_RATIO && viewport_width > 900.0;
 
         let active_nav = self.active_nav;
         let weak_self = self.weak_self.clone();
@@ -190,8 +203,9 @@ impl Render for Sidebar {
                 div()
                     .flex()
                     .flex_col()
-                    .items_center()
+                    .items_start()
                     .py(px(8.0))
+                    .when(show_playlists, |el| el.pb(px(8.0)))
                     .child(Self::render_nav_item(
                         NavItem::Home,
                         yunara_assets::icons::HOME,
@@ -231,6 +245,14 @@ impl Render for Sidebar {
                         .flex_col()
                         .flex_1()
                         .overflow_hidden()
+                        // Divider between nav and playlists
+                        .child(
+                            div()
+                                .h(px(1.0))
+                                .bg(theme.border)
+                                .mx(px(12.0))
+                                .my(px(12.0)),
+                        )
                         // New playlist button
                         .child(
                             div()
