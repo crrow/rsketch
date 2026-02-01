@@ -26,15 +26,23 @@ pub mod icons {
     pub const EXPLORE: &str = "icons/explore.svg";
     pub const LIBRARY: &str = "icons/library.svg";
 
+    // Navigation icons - filled versions for active state
+    pub const HOME_FILLED: &str = "icons/home-filled.svg";
+    pub const EXPLORE_FILLED: &str = "icons/explore-filled.svg";
+    pub const LIBRARY_FILLED: &str = "icons/library-filled.svg";
+
+    // Header icons
+    pub const MENU: &str = "icons/menu.svg";
+
     // Volume control icons (SVG)
     pub const VOLUME: &str = "icons/volume.svg";
     pub const VOLUME_MUTED: &str = "icons/volume-muted.svg";
 
-    // Playback control icons (PNG)
-    pub const MEDIA_PREVIOUS: &str = "icons/media-icons-black/previous.png";
-    pub const MEDIA_PLAY: &str = "icons/media-icons-black/play.png";
-    pub const MEDIA_PAUSE: &str = "icons/media-icons-black/pause.png";
-    pub const MEDIA_NEXT: &str = "icons/media-icons-black/next.png";
+    // Playback control icons (SVG)
+    pub const MEDIA_PREVIOUS: &str = "icons/media-previous.svg";
+    pub const MEDIA_PLAY: &str = "icons/media-play.svg";
+    pub const MEDIA_PAUSE: &str = "icons/media-pause.svg";
+    pub const MEDIA_NEXT: &str = "icons/media-next.svg";
 }
 
 #[derive(RustEmbed)]

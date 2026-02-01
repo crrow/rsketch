@@ -87,7 +87,7 @@ impl YunaraPlayer {
         // Create bottom dock with PlayerBar
         let bottom_dock = cx.new(|_cx| {
             let mut dock = Dock::new(DockPosition::Bottom);
-            dock.set_size(90.0); // PlayerBar height
+            dock.set_size(72.0); // PlayerBar height
             dock
         });
         let player_bar = cx.new(|cx| PlayerBar::new(app_state.clone(), cx));
@@ -214,13 +214,17 @@ impl Render for YunaraPlayer {
             .w_full()
             .h_full()
             .bg(theme.background_primary)
-            .child(header)
+            .child(
+                gpui::div()
+                    .when(cfg!(target_os = "macos"), |el| el.pt(px(28.0)))
+                    .child(header),
+            )
             .child(content)
             // Bottom dock (PlayerBar) - wrap in fixed height container
             .child(
                 gpui::div()
                     .w_full()
-                    .h(px(90.0))
+                    .h(px(72.0))
                     .child(gpui::AnyView::from(self.bottom_dock.clone())),
             )
     }

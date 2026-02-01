@@ -72,9 +72,9 @@ impl ThemeConfig {
     /// accent.
     pub fn ytmusic_dark() -> Self {
         Self {
-            background_primary:   rgba_from_hex(0x121212),
-            background_secondary: rgba_from_hex(0x1d1d1d),
-            background_elevated:  rgba_from_hex(0x282828),
+            background_primary:   rgba_from_hex(0x030303),
+            background_secondary: rgba_from_hex(0x151515),
+            background_elevated:  rgba_from_hex(0x1f1f1f),
 
             text_primary:   rgba_from_hex(0xffffff),
             text_secondary: rgba_from_hex(0xa0a0a0),
@@ -83,11 +83,11 @@ impl ThemeConfig {
             accent:       rgba_from_hex(0xff0000),
             accent_hover: rgba_from_hex(0xcc0000),
 
-            hover:  rgba_from_hex(0x2a2a2a),
-            active: rgba_from_hex(0x3a3a3a),
-            border: rgba_from_hex(0x3a3a3a),
+            hover:  rgba_from_hex(0x232323),
+            active: rgba_from_hex(0x2a2a2a),
+            border: rgba_from_hex(0x2a2a2a),
 
-            progress_track: rgba_from_hex(0x4a4a4a),
+            progress_track: rgba_from_hex(0x3a3a3a),
             progress_fill:  rgba_from_hex(0xff0000),
         }
     }

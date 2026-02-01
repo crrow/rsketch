@@ -102,12 +102,16 @@ impl Render for PlayerBar {
                     .w(px(size))
                     .h(px(size))
                     .rounded_full()
-                    .bg(theme.text_primary)
                     .flex()
                     .items_center()
                     .justify_center()
                     .cursor_pointer()
-                    .child(img(icon_path).w(px(inner_size)).h(px(inner_size)))
+                    .child(
+                        svg()
+                            .path(icon_path)
+                            .size(px(inner_size))
+                            .text_color(theme.text_primary),
+                    )
             };
 
         // Mute toggle handler
@@ -116,7 +120,7 @@ impl Render for PlayerBar {
 
         div()
             .id("player-bar")
-            .h(px(90.0))
+            .h(px(72.0))
             .flex()
             .flex_col()
             .bg(theme.background_secondary)
@@ -138,122 +142,112 @@ impl Render for PlayerBar {
             .child(
                 div()
                     .flex_1()
-                    .px(px(16.0))
                     .flex()
                     .items_center()
-                    // Left: Album art + song info
+                    // Left: Playback controls
                     .child(
                         div()
-                            .w(px(200.0))
                             .flex()
                             .items_center()
-                            .gap_3()
-                            // Cover art
-                            .child(
-                                div()
-                                    .w(px(56.0))
-                                    .h(px(56.0))
-                                    .rounded(px(4.0))
-                                    .bg(theme.background_elevated)
-                                    .flex()
-                                    .items_center()
-                                    .justify_center()
-                                    .text_color(theme.text_muted)
-                                    .when(has_track && now_playing.as_ref().and_then(|n| n.cover_url.as_ref()).is_none(), |el| el.child("♪"))
-                                    .when_some(now_playing.as_ref().and_then(|n| n.cover_url.as_ref()), |el, url| {
-                                        el.child(
-                                            img(url.clone())
-                                                .w(px(56.0))
-                                                .h(px(56.0))
-                                                .rounded(px(4.0)),
-                                        )
-                                    }),
-                            )
-                            // Track info
-                            .child(
-                                div()
-                                    .flex()
-                                    .flex_col()
-                                    .overflow_hidden()
-                                    .when_some(now_playing.as_ref().map(|n| &n.track_title), |el, title| {
-                                        el.child(
-                                            div()
-                                                .text_color(theme.text_primary)
-                                                .text_sm()
-                                                .overflow_hidden()
-                                                .text_ellipsis()
-                                                .child(title.clone()),
-                                        )
-                                    })
-                                    .when_some(now_playing.as_ref().map(|n| &n.artist_name), |el, artist| {
-                                        el.child(
-                                            div()
-                                                .text_xs()
-                                                .text_color(theme.text_secondary)
-                                                .overflow_hidden()
-                                                .text_ellipsis()
-                                                .child(artist.clone()),
-                                        )
-                                    }),
-                            ),
+                            .justify_center()
+                            .w(px(200.0))
+                            .gap_4()
+                            .child(control_button(
+                                "prev-btn",
+                                yunara_assets::icons::MEDIA_PREVIOUS,
+                                36.0,
+                                22.0,
+                            ))
+                            .child(control_button(
+                                "play-btn",
+                                if is_playing {
+                                    yunara_assets::icons::MEDIA_PAUSE
+                                } else {
+                                    yunara_assets::icons::MEDIA_PLAY
+                                },
+                                44.0,
+                                28.0,
+                            ))
+                            .child(control_button(
+                                "next-btn",
+                                yunara_assets::icons::MEDIA_NEXT,
+                                36.0,
+                                22.0,
+                            )),
                     )
-                    // Center: Playback controls + time
+                    // Center: Album art + song info
                     .child(
                         div()
                             .flex_1()
                             .flex()
-                            .flex_col()
                             .items_center()
-                            .gap_1()
-                            // Controls row
+                            .justify_center()
+                            .gap_3()
+                            .px(px(16.0))
                             .child(
                                 div()
                                     .flex()
                                     .items_center()
-                                    .gap_4()
-                                    .child(control_button(
-                                        "prev-btn",
-                                        yunara_assets::icons::MEDIA_PREVIOUS,
-                                        32.0,
-                                        16.0,
-                                    ))
-                                    .child(control_button(
-                                        "play-btn",
-                                        if is_playing {
-                                            yunara_assets::icons::MEDIA_PAUSE
-                                        } else {
-                                            yunara_assets::icons::MEDIA_PLAY
-                                        },
-                                        40.0,
-                                        20.0,
-                                    ))
-                                    .child(control_button(
-                                        "next-btn",
-                                        yunara_assets::icons::MEDIA_NEXT,
-                                        32.0,
-                                        16.0,
-                                    )),
-                            )
-                            // Time display
-                            .child(
-                                div()
-                                    .flex()
-                                    .items_center()
-                                    .gap_2()
-                                    .text_xs()
-                                    .text_color(theme.text_muted)
-                                    .child(current_str)
-                                    .child("/")
-                                    .child(total_str),
+                                    .gap_3()
+                                    // Cover art
+                                    .child(
+                                        div()
+                                            .w(px(48.0))
+                                            .h(px(48.0))
+                                            .rounded(px(4.0))
+                                            .bg(theme.background_elevated)
+                                            .flex()
+                                            .items_center()
+                                            .justify_center()
+                                            .text_color(theme.text_muted)
+                                            .when(has_track && now_playing.as_ref().and_then(|n| n.cover_url.as_ref()).is_none(), |el| el.child("♪"))
+                                            .when_some(now_playing.as_ref().and_then(|n| n.cover_url.as_ref()), |el, url| {
+                                                el.child(
+                                                    img(url.clone())
+                                                        .w(px(48.0))
+                                                        .h(px(48.0))
+                                                        .rounded(px(4.0)),
+                                                )
+                                            }),
+                                    )
+                                    // Track info
+                                    .child(
+                                        div()
+                                            .flex()
+                                            .flex_col()
+                                            .overflow_hidden()
+                                            .when_some(now_playing.as_ref().map(|n| &n.track_title), |el, title| {
+                                                el.child(
+                                                    div()
+                                                        .text_color(theme.text_primary)
+                                                        .text_sm()
+                                                        .overflow_hidden()
+                                                        .text_ellipsis()
+                                                        .child(title.clone()),
+                                                )
+                                            })
+                                            .when_some(now_playing.as_ref().map(|n| &n.artist_name), |el, artist| {
+                                                el.child(
+                                                    div()
+                                                        .text_xs()
+                                                        .text_color(theme.text_secondary)
+                                                        .overflow_hidden()
+                                                        .text_ellipsis()
+                                                        .child(artist.clone()),
+                                                )
+                                            }),
+                                    ),
                             ),
                     )
-                    // Right: Volume control (slider appears on hover)
+                    // Right: Volume control
                     .child(
                         div()
                             .id("volume-control")
                             .flex()
                             .items_center()
                             .justify_end()
+                            .w(px(200.0))
+                            .pr(px(16.0))
                             .gap_2()
                             .group("volume")
                             // Volume slider - hidden by default, shown on hover

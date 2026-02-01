@@ -16,7 +16,10 @@
 ///
 /// Contains the top navigation bar with hamburger menu, logo, search bar,
 /// and navigation controls.
-use gpui::{App, ElementId, IntoElement, ParentElement, Styled, Window, div, img, prelude::*, px};
+use gpui::{
+    App, ElementId, IntoElement, ParentElement, Styled, Window, div, img, prelude::*,
+    px, svg,
+};
 
 use crate::components::theme::ThemeExt;
 
@@ -75,10 +78,18 @@ impl RenderOnce for Header {
             // Hamburger menu
             .child(
                 div()
-                    .text_color(theme.text_primary)
-                    .text_xl()
+                    .w(px(24.0))
+                    .h(px(24.0))
+                    .flex()
+                    .items_center()
+                    .justify_center()
                     .cursor_pointer()
-                    .child("≡"),
+                    .child(
+                        svg()
+                            .path(yunara_assets::icons::MENU)
+                            .size(px(22.0))
+                            .text_color(theme.text_primary),
+                    ),
             )
             // Logo
             .when_some(self.logo_path, |el, path| {
