@@ -19,7 +19,7 @@
 
 use gpui::{
     Context, InteractiveElement, IntoElement, ParentElement, Render, StatefulInteractiveElement,
-    Styled, WeakEntity, Window, div, prelude::FluentBuilder, px, svg,
+    Styled, WeakEntity, Window, div, img, prelude::FluentBuilder, px, svg,
 };
 use yunara_ui::components::theme::ThemeExt;
 
@@ -198,6 +198,31 @@ impl Render for Sidebar {
             .h_full()
             .bg(theme.background_primary)
             .overflow_hidden()
+            // Brand header (menu + logo)
+            .child(
+                div()
+                    .h(px(56.0))
+                    .flex()
+                    .items_center()
+                    .gap_4()
+                    .px(px(12.0))
+                    .child(
+                        div()
+                            .w(px(24.0))
+                            .h(px(24.0))
+                            .flex()
+                            .items_center()
+                            .justify_center()
+                            .cursor_pointer()
+                            .child(
+                                svg()
+                                    .path(yunara_assets::icons::MENU)
+                                    .size(px(22.0))
+                                    .text_color(theme.text_primary),
+                            ),
+                    )
+                    .child(img(yunara_assets::icons::LOGO_DARK).w(px(77.0)).h(px(26.0))),
+            )
             // Navigation section
             .child(
                 div()

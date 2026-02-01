@@ -159,10 +159,6 @@ impl Render for YunaraPlayer {
         // Sidebar width
         let sidebar_width = if width_f32 > 900.0 { 240.0 } else { 72.0 };
 
-        let header = Header::new("app-header")
-            .logo(yunara_assets::icons::LOGO_DARK)
-            .sidebar_width(sidebar_width);
-
         let main_content = gpui::div()
             .flex()
             .flex_1()
@@ -172,25 +168,41 @@ impl Render for YunaraPlayer {
                 gpui::div()
                     .w(px(sidebar_width))
                     .h_full()
+                    .when(cfg!(target_os = "macos"), |el| el.pt(px(28.0)))
                     .child(gpui::AnyView::from(self.sidebar.clone())),
             )
-            // Center pane
+            // Center + Right (header above, content below)
             .child(
                 gpui::div()
                     .flex_1()
                     .h_full()
                     .bg(theme.background_primary)
-                    .child(gpui::AnyView::from(self.center.clone())),
-            )
-            // Right dock (when showing on side)
-            .when(show_right_on_side, |div| {
-                div.child(
-                    gpui::div()
-                        .w(px(320.0))
-                        .h_full()
-                        .child(gpui::AnyView::from(self.right_dock.clone())),
-                )
-            });
+                    .when(cfg!(target_os = "macos"), |el| el.pt(px(28.0)))
+                    .child(Header::new("app-header"))
+                    .child(
+                        gpui::div()
+                            .flex_1()
+                            .flex()
+                            .overflow_hidden()
+                            // Center pane
+                            .child(
+                                gpui::div()
+                                    .flex_1()
+                                    .h_full()
+                                    .bg(theme.background_primary)
+                                    .child(gpui::AnyView::from(self.center.clone())),
+                            )
+                            // Right dock (when showing on side)
+                            .when(show_right_on_side, |div| {
+                                div.child(
+                                    gpui::div()
+                                        .w(px(320.0))
+                                        .h_full()
+                                        .child(gpui::AnyView::from(self.right_dock.clone())),
+                                )
+                            }),
+                    ),
+            );
 
         let content = if show_right_on_side {
             // Wide layout: sidebar | center | right
@@ -221,11 +233,6 @@ impl Render for YunaraPlayer {
             .w_full()
             .h_full()
             .bg(theme.background_primary)
-            .child(
-                gpui::div()
-                    .when(cfg!(target_os = "macos"), |el| el.pt(px(28.0)))
-                    .child(header),
-            )
             .child(content)
             // Bottom dock (PlayerBar) - wrap in fixed height container
             .child(
