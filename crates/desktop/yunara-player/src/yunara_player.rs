@@ -32,7 +32,7 @@ use crate::{
     dock::{Dock, DockPanelHandle, DockPosition, panels::QueuePanel},
     pane::{Pane, PaneItemHandle, items::{HomeView, ExploreView, LibraryView}},
     player_bar::PlayerBar,
-    sidebar::{NavItem, Sidebar},
+    sidebar::Sidebar,
 };
 
 /// Main application workspace.
@@ -113,21 +113,21 @@ impl YunaraPlayer {
                 let home_view = cx.new(|cx| HomeView::new(app_state, cx));
                 let handle = home_view.update(cx, |view, _| PaneItemHandle::new(view));
                 self.center.update(cx, |pane, _| pane.navigate_to(handle));
-                self.sidebar.update(cx, |sidebar, _| sidebar.set_active_nav(NavItem::Home));
+                // Note: Sidebar sets its own active_nav in handle_nav_click
             }
             NavigateAction::Explore => {
                 let explore_view = cx.new(|cx| ExploreView::new(app_state, cx));
                 let handle = explore_view.update(cx, |view, _| PaneItemHandle::new(view));
                 self.center.update(cx, |pane, _| pane.navigate_to(handle));
-                self.sidebar.update(cx, |sidebar, _| sidebar.set_active_nav(NavItem::Explore));
+                // Note: Sidebar sets its own active_nav in handle_nav_click
             }
             NavigateAction::Library => {
                 let library_view = cx.new(|cx| LibraryView::new(app_state, cx));
                 let handle = library_view.update(cx, |view, _| PaneItemHandle::new(view));
                 self.center.update(cx, |pane, _| pane.navigate_to(handle));
-                self.sidebar.update(cx, |sidebar, _| sidebar.set_active_nav(NavItem::Library));
+                // Note: Sidebar sets its own active_nav in handle_nav_click
             }
-            NavigateAction::Playlist { id, name } => {
+            NavigateAction::Playlist { id: _, name: _ } => {
                 // TODO: Create PlaylistView with proper parameters
                 // For now, navigate to Library view as placeholder
                 let library_view = cx.new(|cx| LibraryView::new(app_state, cx));
