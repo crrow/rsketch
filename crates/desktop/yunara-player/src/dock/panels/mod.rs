@@ -12,10 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Concrete implementations of dock panels.
+//! Dock panel implementations.
 
-pub mod library_panel;
-pub mod queue_panel;
+mod queue_panel;
 
-pub use library_panel::LibraryPanel;
 pub use queue_panel::QueuePanel;

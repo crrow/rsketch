@@ -41,7 +41,9 @@ use tracing_appender::{
     rolling::{RollingFileAppender, Rotation},
 };
 use tracing_log::LogTracer;
-use tracing_subscriber::{EnvFilter, Registry, filter, layer::SubscriberExt, prelude::*};
+use tracing_subscriber::{
+    EnvFilter, Registry, filter, fmt::format::FmtSpan, layer::SubscriberExt, prelude::*,
+};
 
 use crate::tracing_sampler::{TracingSampleOptions, create_sampler};
 
@@ -474,6 +476,7 @@ pub fn init_global_logging(
                         .with_ansi(std::io::stdout().is_terminal())
                         .with_current_span(true)
                         .with_span_list(true)
+                        .with_span_events(FmtSpan::CLOSE)
                         .boxed(),
                 )
             } else {
@@ -481,6 +484,7 @@ pub fn init_global_logging(
                     tracing_subscriber::fmt::Layer::new()
                         .with_writer(writer)
                         .with_ansi(std::io::stdout().is_terminal())
+                        .with_span_events(FmtSpan::CLOSE)
                         .boxed(),
                 )
             }
@@ -513,6 +517,7 @@ pub fn init_global_logging(
                         .with_ansi(false)
                         .with_current_span(true)
                         .with_span_list(true)
+                        .with_span_events(FmtSpan::CLOSE)
                         .boxed(),
                 )
             } else {
@@ -520,6 +525,7 @@ pub fn init_global_logging(
                     tracing_subscriber::fmt::Layer::new()
                         .with_writer(writer)
                         .with_ansi(false)
+                        .with_span_events(FmtSpan::CLOSE)
                         .boxed(),
                 )
             }

@@ -21,7 +21,7 @@ use yunara_store::{
     kv::{IdType, KVStoreExt, KeyRequest},
 };
 
-use crate::{config::AppConfig, state::PlayerState};
+use crate::{config::AppConfig, state::PlayerState, ytapi::client::ApiClient};
 
 /// Application state that holds the lifecycle of the desktop application
 ///
@@ -46,6 +46,8 @@ impl AppState {
     pub fn db(&self) -> DBStore { self.inner.db.clone() }
 
     pub fn player_state(&self) -> &RwLock<PlayerState> { &self.inner.player_state }
+
+    pub fn api_client(&self) -> ApiClient { self.inner.api_client.clone() }
 }
 
 struct AppStateInner {
@@ -54,6 +56,7 @@ struct AppStateInner {
     keys:         HashMap<String, IdType>,
     session_id:   uuid::Uuid,
     player_state: RwLock<PlayerState>,
+    api_client:   ApiClient,
 }
 
 impl AppState {
@@ -71,6 +74,14 @@ impl AppState {
         let key_requests: Vec<KeyRequest> = IdentifierKey::iter().map(|k| k.into()).collect();
         let key_map = db.kv_store().batch_get_or_init_keys(key_requests).await?;
 
+        // Initialize API client with Browser auth
+        let api_client = ApiClient::open(
+            crate::ytapi::AuthType::Browser,
+            &yunara_paths::config_dir(),
+            std::time::Duration::from_secs(10),
+        )
+        .await?;
+
         Ok(Self {
             inner: Arc::new(AppStateInner {
                 config,
@@ -78,6 +89,7 @@ impl AppState {
                 keys: key_map,
                 session_id: uuid::Uuid::new_v4(),
                 player_state: RwLock::new(PlayerState::new()),
+                api_client,
             }),
         })
     }
