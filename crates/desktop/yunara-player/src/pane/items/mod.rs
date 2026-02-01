@@ -12,10 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Concrete implementations of pane items.
+//! Pane item implementations.
 
-pub mod home_view;
-pub mod playlist_view;
+mod explore_view;
+mod home_view;
+mod library_view;
+mod playlist_view;
 
+pub use explore_view::ExploreView;
 pub use home_view::HomeView;
+pub use library_view::LibraryView;
 pub use playlist_view::PlaylistView;
