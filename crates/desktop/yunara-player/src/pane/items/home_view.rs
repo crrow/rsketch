@@ -19,6 +19,7 @@
 
 use gpui::{
     AnyView, Context, EntityId, IntoElement, ParentElement, Render, Styled, WeakEntity, px,
+    prelude::FluentBuilder,
 };
 use yunara_ui::components::theme::ThemeExt;
 
@@ -60,6 +61,17 @@ impl PaneItem for HomeView {
 impl Render for HomeView {
     fn render(&mut self, _window: &mut gpui::Window, cx: &mut Context<Self>) -> impl IntoElement {
         let theme = cx.theme();
+
+        // Read current playing state
+        let player_state = self.app_state.player_state().read();
+        let now_playing = player_state.now_playing.clone();
+        drop(player_state);
+
+        let has_cover = now_playing.as_ref().and_then(|n| n.cover_url.as_ref()).is_some();
+        let cover_url = now_playing
+            .as_ref()
+            .and_then(|n| n.cover_url.as_ref())
+            .cloned();
 
         // Song/Video toggle tab
         let toggle_tab = |label: &'static str, active: bool| {
@@ -115,30 +127,54 @@ impl Render for HomeView {
                             .items_center()
                             .justify_center()
                             .text_color(theme.text_muted)
-                            .child("Album artwork"),
+                            .when(has_cover, |el| {
+                                if let Some(url) = cover_url {
+                                    el.child(
+                                        gpui::img(url)
+                                            .w(px(380.0))
+                                            .h(px(380.0))
+                                            .rounded(px(8.0)),
+                                    )
+                                } else {
+                                    el
+                                }
+                            })
+                            .when(!has_cover, |el| el.child("♪")),
                     ),
             )
             // Song info below artwork
-            .child(
-                gpui::div()
+            .child({
+                let mut info_div = gpui::div()
                     .flex()
                     .flex_col()
                     .items_center()
                     .gap_1()
-                    .pb(px(16.0))
-                    .child(
+                    .pb(px(16.0));
+
+                if let Some(info) = now_playing.as_ref() {
+                    info_div = info_div
+                        .child(
+                            gpui::div()
+                                .text_lg()
+                                .font_weight(gpui::FontWeight::BOLD)
+                                .text_color(theme.text_primary)
+                                .child(info.track_title.clone()),
+                        )
+                        .child(
+                            gpui::div()
+                                .text_sm()
+                                .text_color(theme.text_secondary)
+                                .child(info.artist_name.clone()),
+                        );
+                } else {
+                    info_div = info_div.child(
                         gpui::div()
-                            .text_lg()
-                            .font_weight(gpui::FontWeight::BOLD)
-                            .text_color(theme.text_primary)
-                            .child("逆転劇 - Gyakutengeki"),
-                    )
-                    .child(
-                        gpui::div()
-                            .text_sm()
-                            .text_color(theme.text_secondary)
-                            .child("Tsukuyomi • Gyakutengeki • 2023"),
-                    ),
-            )
+                            .text_color(theme.text_muted)
+                            .child("No track playing"),
+                    );
+                }
+
+                info_div
+            })
     }
 }

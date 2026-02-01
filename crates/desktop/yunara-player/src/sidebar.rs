@@ -83,7 +83,7 @@ impl Sidebar {
         cx.notify();
     }
 
-    /// Render a navigation item
+    /// Render a navigation item with icon and label
     fn render_nav_item(
         nav: NavItem,
         icon_path: &'static str,
@@ -132,13 +132,59 @@ impl Sidebar {
                     .child(label),
             )
     }
+
+    /// Render a navigation item with icon only (for narrow mode)
+    fn render_nav_icon_only(
+        nav: NavItem,
+        icon_path: &'static str,
+        is_active: bool,
+        weak_self: WeakEntity<Self>,
+        cx: &Context<Self>,
+    ) -> impl IntoElement {
+        let theme = cx.theme();
+
+        div()
+            .id(format!("{:?}", nav))
+            .flex()
+            .items_center()
+            .justify_center()
+            .w(px(56.0))
+            .h(px(56.0))
+            .rounded(px(8.0))
+            .cursor_pointer()
+            .when(is_active, |el| el.bg(theme.active))
+            .hover(|style| style.bg(theme.hover))
+            .on_click(move |_event, _window, cx| {
+                weak_self
+                    .update(cx, |sidebar, cx| {
+                        sidebar.handle_nav_click(nav, cx);
+                    })
+                    .ok();
+            })
+            .child(
+                svg()
+                    .path(icon_path)
+                    .size(px(24.0))
+                    .text_color(if is_active {
+                        theme.text_primary
+                    } else {
+                        theme.text_secondary
+                    }),
+            )
+    }
 }
 
 impl Render for Sidebar {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let theme = cx.theme();
-        let viewport_width: f32 = window.viewport_size().width.into();
-        let show_playlists = viewport_width > 900.0;
+        let viewport_size = window.viewport_size();
+        let viewport_width: f32 = viewport_size.width.into();
+        let viewport_height: f32 = viewport_size.height.into();
+
+        // Show text labels when width >= height (landscape or square)
+        // Hide text labels when height > width (portrait)
+        let show_labels = viewport_width >= viewport_height;
+        let show_playlists = show_labels && viewport_width > 900.0;
 
         let active_nav = self.active_nav;
         let weak_self = self.weak_self.clone();
@@ -147,38 +193,66 @@ impl Render for Sidebar {
             .flex()
             .flex_col()
             .h_full()
-            .bg(theme.background_secondary)
+            .bg(theme.background_primary)
             .overflow_hidden()
             // Navigation section
             .child(
                 div()
                     .flex()
                     .flex_col()
+                    .items_center()
                     .py(px(8.0))
-                    .child(Self::render_nav_item(
-                        NavItem::Home,
-                        yunara_assets::icons::HOME,
-                        "Home",
-                        active_nav == NavItem::Home,
-                        weak_self.clone(),
-                        cx,
-                    ))
-                    .child(Self::render_nav_item(
-                        NavItem::Explore,
-                        yunara_assets::icons::EXPLORE,
-                        "Explore",
-                        active_nav == NavItem::Explore,
-                        weak_self.clone(),
-                        cx,
-                    ))
-                    .child(Self::render_nav_item(
-                        NavItem::Library,
-                        yunara_assets::icons::LIBRARY,
-                        "Library",
-                        active_nav == NavItem::Library,
-                        weak_self,
-                        cx,
-                    )),
+                    .when(show_labels, |el| {
+                        // Wide mode: show icon + label
+                        el.child(Self::render_nav_item(
+                            NavItem::Home,
+                            yunara_assets::icons::HOME,
+                            "Home",
+                            active_nav == NavItem::Home,
+                            weak_self.clone(),
+                            cx,
+                        ))
+                        .child(Self::render_nav_item(
+                            NavItem::Explore,
+                            yunara_assets::icons::EXPLORE,
+                            "Explore",
+                            active_nav == NavItem::Explore,
+                            weak_self.clone(),
+                            cx,
+                        ))
+                        .child(Self::render_nav_item(
+                            NavItem::Library,
+                            yunara_assets::icons::LIBRARY,
+                            "Library",
+                            active_nav == NavItem::Library,
+                            weak_self.clone(),
+                            cx,
+                        ))
+                    })
+                    .when(!show_labels, |el| {
+                        // Narrow mode: only icons
+                        el.child(Self::render_nav_icon_only(
+                            NavItem::Home,
+                            yunara_assets::icons::HOME,
+                            active_nav == NavItem::Home,
+                            weak_self.clone(),
+                            cx,
+                        ))
+                        .child(Self::render_nav_icon_only(
+                            NavItem::Explore,
+                            yunara_assets::icons::EXPLORE,
+                            active_nav == NavItem::Explore,
+                            weak_self.clone(),
+                            cx,
+                        ))
+                        .child(Self::render_nav_icon_only(
+                            NavItem::Library,
+                            yunara_assets::icons::LIBRARY,
+                            active_nav == NavItem::Library,
+                            weak_self.clone(),
+                            cx,
+                        ))
+                    }),
             )
             // Playlists section (only when expanded)
             .when(show_playlists, |el| {
