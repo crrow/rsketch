@@ -216,7 +216,12 @@ impl Render for YunaraPlayer {
             .bg(theme.background_primary)
             .child(header)
             .child(content)
-            // Bottom dock (PlayerBar)
-            .child(gpui::AnyView::from(self.bottom_dock.clone()))
+            // Bottom dock (PlayerBar) - wrap in fixed height container
+            .child(
+                gpui::div()
+                    .w_full()
+                    .h(px(90.0))
+                    .child(gpui::AnyView::from(self.bottom_dock.clone())),
+            )
     }
 }
