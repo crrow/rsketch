@@ -17,7 +17,7 @@
 //! The sidebar shows navigation items (Home, Explore, Library) and
 //! optionally displays the user's playlists when the window is wide enough.
 
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use gpui::{
     Context, ElementId, InteractiveElement, IntoElement, ParentElement, Render, ScrollHandle,
@@ -51,7 +51,10 @@ pub struct Sidebar {
     active_nav: NavItem,
     active_playlist_id: Option<String>,
     playlist_scrollbar_visible: bool,
-    playlist_scroll_generation: u64,
+    playlist_scroll_animating: bool,
+    playlist_scroll_last_at: Option<Instant>,
+    playlist_thumb_top: f32,
+    playlist_thumb_height: f32,
     playlist_scroll_handle: ScrollHandle,
     /// Reference to the workspace for navigation
     workspace:  Option<WeakEntity<crate::yunara_player::YunaraPlayer>>,
@@ -66,7 +69,10 @@ impl Sidebar {
             active_nav: NavItem::Home,
             active_playlist_id: None,
             playlist_scrollbar_visible: false,
-            playlist_scroll_generation: 0,
+            playlist_scroll_animating: false,
+            playlist_scroll_last_at: None,
+            playlist_thumb_top: 0.0,
+            playlist_thumb_height: 0.0,
             playlist_scroll_handle: ScrollHandle::new(),
             workspace: None,
         }
@@ -86,20 +92,71 @@ impl Sidebar {
 
     fn note_playlist_scroll(&mut self, cx: &mut Context<Self>) {
         self.playlist_scrollbar_visible = true;
-        self.playlist_scroll_generation = self.playlist_scroll_generation.wrapping_add(1);
-        let generation = self.playlist_scroll_generation;
+        self.playlist_scroll_last_at = Some(Instant::now());
         cx.notify();
 
+        if self.playlist_scroll_animating {
+            return;
+        }
+
+        self.playlist_scroll_animating = true;
         cx.spawn(async move |this, cx| {
-            cx.background_executor()
-                .timer(Duration::from_millis(120))
-                .await;
-            let _ = this.update(cx, |sidebar, cx| {
-                if sidebar.playlist_scroll_generation == generation {
-                    sidebar.playlist_scrollbar_visible = false;
+            let tick = Duration::from_millis(16);
+            loop {
+                cx.background_executor().timer(tick).await;
+
+                let mut should_stop = false;
+                let _ = this.update(cx, |sidebar, cx| {
+                    let bounds = sidebar.playlist_scroll_handle.bounds();
+                    let max_offset = sidebar.playlist_scroll_handle.max_offset();
+                    let viewport_height = f32::from(bounds.size.height);
+                    let content_height = f32::from(max_offset.height + bounds.size.height);
+
+                    if viewport_height <= 0.0 || content_height <= viewport_height {
+                        sidebar.playlist_scrollbar_visible = false;
+                        sidebar.playlist_scroll_animating = false;
+                        sidebar.playlist_thumb_height = 0.0;
+                        sidebar.playlist_thumb_top = 0.0;
+                        should_stop = true;
+                        cx.notify();
+                        return;
+                    }
+
+                    let thumb_height = viewport_height / 3.0;
+                    let track_height = (viewport_height - thumb_height).max(0.0);
+                    let scroll_offset =
+                        -f32::from(sidebar.playlist_scroll_handle.offset().y);
+                    let max_offset_y = f32::from(max_offset.height);
+                    let scroll_ratio = if max_offset_y > 0.0 {
+                        (scroll_offset / max_offset_y).clamp(0.0, 1.0)
+                    } else {
+                        0.0
+                    };
+                    let target_top = scroll_ratio * track_height;
+                    let current_top = sidebar.playlist_thumb_top;
+                    let new_top = current_top + (target_top - current_top) * 0.2;
+
+                    sidebar.playlist_thumb_height = thumb_height;
+                    sidebar.playlist_thumb_top = new_top;
+                    sidebar.playlist_scrollbar_visible = true;
+
+                    let idle = sidebar
+                        .playlist_scroll_last_at
+                        .map(|t| t.elapsed() > Duration::from_millis(120))
+                        .unwrap_or(false);
+                    if idle && (target_top - new_top).abs() < 0.5 {
+                        sidebar.playlist_scrollbar_visible = false;
+                        sidebar.playlist_scroll_animating = false;
+                        should_stop = true;
+                    }
+
                     cx.notify();
+                });
+
+                if should_stop {
+                    break;
                 }
-            });
+            }
         })
         .detach();
     }
@@ -227,7 +284,6 @@ impl Render for Sidebar {
         let viewport_size = window.viewport_size();
         let viewport_width: f32 = viewport_size.width.into();
         let viewport_height: f32 = viewport_size.height.into();
-        let playlist_row_height = 52.0_f32;
 
         // Determine layout mode based on viewport aspect ratio
         let aspect_ratio = viewport_width / viewport_height;
@@ -319,19 +375,8 @@ impl Render for Sidebar {
                 let playlists = self.app_state.playlist_service().get_playlists();
                 let weak = self.weak_self.clone();
                 let selected_playlist_id = self.active_playlist_id.clone();
-                let max_offset = f32::from(self.playlist_scroll_handle.max_offset().height);
-                let scroll_offset = -f32::from(self.playlist_scroll_handle.offset().y);
-                let content_height = playlist_row_height * playlists.len() as f32;
-                let viewport_height = (content_height - max_offset).max(0.0);
-                let thumb_height = (viewport_height / 3.0).max(0.0);
-                let track_height = (viewport_height - thumb_height).max(0.0);
-                let scroll_ratio = if max_offset > 0.0 {
-                    (scroll_offset / max_offset).clamp(0.0, 1.0)
-                } else {
-                    0.0
-                };
-                let thumb_top = scroll_ratio * track_height;
-                let show_scrollbar = self.playlist_scrollbar_visible && max_offset > 0.0;
+                let show_scrollbar =
+                    self.playlist_scrollbar_visible && self.playlist_thumb_height > 0.0;
 
                 el.child(
                     div()
@@ -429,7 +474,6 @@ impl Render for Sidebar {
                                             .gap_3()
                                             .px(px(12.0))
                                             .py(px(8.0))
-                                            .h(px(playlist_row_height))
                                             .rounded(px(8.0))
                                             .cursor_pointer()
                                             .when(is_selected, |el| el.bg(theme.active))
@@ -490,13 +534,13 @@ impl Render for Sidebar {
                                     el.child(
                                         div()
                                             .absolute()
-                                            .top(px(thumb_top))
+                                            .top(px(self.playlist_thumb_top))
                                             .right_0()
-                                            .h(px(thumb_height))
-                                            .w(px(3.0))
-                                            .rounded(px(3.0))
-                                            .bg(theme.text_muted)
-                                            .opacity(0.6),
+                                            .h(px(self.playlist_thumb_height))
+                                            .w(px(6.0))
+                                            .rounded(px(6.0))
+                                            .bg(theme.active)
+                                            .opacity(1.0),
                                     )
                                 }),
                         ),

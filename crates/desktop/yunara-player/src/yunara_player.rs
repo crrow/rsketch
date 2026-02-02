@@ -147,6 +147,7 @@ impl YunaraPlayer {
                     sidebar.set_active_nav(crate::sidebar::NavItem::Home);
                     sidebar.set_active_playlist_id(None);
                 });
+                self.right_dock.update(cx, |dock, _| dock.set_visible(true));
             }
             NavigateAction::Explore => {
                 let explore_view = cx.new(|cx| ExploreView::new(app_state, cx));
@@ -156,6 +157,7 @@ impl YunaraPlayer {
                     sidebar.set_active_nav(crate::sidebar::NavItem::Explore);
                     sidebar.set_active_playlist_id(None);
                 });
+                self.right_dock.update(cx, |dock, _| dock.set_visible(true));
             }
             NavigateAction::Library => {
                 let library_view = cx.new(|cx| LibraryView::new(app_state, cx));
@@ -165,6 +167,7 @@ impl YunaraPlayer {
                     sidebar.set_active_nav(crate::sidebar::NavItem::Library);
                     sidebar.set_active_playlist_id(None);
                 });
+                self.right_dock.update(cx, |dock, _| dock.set_visible(true));
             }
             NavigateAction::Playlist { id, name } => {
                 let playlist_id = id.clone();
@@ -174,6 +177,7 @@ impl YunaraPlayer {
                 self.sidebar.update(cx, |sidebar, _| {
                     sidebar.set_active_playlist_id(Some(playlist_id));
                 });
+                self.right_dock.update(cx, |dock, _| dock.set_visible(false));
             }
         }
 
@@ -194,6 +198,9 @@ impl Render for YunaraPlayer {
 
         // Sidebar width
         let sidebar_width = if width_f32 > 900.0 { 240.0 } else { 72.0 };
+
+        // Check if right dock is visible
+        let right_dock_visible = self.right_dock.read(cx).is_visible();
 
         let main_content = gpui::div()
             .flex()
@@ -228,8 +235,8 @@ impl Render for YunaraPlayer {
                                     .bg(theme.background_primary)
                                     .child(gpui::AnyView::from(self.center.clone())),
                             )
-                            // Right dock (when showing on side)
-                            .when(show_right_on_side, |div| {
+                            // Right dock (when showing on side and visible)
+                            .when(show_right_on_side && right_dock_visible, |div| {
                                 div.child(
                                     gpui::div()
                                         .w(px(320.0))
@@ -255,12 +262,14 @@ impl Render for YunaraPlayer {
                 .flex_col()
                 .overflow_hidden()
                 .child(main_content)
-                .child(
-                    gpui::div()
-                        .w_full()
-                        .h(px(280.0))
-                        .child(gpui::AnyView::from(self.right_dock.clone())),
-                )
+                .when(right_dock_visible, |div| {
+                    div.child(
+                        gpui::div()
+                            .w_full()
+                            .h(px(280.0))
+                            .child(gpui::AnyView::from(self.right_dock.clone())),
+                    )
+                })
         };
 
         gpui::div()

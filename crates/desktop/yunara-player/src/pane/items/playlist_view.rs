@@ -18,7 +18,7 @@
 
 use gpui::{
     AnyView, Context, EntityId, InteractiveElement, IntoElement, ParentElement, Render,
-    StatefulInteractiveElement, Styled, WeakEntity, img, prelude::FluentBuilder, px,
+    StatefulInteractiveElement, Styled, StyledImage, WeakEntity, img, prelude::FluentBuilder, px,
 };
 use yunara_ui::components::theme::ThemeExt;
 use ytmapi_rs::common::YoutubeID;
@@ -127,7 +127,7 @@ impl PaneItem for PlaylistView {
 }
 
 /// Extracts display info from a PlaylistItem variant.
-fn track_display_info(item: &PlaylistItem) -> (&str, String, &str) {
+fn track_display_info(item: &PlaylistItem) -> (&str, String, &str, Option<String>) {
     match item {
         PlaylistItem::Song(song) => {
             let artists = song
@@ -136,15 +136,32 @@ fn track_display_info(item: &PlaylistItem) -> (&str, String, &str) {
                 .map(|a| a.name.as_str())
                 .collect::<Vec<_>>()
                 .join(", ");
-            (&song.title, artists, &song.duration)
+            let thumbnail_url = song
+                .thumbnails
+                .iter()
+                .max_by_key(|t| t.width.saturating_mul(t.height))
+                .map(|t| t.url.clone());
+            (&song.title, artists, &song.duration, thumbnail_url)
         }
-        PlaylistItem::Video(video) => (&video.title, video.channel_name.clone(), &video.duration),
+        PlaylistItem::Video(video) => {
+            let thumbnail_url = video
+                .thumbnails
+                .iter()
+                .max_by_key(|t| t.width.saturating_mul(t.height))
+                .map(|t| t.url.clone());
+            (&video.title, video.channel_name.clone(), &video.duration, thumbnail_url)
+        }
         PlaylistItem::Episode(ep) => {
             let duration = match &ep.duration {
                 ytmapi_rs::parse::EpisodeDuration::Live => "LIVE",
                 ytmapi_rs::parse::EpisodeDuration::Recorded { duration } => duration.as_str(),
             };
-            (&ep.title, ep.podcast_name.clone(), duration)
+            let thumbnail_url = ep
+                .thumbnails
+                .iter()
+                .max_by_key(|t| t.width.saturating_mul(t.height))
+                .map(|t| t.url.clone());
+            (&ep.title, ep.podcast_name.clone(), duration, thumbnail_url)
         }
         PlaylistItem::UploadSong(upload) => {
             let artists = upload
@@ -153,7 +170,12 @@ fn track_display_info(item: &PlaylistItem) -> (&str, String, &str) {
                 .map(|a| a.name.as_str())
                 .collect::<Vec<_>>()
                 .join(", ");
-            (&upload.title, artists, &upload.duration)
+            let thumbnail_url = upload
+                .thumbnails
+                .iter()
+                .max_by_key(|t| t.width.saturating_mul(t.height))
+                .map(|t| t.url.clone());
+            (&upload.title, artists, &upload.duration, thumbnail_url)
         }
     }
 }
@@ -185,7 +207,6 @@ impl Render for PlaylistView {
             .flex_col()
             .w_full()
             .h_full()
-            .overflow_y_scroll()
             .p_4()
             // Header
             .child(
@@ -255,9 +276,16 @@ impl Render for PlaylistView {
             // Track list
             .when(!self.loading && !self.tracks.is_empty(), |el| {
                 el.child(
-                    gpui::div().flex().flex_col().children(
-                        self.tracks.iter().enumerate().map(|(idx, item)| {
-                            let (title, artist, duration) = track_display_info(item);
+                    gpui::div()
+                        .id("playlist-tracks")
+                        .flex()
+                        .flex_col()
+                        .flex_1()
+                        .overflow_y_scroll()
+                        .children(
+                        self.tracks.iter().map(|item| {
+                            let (title, artist, duration, thumbnail_url) = track_display_info(item);
+                            let has_thumbnail = thumbnail_url.is_some();
 
                             gpui::div()
                                 .flex()
@@ -266,13 +294,29 @@ impl Render for PlaylistView {
                                 .px_2()
                                 .py(gpui::px(6.0))
                                 .rounded(gpui::px(4.0))
-                                // Track number
+                                .cursor_pointer()
+                                .hover(|style| style.bg(theme.hover))
+                                // Thumbnail
                                 .child(
                                     gpui::div()
-                                        .w(gpui::px(32.0))
-                                        .text_sm()
+                                        .w(gpui::px(48.0))
+                                        .h(gpui::px(48.0))
+                                        .rounded(gpui::px(4.0))
+                                        .bg(theme.background_elevated)
+                                        .flex()
+                                        .items_center()
+                                        .justify_center()
                                         .text_color(theme.text_muted)
-                                        .child(format!("{}", idx + 1)),
+                                        .overflow_hidden()
+                                        .when_some(thumbnail_url, |el, url| {
+                                            el.child(
+                                                img(url)
+                                                    .w(gpui::px(48.0))
+                                                    .h(gpui::px(48.0))
+                                                    .object_fit(gpui::ObjectFit::Cover),
+                                            )
+                                        })
+                                        .when(!has_thumbnail, |el| el.child("♪")),
                                 )
                                 // Title and artist
                                 .child(
