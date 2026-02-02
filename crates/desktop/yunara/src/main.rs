@@ -108,6 +108,11 @@ fn main() {
         // Initialize gpui_tokio with our runtime handle
         gpui_tokio::init_from_handle(cx, handle);
 
+        // Set up HTTP client for remote image loading (thumbnails, cover art)
+        let http_client = reqwest_client::ReqwestClient::user_agent(consts::YUNARA)
+            .expect("Failed to initialize HTTP client");
+        cx.set_http_client(std::sync::Arc::new(http_client));
+
         // Initialize the theme provider with default YTMusic dark theme
         ThemeProvider::init(cx);
 

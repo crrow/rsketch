@@ -143,25 +143,37 @@ impl YunaraPlayer {
                 let home_view = cx.new(|cx| HomeView::new(app_state, cx));
                 let handle = home_view.update(cx, |view, _| PaneItemHandle::new(view));
                 self.center.update(cx, |pane, _| pane.navigate_to(handle));
-                // Note: Sidebar sets its own active_nav in handle_nav_click
+                self.sidebar.update(cx, |sidebar, _| {
+                    sidebar.set_active_nav(crate::sidebar::NavItem::Home);
+                    sidebar.set_active_playlist_id(None);
+                });
             }
             NavigateAction::Explore => {
                 let explore_view = cx.new(|cx| ExploreView::new(app_state, cx));
                 let handle = explore_view.update(cx, |view, _| PaneItemHandle::new(view));
                 self.center.update(cx, |pane, _| pane.navigate_to(handle));
-                // Note: Sidebar sets its own active_nav in handle_nav_click
+                self.sidebar.update(cx, |sidebar, _| {
+                    sidebar.set_active_nav(crate::sidebar::NavItem::Explore);
+                    sidebar.set_active_playlist_id(None);
+                });
             }
             NavigateAction::Library => {
                 let library_view = cx.new(|cx| LibraryView::new(app_state, cx));
                 let handle = library_view.update(cx, |view, _| PaneItemHandle::new(view));
                 self.center.update(cx, |pane, _| pane.navigate_to(handle));
-                // Note: Sidebar sets its own active_nav in handle_nav_click
+                self.sidebar.update(cx, |sidebar, _| {
+                    sidebar.set_active_nav(crate::sidebar::NavItem::Library);
+                    sidebar.set_active_playlist_id(None);
+                });
             }
             NavigateAction::Playlist { id, name } => {
-                let playlist_view =
-                    cx.new(|cx| PlaylistView::new(app_state, id, name, cx));
+                let playlist_id = id.clone();
+                let playlist_view = cx.new(|cx| PlaylistView::new(app_state, id, name, cx));
                 let handle = playlist_view.update(cx, |view, _| PaneItemHandle::new(view));
                 self.center.update(cx, |pane, _| pane.navigate_to(handle));
+                self.sidebar.update(cx, |sidebar, _| {
+                    sidebar.set_active_playlist_id(Some(playlist_id));
+                });
             }
         }
 

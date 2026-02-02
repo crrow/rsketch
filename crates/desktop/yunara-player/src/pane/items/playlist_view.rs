@@ -18,9 +18,10 @@
 
 use gpui::{
     AnyView, Context, EntityId, InteractiveElement, IntoElement, ParentElement, Render,
-    StatefulInteractiveElement, Styled, WeakEntity, prelude::FluentBuilder,
+    StatefulInteractiveElement, Styled, WeakEntity, img, prelude::FluentBuilder, px,
 };
 use yunara_ui::components::theme::ThemeExt;
+use ytmapi_rs::common::YoutubeID;
 use ytmapi_rs::parse::PlaylistItem;
 
 use crate::{app_state::AppState, pane::PaneItem};
@@ -31,6 +32,7 @@ pub struct PlaylistView {
     app_state:     AppState,
     playlist_id:   String,
     playlist_name: String,
+    thumbnail_url: Option<String>,
     tracks:        Vec<PlaylistItem>,
     loading:       bool,
 }
@@ -43,11 +45,14 @@ impl PlaylistView {
         playlist_name: String,
         cx: &mut Context<Self>,
     ) -> Self {
+        let playlists = app_state.playlist_service().get_playlists();
+        let thumbnail_url = select_thumbnail_url(&playlists, &playlist_id);
         let mut view = Self {
             weak_self: cx.weak_entity(),
             app_state,
             playlist_id,
             playlist_name,
+            thumbnail_url,
             tracks: Vec::new(),
             loading: true,
         };
@@ -75,8 +80,8 @@ impl PlaylistView {
                 }
             };
 
-            let _ = cx.update(|cx| {
-                let _ = this.update(cx, |view, cx| {
+            match cx.update(|cx| {
+                this.update(cx, |view, cx| {
                     match result {
                         Ok(tracks) => {
                             view.tracks = tracks;
@@ -86,10 +91,21 @@ impl PlaylistView {
                             view.tracks = Vec::new();
                         }
                     }
+
+                    if view.thumbnail_url.is_none() {
+                        let playlists = view.app_state.playlist_service().get_playlists();
+                        view.thumbnail_url = select_thumbnail_url(&playlists, &view.playlist_id);
+                    }
+
                     view.loading = false;
                     cx.notify();
-                });
-            });
+                })
+            }) {
+                Ok(()) => {}
+                Err(error) => {
+                    tracing::error!("Failed to update playlist view: {}", error);
+                }
+            }
         })
         .detach();
     }
@@ -142,9 +158,26 @@ fn track_display_info(item: &PlaylistItem) -> (&str, String, &str) {
     }
 }
 
+fn select_thumbnail_url(
+    playlists: &[ytmapi_rs::parse::LibraryPlaylist],
+    playlist_id: &str,
+) -> Option<String> {
+    let playlist = playlists
+        .iter()
+        .find(|playlist| playlist.playlist_id.get_raw() == playlist_id)?;
+
+    playlist
+        .thumbnails
+        .iter()
+        .max_by_key(|thumbnail| thumbnail.width.saturating_mul(thumbnail.height))
+        .map(|thumbnail| thumbnail.url.clone())
+}
+
 impl Render for PlaylistView {
     fn render(&mut self, _window: &mut gpui::Window, cx: &mut Context<Self>) -> impl IntoElement {
         let theme = cx.theme();
+        let has_thumbnail = self.thumbnail_url.is_some();
+        let thumbnail_url = self.thumbnail_url.clone();
 
         gpui::div()
             .id("playlist-view")
@@ -158,21 +191,47 @@ impl Render for PlaylistView {
             .child(
                 gpui::div()
                     .flex()
-                    .flex_col()
-                    .gap_1()
+                    .items_center()
+                    .gap_4()
                     .pb_4()
                     .child(
                         gpui::div()
-                            .text_2xl()
-                            .font_weight(gpui::FontWeight::BOLD)
-                            .text_color(theme.text_primary)
-                            .child(self.playlist_name.clone()),
+                            .w(px(160.0))
+                            .h(px(160.0))
+                            .rounded(px(8.0))
+                            .bg(theme.background_elevated)
+                            .flex()
+                            .items_center()
+                            .justify_center()
+                            .text_color(theme.text_muted)
+                            .when_some(thumbnail_url, |el, url| {
+                                el.child(
+                                    img(url)
+                                        .w(px(160.0))
+                                        .h(px(160.0))
+                                        .rounded(px(8.0)),
+                                )
+                            })
+                            .when(!has_thumbnail, |el| el.child("♪")),
                     )
                     .child(
                         gpui::div()
-                            .text_sm()
-                            .text_color(theme.text_muted)
-                            .child(format!("{} songs", self.tracks.len())),
+                            .flex()
+                            .flex_col()
+                            .gap_1()
+                            .child(
+                                gpui::div()
+                                    .text_2xl()
+                                    .font_weight(gpui::FontWeight::BOLD)
+                                    .text_color(theme.text_primary)
+                                    .child(self.playlist_name.clone()),
+                            )
+                            .child(
+                                gpui::div()
+                                    .text_sm()
+                                    .text_color(theme.text_muted)
+                                    .child(format!("{} songs", self.tracks.len())),
+                            ),
                     ),
             )
             // Loading state
