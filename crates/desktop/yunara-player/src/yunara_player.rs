@@ -34,7 +34,7 @@ use crate::{
     dock::{Dock, DockPanelHandle, DockPosition, panels::QueuePanel},
     pane::{
         Pane, PaneItemHandle,
-        items::{ExploreView, HomeView, LibraryView},
+        items::{ExploreView, HomeView, LibraryView, PlaylistView},
     },
     player_bar::PlayerBar,
     sidebar::Sidebar,
@@ -99,6 +99,31 @@ impl YunaraPlayer {
         let player_handle = player_bar.update(cx, |panel, _| DockPanelHandle::new(panel));
         bottom_dock.update(cx, |dock, _| dock.add_panel(player_handle));
 
+        // Load playlists in background on Tokio runtime, notify sidebar when done
+        {
+            let service = app_state.playlist_service().clone();
+            let sidebar = sidebar.clone();
+            let tokio_task = gpui_tokio::Tokio::spawn(cx, async move {
+                service.load_playlists().await
+            });
+            cx.spawn(async move |_this, cx| {
+                match tokio_task.await {
+                    Ok(Ok(())) => {
+                        let _ = cx.update(|cx| {
+                            sidebar.update(cx, |_sidebar, cx| cx.notify());
+                        });
+                    }
+                    Ok(Err(e)) => {
+                        tracing::error!("Failed to load playlists on startup: {}", e);
+                    }
+                    Err(e) => {
+                        tracing::error!("Playlist load task panicked: {}", e);
+                    }
+                }
+            })
+            .detach();
+        }
+
         Self {
             weak_self,
             app_state,
@@ -132,11 +157,10 @@ impl YunaraPlayer {
                 self.center.update(cx, |pane, _| pane.navigate_to(handle));
                 // Note: Sidebar sets its own active_nav in handle_nav_click
             }
-            NavigateAction::Playlist { id: _, name: _ } => {
-                // TODO: Create PlaylistView with proper parameters
-                // For now, navigate to Library view as placeholder
-                let library_view = cx.new(|cx| LibraryView::new(app_state, cx));
-                let handle = library_view.update(cx, |view, _| PaneItemHandle::new(view));
+            NavigateAction::Playlist { id, name } => {
+                let playlist_view =
+                    cx.new(|cx| PlaylistView::new(app_state, id, name, cx));
+                let handle = playlist_view.update(cx, |view, _| PaneItemHandle::new(view));
                 self.center.update(cx, |pane, _| pane.navigate_to(handle));
             }
         }

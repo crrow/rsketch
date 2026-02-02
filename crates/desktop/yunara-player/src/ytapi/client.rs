@@ -31,7 +31,9 @@ use tracing::{debug, error, info, instrument};
 use ytmapi_rs::{
     YtMusic, YtMusicBuilder,
     auth::{BrowserToken, OAuthToken, noauth::NoAuthToken},
-    common::{PlaylistID, SearchSuggestion, UserChannelID, UserPlaylistsParams},
+    common::{
+        BrowseParams, PlaylistID, SearchSuggestion, UserChannelID, UserPlaylistsParams, YoutubeID,
+    },
     continuations::ParseFromContinuable,
     parse::{
         GetUser, LibraryChannel, LibraryPlaylist, ParseFrom, PlaylistItem, SearchResultArtist,
@@ -161,23 +163,22 @@ impl ApiClient {
     }
 
     /// Gets information about an user and their videos and playlists.
-    pub async fn get_user<'a>(&self, id: impl Into<UserChannelID<'a>>) -> Result<GetUser> {
+    pub async fn get_user<S: AsRef<str>>(&self, id: S) -> Result<GetUser> {
         self.inner
-            .query_api_with_retry(&GetUserQuery::new(id.into()))
+            .query_api_with_retry(&GetUserQuery::new(UserChannelID::from_raw(id.as_ref())))
             .await
     }
 
     /// Gets a full list of playlists for a user.
-    pub async fn get_user_playlists<
-        'a,
-        T: Into<UserChannelID<'a>>,
-        U: Into<UserPlaylistsParams<'a>>,
-    >(
+    pub async fn get_user_playlists<'a, T: AsRef<str>, U: Into<UserPlaylistsParams<'a>>>(
         &self,
         channel_id: T,
         browse_params: U,
     ) -> Result<Vec<UserPlaylist>> {
-        let query = GetUserPlaylistsQuery::new(channel_id.into(), browse_params.into());
+        let query = GetUserPlaylistsQuery::new(
+            UserChannelID::from_raw(channel_id.as_ref()),
+            browse_params.into(),
+        );
         self.inner.query_api_with_retry(&query).await
     }
 
@@ -648,8 +649,19 @@ mod tests {
         .await
         .unwrap();
 
-        let channels = client.get_library_channels().await.unwrap();
-        println!("{:?}", channels);
+        // let channel_id = "UC3oBmxpbK69w8jBocr9sGYA";
+
+        // let user = client.get_user(channel_id).await.unwrap();
+        // println!("{:?}", user);
+
+        // let user = client
+        //     .get_user_playlists(channel_id, user.all_playlists_params.unwrap())
+        //     .awaitq
+        //     .unwrap();
+        // println!("{:?}", user);
+
+        // let channels = client.get_library_channels().await.unwrap();
+        // println!("{:?}", channels);
 
         let playlists = client.get_library_playlists().await.unwrap();
         println!("{:?}", playlists);

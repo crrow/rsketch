@@ -18,9 +18,11 @@
 //! optionally displays the user's playlists when the window is wide enough.
 
 use gpui::{
-    Context, InteractiveElement, IntoElement, ParentElement, Render, StatefulInteractiveElement,
-    Styled, WeakEntity, Window, div, img, prelude::FluentBuilder, px, svg,
+    Context, ElementId, InteractiveElement, IntoElement, ParentElement, Render,
+    StatefulInteractiveElement, Styled, WeakEntity, Window, div, img, prelude::FluentBuilder, px,
+    svg,
 };
+use ytmapi_rs::common::YoutubeID;
 use yunara_ui::components::theme::ThemeExt;
 
 use crate::{actions::NavigateAction, app_state::AppState};
@@ -86,6 +88,19 @@ impl Sidebar {
         }
 
         cx.notify();
+    }
+
+    /// Handle playlist item click
+    fn handle_playlist_click(&mut self, id: String, name: String, cx: &mut Context<Self>) {
+        let action = NavigateAction::Playlist { id, name };
+
+        if let Some(ref workspace) = self.workspace {
+            workspace
+                .update(cx, |player, cx| {
+                    player.handle_navigate(action, cx);
+                })
+                .ok();
+        }
     }
 
     /// Render a navigation item with icon and label
@@ -264,6 +279,9 @@ impl Render for Sidebar {
             )
             // Playlists section (only when expanded)
             .when(show_playlists, |el| {
+                let playlists = self.app_state.playlist_service().get_playlists();
+                let weak = self.weak_self.clone();
+
                 el.child(
                     div()
                         .flex()
@@ -301,14 +319,73 @@ impl Render for Sidebar {
                                         .child("New playlist"),
                                 ),
                         )
-                        // Placeholder for playlist items
+                        // Playlist items
                         .child(
                             div()
+                                .id("playlist-list")
                                 .flex_1()
+                                .overflow_y_scroll()
                                 .px(px(12.0))
-                                .text_color(theme.text_muted)
-                                .text_sm()
-                                .child("Playlists will appear here"),
+                                .when(playlists.is_empty(), |el| {
+                                    el.child(
+                                        div()
+                                            .text_color(theme.text_muted)
+                                            .text_sm()
+                                            .child("No playlists yet"),
+                                    )
+                                })
+                                .children(playlists.into_iter().enumerate().map(
+                                    |(idx, playlist)| {
+                                        let playlist_id =
+                                            playlist.playlist_id.get_raw().to_owned();
+                                        let playlist_name = playlist.title.clone();
+                                        let weak = weak.clone();
+                                        let count_text = playlist
+                                            .count
+                                            .map(|c| format!("{} songs", c))
+                                            .unwrap_or_default();
+
+                                        div()
+                                            .id(ElementId::Integer(idx as u64))
+                                            .flex()
+                                            .items_center()
+                                            .gap_3()
+                                            .px(px(12.0))
+                                            .py(px(8.0))
+                                            .rounded(px(8.0))
+                                            .cursor_pointer()
+                                            .hover(|style| style.bg(theme.hover))
+                                            .on_click(move |_event, _window, cx| {
+                                                let id = playlist_id.clone();
+                                                let name = playlist_name.clone();
+                                                weak.update(cx, |sidebar, cx| {
+                                                    sidebar.handle_playlist_click(id, name, cx);
+                                                })
+                                                .ok();
+                                            })
+                                            .child(
+                                                div()
+                                                    .flex()
+                                                    .flex_col()
+                                                    .overflow_hidden()
+                                                    .child(
+                                                        div()
+                                                            .text_sm()
+                                                            .text_color(theme.text_primary)
+                                                            .overflow_hidden()
+                                                            .child(playlist.title),
+                                                    )
+                                                    .when(!count_text.is_empty(), |el| {
+                                                        el.child(
+                                                            div()
+                                                                .text_xs()
+                                                                .text_color(theme.text_muted)
+                                                                .child(count_text),
+                                                        )
+                                                    }),
+                                            )
+                                    },
+                                )),
                         ),
                 )
             })

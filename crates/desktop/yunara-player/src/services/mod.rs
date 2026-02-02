@@ -21,8 +21,6 @@
 //! This keeps the code modular and allows each service to be developed
 //! independently.
 
-// Example service module (commented out until needed)
-// pub mod user_service;
+pub mod playlist_service;
 
-// Re-export extension traits for convenience
-// pub use user_service::UserServiceExt;
+pub use playlist_service::PlaylistService;

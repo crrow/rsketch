@@ -21,7 +21,12 @@ use yunara_store::{
     kv::{IdType, KVStoreExt, KeyRequest},
 };
 
-use crate::{config::AppConfig, state::PlayerState, ytapi::client::ApiClient};
+use crate::{
+    config::AppConfig,
+    services::PlaylistService,
+    state::PlayerState,
+    ytapi::client::ApiClient,
+};
 
 /// Application state that holds the lifecycle of the desktop application
 ///
@@ -48,15 +53,18 @@ impl AppState {
     pub fn player_state(&self) -> &RwLock<PlayerState> { &self.inner.player_state }
 
     pub fn api_client(&self) -> ApiClient { self.inner.api_client.clone() }
+
+    pub fn playlist_service(&self) -> &Arc<PlaylistService> { &self.inner.playlist_service }
 }
 
 struct AppStateInner {
-    config:       AppConfig,
-    db:           DBStore,
-    keys:         HashMap<String, IdType>,
-    session_id:   uuid::Uuid,
-    player_state: RwLock<PlayerState>,
-    api_client:   ApiClient,
+    config:           AppConfig,
+    db:               DBStore,
+    keys:             HashMap<String, IdType>,
+    session_id:       uuid::Uuid,
+    player_state:     RwLock<PlayerState>,
+    api_client:       ApiClient,
+    playlist_service: Arc<PlaylistService>,
 }
 
 impl AppState {
@@ -82,6 +90,9 @@ impl AppState {
         )
         .await?;
 
+        // Initialize playlist service
+        let playlist_service = Arc::new(PlaylistService::new(api_client.clone()));
+
         Ok(Self {
             inner: Arc::new(AppStateInner {
                 config,
@@ -90,6 +101,7 @@ impl AppState {
                 session_id: uuid::Uuid::new_v4(),
                 player_state: RwLock::new(PlayerState::new()),
                 api_client,
+                playlist_service,
             }),
         })
     }

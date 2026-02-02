@@ -17,33 +17,81 @@
 //! Displays the contents of a specific playlist with songs, metadata, etc.
 
 use gpui::{
-    AnyView, Context, Entity, EntityId, IntoElement, ParentElement, Render, Styled, WeakEntity,
+    AnyView, Context, EntityId, InteractiveElement, IntoElement, ParentElement, Render,
+    StatefulInteractiveElement, Styled, WeakEntity, prelude::FluentBuilder,
 };
+use yunara_ui::components::theme::ThemeExt;
+use ytmapi_rs::parse::PlaylistItem;
 
 use crate::{app_state::AppState, pane::PaneItem};
 
 /// View displaying a specific playlist's contents.
 pub struct PlaylistView {
     weak_self:     WeakEntity<Self>,
-    app_state:     Entity<AppState>,
+    app_state:     AppState,
     playlist_id:   String,
     playlist_name: String,
+    tracks:        Vec<PlaylistItem>,
+    loading:       bool,
 }
 
 impl PlaylistView {
-    /// Creates a new playlist view.
+    /// Creates a new playlist view and begins loading tracks.
     pub fn new(
-        app_state: Entity<AppState>,
+        app_state: AppState,
         playlist_id: String,
         playlist_name: String,
         cx: &mut Context<Self>,
     ) -> Self {
-        Self {
+        let mut view = Self {
             weak_self: cx.weak_entity(),
             app_state,
             playlist_id,
             playlist_name,
-        }
+            tracks: Vec::new(),
+            loading: true,
+        };
+        view.load_tracks(cx);
+        view
+    }
+
+    /// Spawns an async task to load playlist tracks.
+    fn load_tracks(&mut self, cx: &mut Context<Self>) {
+        self.loading = true;
+        let service = self.app_state.playlist_service().clone();
+        let playlist_id = self.playlist_id.clone();
+
+        // Run API call on Tokio runtime, then update GPUI state
+        let tokio_task = gpui_tokio::Tokio::spawn(cx, async move {
+            service.get_playlist_details(&playlist_id).await
+        });
+
+        cx.spawn(async move |this, cx| {
+            let result = match tokio_task.await {
+                Ok(r) => r,
+                Err(e) => {
+                    tracing::error!("Playlist load task panicked: {}", e);
+                    return;
+                }
+            };
+
+            let _ = cx.update(|cx| {
+                let _ = this.update(cx, |view, cx| {
+                    match result {
+                        Ok(tracks) => {
+                            view.tracks = tracks;
+                        }
+                        Err(e) => {
+                            tracing::error!("Failed to load playlist: {}", e);
+                            view.tracks = Vec::new();
+                        }
+                    }
+                    view.loading = false;
+                    cx.notify();
+                });
+            });
+        })
+        .detach();
     }
 }
 
@@ -62,36 +110,143 @@ impl PaneItem for PlaylistView {
     fn can_close(&self) -> bool { true }
 }
 
+/// Extracts display info from a PlaylistItem variant.
+fn track_display_info(item: &PlaylistItem) -> (&str, String, &str) {
+    match item {
+        PlaylistItem::Song(song) => {
+            let artists = song
+                .artists
+                .iter()
+                .map(|a| a.name.as_str())
+                .collect::<Vec<_>>()
+                .join(", ");
+            (&song.title, artists, &song.duration)
+        }
+        PlaylistItem::Video(video) => (&video.title, video.channel_name.clone(), &video.duration),
+        PlaylistItem::Episode(ep) => {
+            let duration = match &ep.duration {
+                ytmapi_rs::parse::EpisodeDuration::Live => "LIVE",
+                ytmapi_rs::parse::EpisodeDuration::Recorded { duration } => duration.as_str(),
+            };
+            (&ep.title, ep.podcast_name.clone(), duration)
+        }
+        PlaylistItem::UploadSong(upload) => {
+            let artists = upload
+                .artists
+                .iter()
+                .map(|a| a.name.as_str())
+                .collect::<Vec<_>>()
+                .join(", ");
+            (&upload.title, artists, &upload.duration)
+        }
+    }
+}
+
 impl Render for PlaylistView {
-    fn render(&mut self, _window: &mut gpui::Window, _cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _window: &mut gpui::Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let theme = cx.theme();
+
         gpui::div()
+            .id("playlist-view")
             .flex()
             .flex_col()
             .w_full()
             .h_full()
-            .gap_4()
+            .overflow_y_scroll()
             .p_4()
-            .child(
-                gpui::div()
-                    .text_2xl()
-                    .font_weight(gpui::FontWeight::BOLD)
-                    .child(format!("Playlist: {}", self.playlist_name)),
-            )
-            .child(
-                gpui::div()
-                    .text_sm()
-                    .text_color(gpui::rgb(0x808080))
-                    .child(format!("ID: {}", self.playlist_id)),
-            )
+            // Header
             .child(
                 gpui::div()
                     .flex()
                     .flex_col()
                     .gap_1()
-                    .child(gpui::div().child("Songs:"))
-                    .child(gpui::div().child("1. Song A - Artist A - 3:45"))
-                    .child(gpui::div().child("2. Song B - Artist B - 4:12"))
-                    .child(gpui::div().child("3. Song C - Artist C - 2:58")),
+                    .pb_4()
+                    .child(
+                        gpui::div()
+                            .text_2xl()
+                            .font_weight(gpui::FontWeight::BOLD)
+                            .text_color(theme.text_primary)
+                            .child(self.playlist_name.clone()),
+                    )
+                    .child(
+                        gpui::div()
+                            .text_sm()
+                            .text_color(theme.text_muted)
+                            .child(format!("{} songs", self.tracks.len())),
+                    ),
             )
+            // Loading state
+            .when(self.loading, |el| {
+                el.child(
+                    gpui::div()
+                        .text_sm()
+                        .text_color(theme.text_muted)
+                        .child("Loading..."),
+                )
+            })
+            // Empty state
+            .when(!self.loading && self.tracks.is_empty(), |el| {
+                el.child(
+                    gpui::div()
+                        .text_sm()
+                        .text_color(theme.text_muted)
+                        .child("This playlist is empty"),
+                )
+            })
+            // Track list
+            .when(!self.loading && !self.tracks.is_empty(), |el| {
+                el.child(
+                    gpui::div().flex().flex_col().children(
+                        self.tracks.iter().enumerate().map(|(idx, item)| {
+                            let (title, artist, duration) = track_display_info(item);
+
+                            gpui::div()
+                                .flex()
+                                .items_center()
+                                .gap_3()
+                                .px_2()
+                                .py(gpui::px(6.0))
+                                .rounded(gpui::px(4.0))
+                                // Track number
+                                .child(
+                                    gpui::div()
+                                        .w(gpui::px(32.0))
+                                        .text_sm()
+                                        .text_color(theme.text_muted)
+                                        .child(format!("{}", idx + 1)),
+                                )
+                                // Title and artist
+                                .child(
+                                    gpui::div()
+                                        .flex_1()
+                                        .flex()
+                                        .flex_col()
+                                        .overflow_hidden()
+                                        .child(
+                                            gpui::div()
+                                                .text_sm()
+                                                .text_color(theme.text_primary)
+                                                .overflow_hidden()
+                                                .child(title.to_owned()),
+                                        )
+                                        .child(
+                                            gpui::div()
+                                                .text_xs()
+                                                .text_color(theme.text_muted)
+                                                .overflow_hidden()
+                                                .child(artist),
+                                        ),
+                                )
+                                // Duration
+                                .child(
+                                    gpui::div()
+                                        .text_sm()
+                                        .text_color(theme.text_muted)
+                                        .child(duration.to_owned()),
+                                )
+                        }),
+                    ),
+                )
+            })
     }
 }
