@@ -448,7 +448,19 @@ impl Render for PlaylistView {
             r: 1.0,
             g: 1.0,
             b: 1.0,
-            a: 0.16,
+            a: 0.22,
+        };
+        let icon_border = Rgba {
+            r: 1.0,
+            g: 1.0,
+            b: 1.0,
+            a: 0.12,
+        };
+        let icon_border_hover = Rgba {
+            r: 1.0,
+            g: 1.0,
+            b: 1.0,
+            a: 0.28,
         };
 
         let hero_card_size = 260.0;
@@ -565,10 +577,14 @@ impl Render for PlaylistView {
                                     .h(px(40.0))
                                     .rounded(px(20.0))
                                     .bg(icon_bg)
+                                    .border_1()
+                                    .border_color(icon_border)
                                     .flex()
                                     .items_center()
                                     .justify_center()
-                                    .hover(|style| style.bg(icon_bg_hover))
+                                    .hover(|style| {
+                                        style.bg(icon_bg_hover).border_color(icon_border_hover)
+                                    })
                                     .child(
                                         img(yunara_assets::icons::DOWNLOAD)
                                             .w(px(18.0))
@@ -581,10 +597,14 @@ impl Render for PlaylistView {
                                     .h(px(40.0))
                                     .rounded(px(20.0))
                                     .bg(icon_bg)
+                                    .border_1()
+                                    .border_color(icon_border)
                                     .flex()
                                     .items_center()
                                     .justify_center()
-                                    .hover(|style| style.bg(icon_bg_hover))
+                                    .hover(|style| {
+                                        style.bg(icon_bg_hover).border_color(icon_border_hover)
+                                    })
                                     .child(
                                         img(yunara_assets::icons::PLAYLIST_BOOKMARK)
                                             .w(px(18.0))
@@ -617,10 +637,14 @@ impl Render for PlaylistView {
                                     .h(px(40.0))
                                     .rounded(px(20.0))
                                     .bg(icon_bg)
+                                    .border_1()
+                                    .border_color(icon_border)
                                     .flex()
                                     .items_center()
                                     .justify_center()
-                                    .hover(|style| style.bg(icon_bg_hover))
+                                    .hover(|style| {
+                                        style.bg(icon_bg_hover).border_color(icon_border_hover)
+                                    })
                                     .child(
                                         img(yunara_assets::icons::PLAYLIST_SHARE)
                                             .w(px(18.0))
@@ -633,10 +657,14 @@ impl Render for PlaylistView {
                                     .h(px(40.0))
                                     .rounded(px(20.0))
                                     .bg(icon_bg)
+                                    .border_1()
+                                    .border_color(icon_border)
                                     .flex()
                                     .items_center()
                                     .justify_center()
-                                    .hover(|style| style.bg(icon_bg_hover))
+                                    .hover(|style| {
+                                        style.bg(icon_bg_hover).border_color(icon_border_hover)
+                                    })
                                     .child(
                                         img(yunara_assets::icons::PLAYLIST_MORE)
                                             .w(px(18.0))
@@ -692,10 +720,8 @@ impl Render for PlaylistView {
                         el.child(
                             gpui::div()
                                 .id("playlist-tracks")
-                                .flex()
-                                .flex_col()
-                                .flex_1()
-                                .min_h(px(0.0))
+                                .w_full()
+                                .h_full()
                                 .overflow_y_scroll()
                                 // Render all items for now
                                 .children(self.tracks.iter().map(|item| {

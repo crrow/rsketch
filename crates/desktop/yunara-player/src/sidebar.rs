@@ -20,9 +20,9 @@
 use std::time::{Duration, Instant};
 
 use gpui::{
-    Context, ElementId, InteractiveElement, IntoElement, ParentElement, Render, ScrollHandle,
-    StatefulInteractiveElement, Styled, WeakEntity, Window, div, img, prelude::FluentBuilder, px,
-    svg,
+    Context, ElementId, InteractiveElement, IntoElement, ParentElement, Render, Rgba,
+    ScrollHandle, StatefulInteractiveElement, Styled, WeakEntity, Window, div, img,
+    prelude::FluentBuilder, px, svg,
 };
 use ytmapi_rs::common::YoutubeID;
 use yunara_ui::components::theme::ThemeExt;
@@ -304,7 +304,12 @@ impl Render for Sidebar {
             .flex_col()
             .h_full()
             .min_h(px(0.0))
-            .bg(theme.background_primary)
+            .bg(Rgba {
+                r: 0.0,
+                g: 0.0,
+                b: 0.0,
+                a: 1.0,
+            })
             .overflow_hidden()
             // Brand header (menu + logo)
             .child(

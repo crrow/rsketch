@@ -16,7 +16,7 @@
 ///
 /// Contains the top navigation bar with hamburger menu, logo, search bar,
 /// and navigation controls.
-use gpui::{App, ElementId, IntoElement, ParentElement, Styled, Window, div, prelude::*, px};
+use gpui::{App, ElementId, IntoElement, ParentElement, Rgba, Styled, Window, div, prelude::*, px};
 
 use crate::components::theme::ThemeExt;
 
@@ -49,7 +49,6 @@ impl Header {
         self
     }
 
-
 }
 
 impl RenderOnce for Header {
@@ -63,7 +62,12 @@ impl RenderOnce for Header {
             .flex()
             .items_center()
             .gap_4()
-            .bg(theme.background_primary)
+            .bg(Rgba {
+                r: 0.0,
+                g: 0.0,
+                b: 0.0,
+                a: 1.0,
+            })
             // Search bar
             .child(
                 div().flex_1().flex().justify_start().child(
@@ -71,7 +75,12 @@ impl RenderOnce for Header {
                         .w(px(420.0))
                         .h(px(30.0))
                         .rounded(px(10.0))
-                        .bg(theme.background_elevated)
+                        .bg(Rgba {
+                            r: 0.1,
+                            g: 0.1,
+                            b: 0.1,
+                            a: 1.0,
+                        })
                         .text_color(theme.text_muted)
                         .px(px(12.0))
                         .flex()

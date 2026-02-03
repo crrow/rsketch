@@ -43,6 +43,13 @@ pub mod icons {
     pub const MEDIA_PLAY: &str = "icons/media-play.svg";
     pub const MEDIA_PAUSE: &str = "icons/media-pause.svg";
     pub const MEDIA_NEXT: &str = "icons/media-next.svg";
+
+    // Misc icons
+    pub const DOWNLOAD: &str = "icons/playlist_details/arrow-down-to-line.svg";
+    pub const PLAYLIST_BOOKMARK: &str = "icons/playlist_details/bookmark.svg";
+    pub const PLAYLIST_SHARE: &str = "icons/playlist_details/external-link.svg";
+    pub const PLAYLIST_MORE: &str = "icons/playlist_details/more.svg";
+    pub const PLAY_BLACK: &str = "icons/media-icons-black/play.png";
 }
 
 #[derive(RustEmbed)]

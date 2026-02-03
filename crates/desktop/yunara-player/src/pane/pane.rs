@@ -54,7 +54,6 @@ impl Default for Pane {
 
 impl Render for Pane {
     fn render(&mut self, _window: &mut gpui::Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = cx.theme();
         let active_view = self.current_item().map(|item| item.view().clone());
 
         match active_view {
@@ -63,18 +62,16 @@ impl Render for Pane {
                 .flex_col()
                 .w_full()
                 .h_full()
-                .bg(theme.background_primary)
                 .child(view),
             None => gpui::div()
                 .flex()
                 .flex_col()
                 .w_full()
                 .h_full()
-                .bg(theme.background_primary)
                 .flex()
                 .items_center()
                 .justify_center()
-                .text_color(theme.text_secondary)
+                .text_color(cx.theme().text_secondary)
                 .child("No content"),
         }
     }

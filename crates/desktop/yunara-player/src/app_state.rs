@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
 use parking_lot::RwLock;
 use strum::{EnumProperty, IntoEnumIterator};
@@ -55,6 +55,14 @@ impl AppState {
     pub fn api_client(&self) -> ApiClient { self.inner.api_client.clone() }
 
     pub fn playlist_service(&self) -> &Arc<PlaylistService> { &self.inner.playlist_service }
+
+    pub fn playlist_blur_path(&self) -> Option<PathBuf> {
+        self.inner.playlist_blur_path.read().clone()
+    }
+
+    pub fn set_playlist_blur_path(&self, path: Option<PathBuf>) {
+        *self.inner.playlist_blur_path.write() = path;
+    }
 }
 
 struct AppStateInner {
@@ -65,6 +73,7 @@ struct AppStateInner {
     player_state:     RwLock<PlayerState>,
     api_client:       ApiClient,
     playlist_service: Arc<PlaylistService>,
+    playlist_blur_path: RwLock<Option<PathBuf>>,
 }
 
 impl AppState {
@@ -102,6 +111,7 @@ impl AppState {
                 player_state: RwLock::new(PlayerState::new()),
                 api_client,
                 playlist_service,
+                playlist_blur_path: RwLock::new(None),
             }),
         })
     }

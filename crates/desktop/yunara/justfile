@@ -1,4 +1,4 @@
-WGPU_HUD := "full"
+MTL_HUD_ENABLED := "1"
 
 # Justfile for Yunara Desktop Application
 [group("📒 Help")]
@@ -12,7 +12,7 @@ help: default
 
 # Run the application in debug mode
 run:
-    WGPU_HUD={{WGPU_HUD}} cargo run -p yunara
+    MTL_HUD_ENABLED={{MTL_HUD_ENABLED}} cargo run -p yunara
 
 # Run the application in release mode
 run-release:
