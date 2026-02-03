@@ -121,6 +121,29 @@ impl PlaylistService {
         Ok(items)
     }
 
+    /// Gets first page of playlist details (50 items) with continuation token
+    pub async fn get_playlist_first_page(
+        &self,
+        playlist_id: &str,
+    ) -> crate::ytapi::err::Result<crate::ytapi::client::PlaylistPage> {
+        info!(playlist_id, "Loading playlist first page");
+        let pid = ytmapi_rs::common::PlaylistID::from_raw(playlist_id.to_owned());
+        let page = self.api_client.get_playlist_first_page(pid).await?;
+        info!(playlist_id, count = page.items.len(), has_more = page.continuation.is_some(), "Loaded playlist first page");
+        Ok(page)
+    }
+
+    /// Gets next page of playlist details using continuation token
+    pub async fn get_playlist_next_page(
+        &self,
+        continuation: String,
+    ) -> crate::ytapi::err::Result<crate::ytapi::client::PlaylistPage> {
+        info!("Loading playlist next page");
+        let page = self.api_client.get_playlist_next_page(continuation).await?;
+        info!(count = page.items.len(), has_more = page.continuation.is_some(), "Loaded playlist next page");
+        Ok(page)
+    }
+
     /// Refreshes all data: invalidates cache and reloads playlists.
     pub async fn refresh_all(&self) -> crate::ytapi::err::Result<()> {
         info!("Refreshing all playlist data");

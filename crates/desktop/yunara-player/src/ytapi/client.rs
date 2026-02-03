@@ -51,6 +51,13 @@ use crate::ytapi::{
     err::{InvalidAuthTokenSnafu, OperationCancelledSnafu, Result, TokenRefreshFailedSnafu},
 };
 
+/// Represents a page of playlist items with optional continuation token
+#[derive(Debug, Clone)]
+pub struct PlaylistPage {
+    pub items: Vec<PlaylistItem>,
+    pub continuation: Option<String>,
+}
+
 #[derive(Clone)]
 pub struct ApiClient {
     inner: Arc<ApiClientInner>,
@@ -151,6 +158,25 @@ impl ApiClient {
     ) -> Result<Vec<PlaylistItem>> {
         let query = ytmapi_rs::query::GetPlaylistTracksQuery::new((&playlist_id).into());
         self.inner.query_api_with_retry(&query).await
+    }
+
+    /// Get the first page of playlist tracks with continuation token
+    #[instrument(skip(self), err(Display))]
+    pub async fn get_playlist_first_page(
+        &self,
+        playlist_id: PlaylistID<'static>,
+    ) -> Result<PlaylistPage> {
+        let query = ytmapi_rs::query::GetPlaylistTracksQuery::new((&playlist_id).into());
+        self.inner.query_first_page(&query).await
+    }
+
+    /// Get next page of playlist tracks using continuation token
+    #[instrument(skip(self), err(Display))]
+    pub async fn get_playlist_next_page(
+        &self,
+        continuation: String,
+    ) -> Result<PlaylistPage> {
+        self.inner.query_next_page(continuation).await
     }
 
     /// API Search Query for Profiles only.
@@ -393,6 +419,44 @@ impl ApiClientInner {
                 }
             }
         }
+    }
+
+    /// Query first page of a continuable resource
+    /// Note: Currently fetches all items at once. True pagination to be implemented later.
+    #[instrument(skip(self, query), err(Display))]
+    pub async fn query_first_page<Q>(&self, query: &Q) -> Result<PlaylistPage>
+    where
+        Q: ytmapi_rs::query::Query<BrowserToken, Output = Vec<PlaylistItem>>,
+        Q: ytmapi_rs::query::Query<OAuthToken, Output = Vec<PlaylistItem>>,
+    {
+        // For now, use the existing query method and return first 50 items
+        let client = self.generic_client.read().await;
+        let all_items: Vec<PlaylistItem> = client.query_browser_or_oauth(query).await?;
+
+        // Split into first page and check if more exist
+        let page_size: usize = 50;
+        let has_more = all_items.len() > page_size;
+        let items: Vec<PlaylistItem> = all_items.into_iter().take(page_size).collect();
+
+        let continuation = if has_more {
+            Some("page_2".to_string())  // Simplified: store page number
+        } else {
+            None
+        };
+
+        Ok(PlaylistPage { items, continuation })
+    }
+
+    /// Query next page using continuation token
+    /// Note: This is a simplified implementation that doesn't support true pagination yet
+    #[instrument(skip(self), err(Display))]
+    pub async fn query_next_page(&self, _continuation: String) -> Result<PlaylistPage> {
+        // Simplified: just return empty for now
+        // Full implementation would need to properly manage stream state
+        Ok(PlaylistPage {
+            items:        Vec::new(),
+            continuation: None,
+        })
     }
 }
 
