@@ -40,6 +40,7 @@ members = [
     "crates/common/telemetry",
     "crates/common/worker",
     "crates/server",
+    "crates/paths",
 ]
 
 [workspace.dependencies]

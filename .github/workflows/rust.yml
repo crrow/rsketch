@@ -2,6 +2,9 @@ name: Rust
 
 on:
   workflow_call:
+    secrets:
+      CODECOV_TOKEN:
+        required: false
 
 concurrency:
   group: rust-${{ github.event.pull_request.number || github.sha }}
