@@ -41,6 +41,7 @@ members = [
     "crates/common/utils/downloader",
     "crates/common/worker",
     "crates/server",
+    "crates/paths",
 ]
 
 [workspace.dependencies]

@@ -25,8 +25,18 @@ jobs:
   rust:
     name: Rust
     uses: ./.github/workflows/rust.yml
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   test:
     name: Test
     uses: ./.github/workflows/test.yml
+
+  release-pr:
+    name: Release PR
+    needs: [lint, rust, test]
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    permissions:
+      contents: write
+      pull-requests: write
+    uses: ./.github/workflows/release-pr.yml
