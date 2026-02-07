@@ -14,6 +14,8 @@
 
 //! Application actions for navigation and state changes.
 
+use gpui::actions;
+
 /// Navigation actions for switching views in the center pane.
 #[derive(Debug, Clone, PartialEq)]
 pub enum NavigateAction {
@@ -26,3 +28,17 @@ pub enum NavigateAction {
     /// Navigate to a specific playlist
     Playlist { id: String, name: String },
 }
+
+// Keyboard shortcut actions for playback and navigation
+actions!(
+    yunara,
+    [
+        TogglePlayPause,
+        NextTrack,
+        PreviousTrack,
+        VolumeUp,
+        VolumeDown,
+        ToggleMute,
+        NavigateHome,
+    ]
+);

@@ -22,13 +22,16 @@
 //! - Bottom Dock: Player bar (collapsible)
 
 use gpui::{
-    AppContext, Context, Entity, IntoElement, ParentElement, Render, Rgba, Styled, WeakEntity,
-    prelude::FluentBuilder, px,
+    AppContext, Context, Entity, FocusHandle, InteractiveElement, IntoElement, ParentElement,
+    Render, Rgba, Styled, WeakEntity, prelude::FluentBuilder, px,
 };
 use yunara_ui::components::layout::Header;
 
 use crate::{
-    actions::NavigateAction,
+    actions::{
+        NavigateAction, NavigateHome, NextTrack, PreviousTrack, ToggleMute, TogglePlayPause,
+        VolumeDown, VolumeUp,
+    },
     app_state::AppState,
     consts,
     dock::{Dock, DockPanelHandle, DockPosition, panels::QueuePanel},
@@ -40,10 +43,16 @@ use crate::{
     sidebar::Sidebar,
 };
 
+/// Volume step size for keyboard shortcuts (5%)
+const VOLUME_STEP: f32 = 0.05;
+
 /// Main application workspace.
 pub struct YunaraPlayer {
     /// Weak reference to self for storing in closures
     weak_self: WeakEntity<Self>,
+
+    /// Focus handle for receiving keyboard actions
+    focus_handle: FocusHandle,
 
     /// Reference to the global application state
     app_state: AppState,
@@ -65,6 +74,7 @@ impl YunaraPlayer {
     /// Creates a new Yunara Player workspace.
     pub fn new(app_state: AppState, cx: &mut Context<Self>) -> Self {
         let weak_self = cx.weak_entity();
+        let focus_handle = cx.focus_handle();
 
         // Create the center pane
         let center = cx.new(|_cx| Pane::new());
@@ -126,6 +136,7 @@ impl YunaraPlayer {
 
         Self {
             weak_self,
+            focus_handle,
             app_state,
             sidebar,
             center,
@@ -282,6 +293,40 @@ impl Render for YunaraPlayer {
                 b: 0.0,
                 a: 1.0,
             })
+            .track_focus(&self.focus_handle)
+            .on_action(cx.listener(|this, &TogglePlayPause, _window, cx| {
+                this.app_state.player_state().write().toggle_playback();
+                cx.notify();
+            }))
+            .on_action(cx.listener(|this, &NextTrack, _window, cx| {
+                this.app_state.player_state().write().next_track();
+                cx.notify();
+            }))
+            .on_action(cx.listener(|this, &PreviousTrack, _window, cx| {
+                this.app_state.player_state().write().previous_track();
+                cx.notify();
+            }))
+            .on_action(cx.listener(|this, &VolumeUp, _window, cx| {
+                let mut state = this.app_state.player_state().write();
+                let new_volume = (state.volume.volume + VOLUME_STEP).min(1.0);
+                state.volume.set_volume(new_volume);
+                drop(state);
+                cx.notify();
+            }))
+            .on_action(cx.listener(|this, &VolumeDown, _window, cx| {
+                let mut state = this.app_state.player_state().write();
+                let new_volume = (state.volume.volume - VOLUME_STEP).max(0.0);
+                state.volume.set_volume(new_volume);
+                drop(state);
+                cx.notify();
+            }))
+            .on_action(cx.listener(|this, &ToggleMute, _window, cx| {
+                this.app_state.player_state().write().volume.toggle_mute();
+                cx.notify();
+            }))
+            .on_action(cx.listener(|this, &NavigateHome, _window, cx| {
+                this.handle_navigate(NavigateAction::Home, cx);
+            }))
             .child(content)
             // Bottom dock (PlayerBar) - wrap in fixed height container
             .child(
