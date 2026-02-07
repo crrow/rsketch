@@ -43,7 +43,8 @@ impl ChunkingConfig {
     pub fn calculate_chunks(&self, file_size: u64) -> usize {
         let small_threshold = self.small_file_threshold.as_bytes();
         let medium_threshold = self.medium_file_threshold.as_bytes();
-        let min_chunk = self.min_chunk_size.as_bytes();
+        let min_chunk = self.min_chunk_size.as_bytes().max(1);
+        let max_chunks = self.max_chunks.max(1) as u64;
 
         if file_size < small_threshold {
             // Small file: no chunking
@@ -54,9 +55,9 @@ impl ChunkingConfig {
             chunks.clamp(2, 4) as usize
         } else {
             // Large file: based on size, capped at max_chunks
-            let chunks = file_size / min_chunk;
+            let chunks = (file_size / min_chunk).max(1);
             #[allow(clippy::cast_possible_truncation)]
-            let result = chunks.min(self.max_chunks as u64) as usize;
+            let result = chunks.min(max_chunks) as usize;
             result
         }
     }

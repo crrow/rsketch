@@ -181,6 +181,13 @@ pub fn calculate_chunk_boundaries(file_size: u64, num_chunks: usize) -> Vec<(u64
         return Vec::new();
     }
 
+    // Clamp num_chunks to not exceed file_size to avoid zero-sized chunks
+    #[allow(clippy::cast_possible_truncation)]
+    let num_chunks = if (num_chunks as u64) > file_size {
+        file_size as usize
+    } else {
+        num_chunks
+    };
     let chunk_size = file_size / num_chunks as u64;
     let mut boundaries = Vec::with_capacity(num_chunks);
 

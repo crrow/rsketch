@@ -249,7 +249,7 @@ impl Downloader {
         let timeout: std::time::Duration = config
             .timeout
             .try_into()
-            .expect("timeout must be non-negative");
+            .unwrap_or(std::time::Duration::from_secs(30));
 
         let mut builder = reqwest::Client::builder().timeout(timeout);
 

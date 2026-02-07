@@ -70,10 +70,14 @@ impl ChunkDownloader {
             .await
             .context(NetworkSnafu)?;
 
-        // Check for successful response (206 is already included in is_success())
+        // For ranged downloads, reject 200 OK (server ignored Range header)
         let status = response.status();
+        if status == reqwest::StatusCode::OK {
+            // Server ignored Range header, would corrupt chunked download
+            return Err(DownloadError::RangeNotSupported);
+        }
         ensure!(
-            status.is_success(),
+            status == reqwest::StatusCode::PARTIAL_CONTENT,
             HttpSnafu {
                 status: status.as_u16(),
                 url:    &self.url,
