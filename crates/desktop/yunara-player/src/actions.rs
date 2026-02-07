@@ -14,6 +14,8 @@
 
 //! Application actions for navigation and state changes.
 
+use gpui::actions;
+
 /// Navigation actions for switching views in the center pane.
 #[derive(Debug, Clone, PartialEq)]
 pub enum NavigateAction {
@@ -34,3 +36,17 @@ pub struct ToggleShuffle;
 /// Player action to cycle repeat mode: Off -> All -> One -> Off.
 #[derive(Debug, Clone, PartialEq)]
 pub struct CycleRepeatMode;
+
+// Keyboard shortcut actions for playback and navigation
+actions!(
+    yunara,
+    [
+        TogglePlayPause,
+        NextTrack,
+        PreviousTrack,
+        VolumeUp,
+        VolumeDown,
+        ToggleMute,
+        NavigateHome,
+    ]
+);

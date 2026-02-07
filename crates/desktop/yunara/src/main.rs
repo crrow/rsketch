@@ -14,14 +14,19 @@
 
 mod helper;
 
-use gpui::{AppContext, Application, TitlebarOptions, WindowBounds, WindowOptions, point, px};
+use gpui::{
+    AppContext, Application, KeyBinding, TitlebarOptions, WindowBounds, WindowOptions, px,
+};
 use rsketch_common_util::{
     crashes::{self, CrashConfig, InitCrashHandler},
     ensure_single_instance::ensure_only_instance,
     version::YunaraVersion,
 };
 use shadow_rs::shadow;
-use yunara_player::{AppConfig, AppState, YunaraPlayer, config::ApplicationConfig, consts};
+use yunara_player::{
+    AppConfig, AppState, NavigateHome, NextTrack, PreviousTrack, ToggleMute, TogglePlayPause,
+    VolumeDown, VolumeUp, YunaraPlayer, config::ApplicationConfig, consts,
+};
 use yunara_store::DatabaseConfig;
 use yunara_ui::components::theme::ThemeProvider;
 
@@ -135,7 +140,19 @@ fn main() {
             ..Default::default()
         };
 
-        cx.open_window(options, move |_window, cx| {
+        cx.bind_keys([
+            KeyBinding::new("space", TogglePlayPause, None),
+            KeyBinding::new("cmd-right", NextTrack, None),
+            KeyBinding::new("cmd-left", PreviousTrack, None),
+            KeyBinding::new("cmd-up", VolumeUp, None),
+            KeyBinding::new("cmd-down", VolumeDown, None),
+            KeyBinding::new("m", ToggleMute, None),
+            KeyBinding::new("cmd-h", NavigateHome, None),
+        ]);
+
+        cx.open_window(options, move |window, cx| {
+            let focus_handle = cx.focus_handle();
+            focus_handle.focus(window, cx);
             cx.new(|cx| YunaraPlayer::new(app_state, cx))
         })
         .expect("Failed to open main window");

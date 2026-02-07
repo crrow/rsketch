@@ -33,7 +33,10 @@ pub mod util;
 pub mod ytapi;
 pub mod yunara_player;
 
-pub use actions::{CycleRepeatMode, NavigateAction, ToggleShuffle};
+pub use actions::{
+    CycleRepeatMode, NavigateAction, NavigateHome, NextTrack, PreviousTrack, ToggleMute,
+    TogglePlayPause, ToggleShuffle, VolumeDown, VolumeUp,
+};
 pub use app_state::{AppState, IdentifierKey};
 pub use config::{AppConfig, ApplicationConfig};
 pub use dock::{Dock, DockPanel, DockPanelHandle, DockPosition};
