@@ -109,12 +109,14 @@ impl Downloader {
             fs::create_dir_all(parent).await.context(FileWriteSnafu)?;
         }
 
-        let file = std::fs::OpenOptions::new()
+        let file = tokio::fs::OpenOptions::new()
             .write(true)
             .create(true)
             .truncate(true)
             .open(&lock_path)
+            .await
             .context(FileWriteSnafu)?;
+        let file = file.into_std().await;
         let mut lock = RwLock::new(file);
         let _lock_guard = match lock.try_write() {
             Ok(guard) => guard,
