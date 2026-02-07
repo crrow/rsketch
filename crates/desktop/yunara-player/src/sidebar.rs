@@ -17,10 +17,14 @@
 //! The sidebar shows navigation items (Home, Explore, Library) and
 //! optionally displays the user's playlists when the window is wide enough.
 
+use std::time::{Duration, Instant};
+
 use gpui::{
-    Context, InteractiveElement, IntoElement, ParentElement, Render, StatefulInteractiveElement,
-    Styled, WeakEntity, Window, div, img, prelude::FluentBuilder, px, svg,
+    Context, ElementId, InteractiveElement, IntoElement, ParentElement, Render, Rgba,
+    ScrollHandle, StatefulInteractiveElement, Styled, WeakEntity, Window, div, img,
+    prelude::FluentBuilder, px, svg,
 };
+use ytmapi_rs::common::YoutubeID;
 use yunara_ui::components::theme::ThemeExt;
 
 use crate::{actions::NavigateAction, app_state::AppState};
@@ -45,6 +49,13 @@ pub struct Sidebar {
     weak_self:  WeakEntity<Self>,
     app_state:  AppState,
     active_nav: NavItem,
+    active_playlist_id: Option<String>,
+    playlist_scrollbar_visible: bool,
+    playlist_scroll_animating: bool,
+    playlist_scroll_last_at: Option<Instant>,
+    playlist_thumb_top: f32,
+    playlist_thumb_height: f32,
+    playlist_scroll_handle: ScrollHandle,
     /// Reference to the workspace for navigation
     workspace:  Option<WeakEntity<crate::yunara_player::YunaraPlayer>>,
 }
@@ -56,6 +67,13 @@ impl Sidebar {
             weak_self: cx.weak_entity(),
             app_state,
             active_nav: NavItem::Home,
+            active_playlist_id: None,
+            playlist_scrollbar_visible: false,
+            playlist_scroll_animating: false,
+            playlist_scroll_last_at: None,
+            playlist_thumb_top: 0.0,
+            playlist_thumb_height: 0.0,
+            playlist_scroll_handle: ScrollHandle::new(),
             workspace: None,
         }
     }
@@ -68,24 +86,113 @@ impl Sidebar {
     /// Sets the active navigation item.
     pub fn set_active_nav(&mut self, nav: NavItem) { self.active_nav = nav; }
 
+    pub fn set_active_playlist_id(&mut self, playlist_id: Option<String>) {
+        self.active_playlist_id = playlist_id;
+    }
+
+    fn note_playlist_scroll(&mut self, cx: &mut Context<Self>) {
+        self.playlist_scrollbar_visible = true;
+        self.playlist_scroll_last_at = Some(Instant::now());
+        cx.notify();
+
+        if self.playlist_scroll_animating {
+            return;
+        }
+
+        self.playlist_scroll_animating = true;
+        cx.spawn(async move |this, cx| {
+            let tick = Duration::from_millis(16);
+            loop {
+                cx.background_executor().timer(tick).await;
+
+                let mut should_stop = false;
+                let _ = this.update(cx, |sidebar, cx| {
+                    let bounds = sidebar.playlist_scroll_handle.bounds();
+                    let max_offset = sidebar.playlist_scroll_handle.max_offset();
+                    let viewport_height = f32::from(bounds.size.height);
+                    let content_height = f32::from(max_offset.height + bounds.size.height);
+
+                    if viewport_height <= 0.0 || content_height <= viewport_height {
+                        sidebar.playlist_scrollbar_visible = false;
+                        sidebar.playlist_scroll_animating = false;
+                        sidebar.playlist_thumb_height = 0.0;
+                        sidebar.playlist_thumb_top = 0.0;
+                        should_stop = true;
+                        cx.notify();
+                        return;
+                    }
+
+                    let thumb_height = viewport_height / 3.0;
+                    let track_height = (viewport_height - thumb_height).max(0.0);
+                    let scroll_offset =
+                        -f32::from(sidebar.playlist_scroll_handle.offset().y);
+                    let max_offset_y = f32::from(max_offset.height);
+                    let scroll_ratio = if max_offset_y > 0.0 {
+                        (scroll_offset / max_offset_y).clamp(0.0, 1.0)
+                    } else {
+                        0.0
+                    };
+                    let target_top = scroll_ratio * track_height;
+                    let current_top = sidebar.playlist_thumb_top;
+                    let new_top = current_top + (target_top - current_top) * 0.2;
+
+                    sidebar.playlist_thumb_height = thumb_height;
+                    sidebar.playlist_thumb_top = new_top;
+                    sidebar.playlist_scrollbar_visible = true;
+
+                    let idle = sidebar
+                        .playlist_scroll_last_at
+                        .map(|t| t.elapsed() > Duration::from_millis(120))
+                        .unwrap_or(false);
+                    if idle && (target_top - new_top).abs() < 0.5 {
+                        sidebar.playlist_scrollbar_visible = false;
+                        sidebar.playlist_scroll_animating = false;
+                        should_stop = true;
+                    }
+
+                    cx.notify();
+                });
+
+                if should_stop {
+                    break;
+                }
+            }
+        })
+        .detach();
+    }
+
     /// Handle navigation item click
     fn handle_nav_click(&mut self, nav: NavItem, cx: &mut Context<Self>) {
-        self.active_nav = nav;
         let action = match nav {
             NavItem::Home => NavigateAction::Home,
             NavItem::Explore => NavigateAction::Explore,
             NavItem::Library => NavigateAction::Library,
         };
 
-        if let Some(ref workspace) = self.workspace {
-            workspace
-                .update(cx, |player, cx| {
+        let workspace = self.workspace.clone();
+        cx.spawn(async move |_this, cx| {
+            if let Some(workspace) = workspace {
+                let _ = workspace.update(cx, |player, cx| {
                     player.handle_navigate(action, cx);
-                })
-                .ok();
-        }
+                });
+            }
+        })
+        .detach();
+    }
 
-        cx.notify();
+    /// Handle playlist item click
+    fn handle_playlist_click(&mut self, id: String, name: String, cx: &mut Context<Self>) {
+        let action = NavigateAction::Playlist { id, name };
+        let workspace = self.workspace.clone();
+
+        cx.spawn(async move |_this, cx| {
+            if let Some(workspace) = workspace {
+                let _ = workspace.update(cx, |player, cx| {
+                    player.handle_navigate(action, cx);
+                });
+            }
+        })
+        .detach();
     }
 
     /// Render a navigation item with icon and label
@@ -196,7 +303,13 @@ impl Render for Sidebar {
             .flex()
             .flex_col()
             .h_full()
-            .bg(theme.background_primary)
+            .min_h(px(0.0))
+            .bg(Rgba {
+                r: 0.0,
+                g: 0.0,
+                b: 0.0,
+                a: 1.0,
+            })
             .overflow_hidden()
             // Brand header (menu + logo)
             .child(
@@ -264,11 +377,18 @@ impl Render for Sidebar {
             )
             // Playlists section (only when expanded)
             .when(show_playlists, |el| {
+                let playlists = self.app_state.playlist_service().get_playlists();
+                let weak = self.weak_self.clone();
+                let selected_playlist_id = self.active_playlist_id.clone();
+                let show_scrollbar =
+                    self.playlist_scrollbar_visible && self.playlist_thumb_height > 0.0;
+
                 el.child(
                     div()
                         .flex()
                         .flex_col()
                         .flex_1()
+                        .min_h(px(0.0))
                         .overflow_hidden()
                         // Divider between nav and playlists
                         .child(
@@ -301,14 +421,133 @@ impl Render for Sidebar {
                                         .child("New playlist"),
                                 ),
                         )
-                        // Placeholder for playlist items
+                        // Playlist items
                         .child(
                             div()
                                 .flex_1()
-                                .px(px(12.0))
-                                .text_color(theme.text_muted)
-                                .text_sm()
-                                .child("Playlists will appear here"),
+                                .min_h(px(0.0))
+                                .h_full()
+                                .child(
+                                    div()
+                                        .id("playlist-list")
+                                        .flex_1()
+                                        .min_h(px(0.0))
+                                        .h_full()
+                                        .overflow_y_scroll()
+                                        .track_scroll(&self.playlist_scroll_handle)
+                                        .on_scroll_wheel(cx.listener(
+                                            |sidebar, _event, _window, cx| {
+                                                sidebar.note_playlist_scroll(cx);
+                                            },
+                                        ))
+                                        .px(px(12.0))
+                                        .when(playlists.is_empty(), |el| {
+                                            el.child(
+                                                div()
+                                                    .text_color(theme.text_muted)
+                                                    .text_sm()
+                                                    .child("No playlists yet"),
+                                            )
+                                        })
+                                        .children(playlists.into_iter().enumerate().map(
+                                            |(idx, playlist)| {
+                                        let playlist_id =
+                                            playlist.playlist_id.get_raw().to_owned();
+                                        let playlist_name = playlist.title.clone();
+                                        let is_selected = selected_playlist_id
+                                            .as_ref()
+                                            .map(|selected| selected == &playlist_id)
+                                            .unwrap_or(false);
+                                        let thumbnail_url = playlist
+                                            .thumbnails
+                                            .iter()
+                                            .max_by_key(|thumbnail| {
+                                                thumbnail.width.saturating_mul(thumbnail.height)
+                                            })
+                                            .map(|thumbnail| thumbnail.url.clone());
+                                        let has_thumbnail = thumbnail_url.is_some();
+                                        let weak = weak.clone();
+                                        let count_text = playlist
+                                            .count
+                                            .map(|c| format!("{} songs", c))
+                                            .unwrap_or_default();
+
+                                        div()
+                                            .id(ElementId::Integer(idx as u64))
+                                            .flex()
+                                            .items_center()
+                                            .gap_3()
+                                            .px(px(12.0))
+                                            .py(px(8.0))
+                                            .rounded(px(8.0))
+                                            .cursor_pointer()
+                                            .when(is_selected, |el| el.bg(theme.active))
+                                            .hover(|style| style.bg(theme.hover))
+                                            .on_click(move |_event, _window, cx| {
+                                                let id = playlist_id.clone();
+                                                let name = playlist_name.clone();
+                                                weak.update(cx, |sidebar, cx| {
+                                                    sidebar.handle_playlist_click(id, name, cx);
+                                                })
+                                                .ok();
+                                            })
+                                            .child(
+                                                div()
+                                                    .w(px(36.0))
+                                                    .h(px(36.0))
+                                                    .rounded(px(6.0))
+                                                    .bg(theme.background_elevated)
+                                                    .flex()
+                                                    .items_center()
+                                                    .justify_center()
+                                                    .text_color(theme.text_muted)
+                                                    .when_some(thumbnail_url, |el, url| {
+                                                        el.child(
+                                                            img(url)
+                                                                .w(px(36.0))
+                                                                .h(px(36.0))
+                                                                .rounded(px(6.0)),
+                                                        )
+                                                    })
+                                                    .when(!has_thumbnail, |el| el.child("♪")),
+                                            )
+                                            .child(
+                                                div()
+                                                    .flex()
+                                                    .flex_col()
+                                                    .overflow_hidden()
+                                                    .child(
+                                                        div()
+                                                            .text_size(px(15.0))
+                                                            .text_color(theme.text_primary)
+                                                            .overflow_hidden()
+                                                            .child(playlist.title),
+                                                    )
+                                                    .when(!count_text.is_empty(), |el| {
+                                                        el.child(
+                                                            div()
+                                                                .text_size(px(12.0))
+                                                                .text_color(theme.text_muted)
+                                                                .child(count_text),
+                                                        )
+                                                    }),
+                                            )
+                                        },
+                                        )),
+                                )
+                                .when(show_scrollbar, |el| {
+                                    el.child(
+                                        div()
+                                            .absolute()
+                                            .top(px(self.playlist_thumb_top))
+                                            .right_0()
+                                            .h(px(self.playlist_thumb_height))
+                                            .w(px(6.0))
+                                            .rounded(px(6.0))
+                                            .bg(theme.active)
+                                            .opacity(1.0),
+                                    )
+                                }),
                         ),
                 )
             })

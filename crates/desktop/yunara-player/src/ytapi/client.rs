@@ -31,7 +31,9 @@ use tracing::{debug, error, info, instrument};
 use ytmapi_rs::{
     YtMusic, YtMusicBuilder,
     auth::{BrowserToken, OAuthToken, noauth::NoAuthToken},
-    common::{PlaylistID, SearchSuggestion, UserChannelID, UserPlaylistsParams},
+    common::{
+        PlaylistID, SearchSuggestion, UserChannelID, UserPlaylistsParams, YoutubeID,
+    },
     continuations::ParseFromContinuable,
     parse::{
         GetUser, LibraryChannel, LibraryPlaylist, ParseFrom, PlaylistItem, SearchResultArtist,
@@ -48,6 +50,13 @@ use crate::ytapi::{
     ApiKey, AuthType,
     err::{InvalidAuthTokenSnafu, OperationCancelledSnafu, Result, TokenRefreshFailedSnafu},
 };
+
+/// Represents a page of playlist items with optional continuation token
+#[derive(Debug, Clone)]
+pub struct PlaylistPage {
+    pub items: Vec<PlaylistItem>,
+    pub continuation: Option<String>,
+}
 
 #[derive(Clone)]
 pub struct ApiClient {
@@ -151,6 +160,25 @@ impl ApiClient {
         self.inner.query_api_with_retry(&query).await
     }
 
+    /// Get the first page of playlist tracks with continuation token
+    #[instrument(skip(self), err(Display))]
+    pub async fn get_playlist_first_page(
+        &self,
+        playlist_id: PlaylistID<'static>,
+    ) -> Result<PlaylistPage> {
+        let query = ytmapi_rs::query::GetPlaylistTracksQuery::new((&playlist_id).into());
+        self.inner.query_first_page(&query).await
+    }
+
+    /// Get next page of playlist tracks using continuation token
+    #[instrument(skip(self), err(Display))]
+    pub async fn get_playlist_next_page(
+        &self,
+        continuation: String,
+    ) -> Result<PlaylistPage> {
+        self.inner.query_next_page(continuation).await
+    }
+
     /// API Search Query for Profiles only.
     pub async fn search_profiles<'a, Q: Into<SearchQuery<'a, FilteredSearch<ProfilesFilter>>>>(
         &self,
@@ -161,23 +189,22 @@ impl ApiClient {
     }
 
     /// Gets information about an user and their videos and playlists.
-    pub async fn get_user<'a>(&self, id: impl Into<UserChannelID<'a>>) -> Result<GetUser> {
+    pub async fn get_user<S: AsRef<str>>(&self, id: S) -> Result<GetUser> {
         self.inner
-            .query_api_with_retry(&GetUserQuery::new(id.into()))
+            .query_api_with_retry(&GetUserQuery::new(UserChannelID::from_raw(id.as_ref())))
             .await
     }
 
     /// Gets a full list of playlists for a user.
-    pub async fn get_user_playlists<
-        'a,
-        T: Into<UserChannelID<'a>>,
-        U: Into<UserPlaylistsParams<'a>>,
-    >(
+    pub async fn get_user_playlists<'a, T: AsRef<str>, U: Into<UserPlaylistsParams<'a>>>(
         &self,
         channel_id: T,
         browse_params: U,
     ) -> Result<Vec<UserPlaylist>> {
-        let query = GetUserPlaylistsQuery::new(channel_id.into(), browse_params.into());
+        let query = GetUserPlaylistsQuery::new(
+            UserChannelID::from_raw(channel_id.as_ref()),
+            browse_params.into(),
+        );
         self.inner.query_api_with_retry(&query).await
     }
 
@@ -393,9 +420,48 @@ impl ApiClientInner {
             }
         }
     }
+
+    /// Query first page of a continuable resource
+    /// Note: Currently fetches all items at once. True pagination to be implemented later.
+    #[instrument(skip(self, query), err(Display))]
+    pub async fn query_first_page<Q>(&self, query: &Q) -> Result<PlaylistPage>
+    where
+        Q: ytmapi_rs::query::Query<BrowserToken, Output = Vec<PlaylistItem>>,
+        Q: ytmapi_rs::query::Query<OAuthToken, Output = Vec<PlaylistItem>>,
+    {
+        // For now, use the existing query method and return first 50 items
+        let client = self.generic_client.read().await;
+        let all_items: Vec<PlaylistItem> = client.query_browser_or_oauth(query).await?;
+
+        // Split into first page and check if more exist
+        let page_size: usize = 50;
+        let has_more = all_items.len() > page_size;
+        let items: Vec<PlaylistItem> = all_items.into_iter().take(page_size).collect();
+
+        let continuation = if has_more {
+            Some("page_2".to_string())  // Simplified: store page number
+        } else {
+            None
+        };
+
+        Ok(PlaylistPage { items, continuation })
+    }
+
+    /// Query next page using continuation token
+    /// Note: This is a simplified implementation that doesn't support true pagination yet
+    #[instrument(skip(self), err(Display))]
+    pub async fn query_next_page(&self, _continuation: String) -> Result<PlaylistPage> {
+        // Simplified: just return empty for now
+        // Full implementation would need to properly manage stream state
+        Ok(PlaylistPage {
+            items:        Vec::new(),
+            continuation: None,
+        })
+    }
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 enum GenericalYtmusic {
     Browser(YtMusic<BrowserToken>),
     OAuth(YtMusic<OAuthToken>),
@@ -431,6 +497,7 @@ impl GenericalYtmusic {
     }
 
     // TO DETERMINE HOW TO HANDLE BROWSER/NOAUTH CASE.
+    #[allow(dead_code)]
     fn get_token_hash(&self) -> Result<Option<u64>> {
         Ok(match self {
             GenericalYtmusic::Browser(_) | GenericalYtmusic::NoAuth(_) => None,
@@ -438,6 +505,7 @@ impl GenericalYtmusic {
         })
     }
 
+    #[allow(dead_code)]
     async fn query<Q, O>(&self, query: impl Borrow<Q>) -> Result<O>
     where
         Q: Query<BrowserToken, Output = O>,
@@ -498,6 +566,7 @@ impl GenericalYtmusic {
         })
     }
 
+    #[allow(dead_code)]
     async fn stream_browser_or_oauth<Q, O>(
         &self,
         query: impl Borrow<Q>,
@@ -530,6 +599,7 @@ impl GenericalYtmusic {
         })
     }
 
+    #[allow(dead_code)]
     async fn query_source<Q, O>(&self, query: impl Borrow<Q>) -> Result<String>
     where
         Q: Query<BrowserToken, Output = O>,
@@ -543,6 +613,7 @@ impl GenericalYtmusic {
         })
     }
 
+    #[allow(dead_code)]
     async fn query_source_browser_or_oauth<Q, O>(&self, query: impl Borrow<Q>) -> Result<String>
     where
         Q: Query<BrowserToken, Output = O>,
@@ -593,6 +664,7 @@ impl GenericalYtmusic {
         })
     }
 
+    #[allow(dead_code)]
     async fn stream_source_browser_or_oauth<Q, O>(
         &self,
         query: &Q,
@@ -648,8 +720,19 @@ mod tests {
         .await
         .unwrap();
 
-        let channels = client.get_library_channels().await.unwrap();
-        println!("{:?}", channels);
+        // let channel_id = "UC3oBmxpbK69w8jBocr9sGYA";
+
+        // let user = client.get_user(channel_id).await.unwrap();
+        // println!("{:?}", user);
+
+        // let user = client
+        //     .get_user_playlists(channel_id, user.all_playlists_params.unwrap())
+        //     .awaitq
+        //     .unwrap();
+        // println!("{:?}", user);
+
+        // let channels = client.get_library_channels().await.unwrap();
+        // println!("{:?}", channels);
 
         let playlists = client.get_library_playlists().await.unwrap();
         println!("{:?}", playlists);

@@ -22,10 +22,10 @@
 //! - Bottom Dock: Player bar (collapsible)
 
 use gpui::{
-    AppContext, Context, Entity, IntoElement, ParentElement, Render, Styled, WeakEntity,
+    AppContext, Context, Entity, IntoElement, ParentElement, Render, Rgba, Styled, WeakEntity,
     prelude::FluentBuilder, px,
 };
-use yunara_ui::components::{layout::Header, theme::ThemeExt};
+use yunara_ui::components::layout::Header;
 
 use crate::{
     actions::NavigateAction,
@@ -34,7 +34,7 @@ use crate::{
     dock::{Dock, DockPanelHandle, DockPosition, panels::QueuePanel},
     pane::{
         Pane, PaneItemHandle,
-        items::{ExploreView, HomeView, LibraryView},
+        items::{ExploreView, HomeView, LibraryView, PlaylistView},
     },
     player_bar::PlayerBar,
     sidebar::Sidebar,
@@ -99,6 +99,31 @@ impl YunaraPlayer {
         let player_handle = player_bar.update(cx, |panel, _| DockPanelHandle::new(panel));
         bottom_dock.update(cx, |dock, _| dock.add_panel(player_handle));
 
+        // Load playlists in background on Tokio runtime, notify sidebar when done
+        {
+            let service = app_state.playlist_service().clone();
+            let sidebar = sidebar.clone();
+            let tokio_task = gpui_tokio::Tokio::spawn(cx, async move {
+                service.load_playlists().await
+            });
+            cx.spawn(async move |_this, cx| {
+                match tokio_task.await {
+                    Ok(Ok(())) => {
+                        let _ = cx.update(|cx| {
+                            sidebar.update(cx, |_sidebar, cx| cx.notify());
+                        });
+                    }
+                    Ok(Err(e)) => {
+                        tracing::error!("Failed to load playlists on startup: {}", e);
+                    }
+                    Err(e) => {
+                        tracing::error!("Playlist load task panicked: {}", e);
+                    }
+                }
+            })
+            .detach();
+        }
+
         Self {
             weak_self,
             app_state,
@@ -115,29 +140,48 @@ impl YunaraPlayer {
 
         match action {
             NavigateAction::Home => {
+                self.app_state.set_playlist_blur_path(None);
                 let home_view = cx.new(|cx| HomeView::new(app_state, cx));
                 let handle = home_view.update(cx, |view, _| PaneItemHandle::new(view));
                 self.center.update(cx, |pane, _| pane.navigate_to(handle));
-                // Note: Sidebar sets its own active_nav in handle_nav_click
+                self.sidebar.update(cx, |sidebar, _| {
+                    sidebar.set_active_nav(crate::sidebar::NavItem::Home);
+                    sidebar.set_active_playlist_id(None);
+                });
+                self.right_dock.update(cx, |dock, _| dock.set_visible(true));
             }
             NavigateAction::Explore => {
+                self.app_state.set_playlist_blur_path(None);
                 let explore_view = cx.new(|cx| ExploreView::new(app_state, cx));
                 let handle = explore_view.update(cx, |view, _| PaneItemHandle::new(view));
                 self.center.update(cx, |pane, _| pane.navigate_to(handle));
-                // Note: Sidebar sets its own active_nav in handle_nav_click
+                self.sidebar.update(cx, |sidebar, _| {
+                    sidebar.set_active_nav(crate::sidebar::NavItem::Explore);
+                    sidebar.set_active_playlist_id(None);
+                });
+                self.right_dock.update(cx, |dock, _| dock.set_visible(true));
             }
             NavigateAction::Library => {
+                self.app_state.set_playlist_blur_path(None);
                 let library_view = cx.new(|cx| LibraryView::new(app_state, cx));
                 let handle = library_view.update(cx, |view, _| PaneItemHandle::new(view));
                 self.center.update(cx, |pane, _| pane.navigate_to(handle));
-                // Note: Sidebar sets its own active_nav in handle_nav_click
+                self.sidebar.update(cx, |sidebar, _| {
+                    sidebar.set_active_nav(crate::sidebar::NavItem::Library);
+                    sidebar.set_active_playlist_id(None);
+                });
+                self.right_dock.update(cx, |dock, _| dock.set_visible(true));
             }
-            NavigateAction::Playlist { id: _, name: _ } => {
-                // TODO: Create PlaylistView with proper parameters
-                // For now, navigate to Library view as placeholder
-                let library_view = cx.new(|cx| LibraryView::new(app_state, cx));
-                let handle = library_view.update(cx, |view, _| PaneItemHandle::new(view));
+            NavigateAction::Playlist { id, name } => {
+                self.app_state.set_playlist_blur_path(None);
+                let playlist_id = id.clone();
+                let playlist_view = cx.new(|cx| PlaylistView::new(app_state, id, name, cx));
+                let handle = playlist_view.update(cx, |view, _| PaneItemHandle::new(view));
                 self.center.update(cx, |pane, _| pane.navigate_to(handle));
+                self.sidebar.update(cx, |sidebar, _| {
+                    sidebar.set_active_playlist_id(Some(playlist_id));
+                });
+                self.right_dock.update(cx, |dock, _| dock.set_visible(false));
             }
         }
 
@@ -147,7 +191,6 @@ impl YunaraPlayer {
 
 impl Render for YunaraPlayer {
     fn render(&mut self, window: &mut gpui::Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let theme = cx.theme();
         let viewport_size = window.viewport_size();
 
         // Calculate aspect ratio to determine layout orientation
@@ -159,6 +202,9 @@ impl Render for YunaraPlayer {
         // Sidebar width
         let sidebar_width = if width_f32 > 900.0 { 240.0 } else { 72.0 };
 
+        // Check if right dock is visible
+        let right_dock_visible = self.right_dock.read(cx).is_visible();
+
         let main_content = gpui::div()
             .flex()
             .flex_1()
@@ -168,7 +214,6 @@ impl Render for YunaraPlayer {
                 gpui::div()
                     .w(px(sidebar_width))
                     .h_full()
-                    .when(cfg!(target_os = "macos"), |el| el.pt(px(28.0)))
                     .child(gpui::AnyView::from(self.sidebar.clone())),
             )
             // Center + Right (header above, content below)
@@ -176,8 +221,6 @@ impl Render for YunaraPlayer {
                 gpui::div()
                     .flex_1()
                     .h_full()
-                    .bg(theme.background_primary)
-                    .when(cfg!(target_os = "macos"), |el| el.pt(px(28.0)))
                     .child(Header::new("app-header"))
                     .child(
                         gpui::div()
@@ -189,11 +232,10 @@ impl Render for YunaraPlayer {
                                 gpui::div()
                                     .flex_1()
                                     .h_full()
-                                    .bg(theme.background_primary)
                                     .child(gpui::AnyView::from(self.center.clone())),
                             )
-                            // Right dock (when showing on side)
-                            .when(show_right_on_side, |div| {
+                            // Right dock (when showing on side and visible)
+                            .when(show_right_on_side && right_dock_visible, |div| {
                                 div.child(
                                     gpui::div()
                                         .w(px(320.0))
@@ -219,12 +261,14 @@ impl Render for YunaraPlayer {
                 .flex_col()
                 .overflow_hidden()
                 .child(main_content)
-                .child(
-                    gpui::div()
-                        .w_full()
-                        .h(px(280.0))
-                        .child(gpui::AnyView::from(self.right_dock.clone())),
-                )
+                .when(right_dock_visible, |div| {
+                    div.child(
+                        gpui::div()
+                            .w_full()
+                            .h(px(280.0))
+                            .child(gpui::AnyView::from(self.right_dock.clone())),
+                    )
+                })
         };
 
         gpui::div()
@@ -232,7 +276,12 @@ impl Render for YunaraPlayer {
             .flex_col()
             .w_full()
             .h_full()
-            .bg(theme.background_primary)
+            .bg(Rgba {
+                r: 0.0,
+                g: 0.0,
+                b: 0.0,
+                a: 1.0,
+            })
             .child(content)
             // Bottom dock (PlayerBar) - wrap in fixed height container
             .child(

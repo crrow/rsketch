@@ -211,18 +211,22 @@ impl RenderOnce for PlaylistDetail {
             // Track list
             .child(
                 div()
+                    .id("playlist-detail-tracks")
                     .flex()
                     .flex_col()
+                    .w_full()
+                    .flex_1()
+                    .overflow_y_scroll()
                     .children(tracks.into_iter().enumerate().map(|(index, track)| {
-                        let is_playing = current_playing_track_id
-                            .as_ref()
-                            .map(|id| id == &track.id)
-                            .unwrap_or(false);
+                                let is_playing = current_playing_track_id
+                                    .as_ref()
+                                    .map(|id| id == &track.id)
+                                    .unwrap_or(false);
 
-                        TrackItem::new(format!("playlist-track-{}", index), track)
-                            .playing(is_playing)
-                            .with_index(index)
-                    })),
+                                TrackItem::new(format!("playlist-track-{}", index), track)
+                                    .playing(is_playing)
+                                    .with_index(index)
+                            }))
             )
     }
 }

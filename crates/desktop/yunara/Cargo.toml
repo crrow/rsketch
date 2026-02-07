@@ -16,11 +16,13 @@ bon.workspace = true
 core-text = "=21.0.0"
 futures.workspace = true
 gpui.workspace = true
-gpui-component = "0.5.0"
+gpui-component.workspace = true
 gpui_tokio.workspace = true
+http_client.workspace = true
 jiff.workspace = true
 notify.workspace = true
 reqwest.workspace = true
+reqwest_client.workspace = true
 rsketch-common-telemetry.workspace = true
 rsketch-common-util.workspace = true
 shadow-rs = "^1.6"

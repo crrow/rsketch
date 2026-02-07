@@ -20,7 +20,9 @@ futures.workspace = true
 gpui.workspace = true
 gpui-component.workspace = true
 gpui_tokio.workspace = true
+image = { version = "0.25", default-features = false, features = ["jpeg", "png"] }
 jiff.workspace = true
+moka = { version = "0.12", features = ["future"] }
 num_enum.workspace = true
 parking_lot = "0.12"
 reqwest.workspace = true

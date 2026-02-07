@@ -27,7 +27,7 @@ use crate::{app_state::AppState, pane::PaneItem};
 /// Library view for browsing user's music collection.
 pub struct LibraryView {
     weak_self: WeakEntity<Self>,
-    app_state: AppState,
+    _app_state: AppState,
 }
 
 impl LibraryView {
@@ -35,7 +35,7 @@ impl LibraryView {
     pub fn new(app_state: AppState, cx: &mut Context<Self>) -> Self {
         Self {
             weak_self: cx.weak_entity(),
-            app_state,
+            _app_state: app_state,
         }
     }
 }

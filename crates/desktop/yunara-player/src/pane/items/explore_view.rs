@@ -24,7 +24,7 @@ use crate::{app_state::AppState, pane::PaneItem};
 /// Explore view for discovering new music.
 pub struct ExploreView {
     weak_self: WeakEntity<Self>,
-    app_state: AppState,
+    _app_state: AppState,
 }
 
 impl ExploreView {
@@ -32,7 +32,7 @@ impl ExploreView {
     pub fn new(app_state: AppState, cx: &mut Context<Self>) -> Self {
         Self {
             weak_self: cx.weak_entity(),
-            app_state,
+            _app_state: app_state,
         }
     }
 }

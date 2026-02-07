@@ -1,3 +1,5 @@
+MTL_HUD_ENABLED := "1"
+
 # Justfile for Yunara Desktop Application
 [group("📒 Help")]
 [private]
@@ -10,7 +12,7 @@ help: default
 
 # Run the application in debug mode
 run:
-    cargo run -p yunara
+    MTL_HUD_ENABLED={{MTL_HUD_ENABLED}} cargo run -p yunara
 
 # Run the application in release mode
 run-release:

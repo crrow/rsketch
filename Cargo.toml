@@ -64,9 +64,11 @@ derive_more = { version = "2.0", features = ["full"] }
 dirs = "^6.0"
 futures = "^0.3"
 gpui = { git = "https://github.com/zed-industries/zed", package = "gpui" }
-gpui-component = "^0.5"
+gpui-component = { git = "https://github.com/longbridge/gpui-component", branch = "main" }
 gpui_tokio = { git = "https://github.com/zed-industries/zed", package = "gpui_tokio" }
 http = "^1"
+http_client = { git = "https://github.com/zed-industries/zed", package = "http_client" }
+reqwest_client = { git = "https://github.com/zed-industries/zed", package = "reqwest_client" }
 jiff = "^0.2"
 lazy_static = "^1.4"
 notify = "^8.2"
