@@ -28,6 +28,7 @@ use crate::{
 };
 
 /// Manages download state persistence for resume support
+#[derive(Clone)]
 pub struct StateManager {
     temp_dir: PathBuf,
 }

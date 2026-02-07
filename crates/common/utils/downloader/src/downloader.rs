@@ -208,7 +208,7 @@ impl Downloader {
 
         // Continue download with existing state
         let state = Arc::new(Mutex::new(saved_state));
-        self.parallel.download_all(&state).await?;
+        self.parallel.download_all(&state, self.state.clone()).await?;
 
         // Save final state
         {
@@ -248,12 +248,7 @@ impl Downloader {
 
     // Private helper methods
     fn build_client(config: &DownloaderConfig) -> reqwest::Client {
-        let timeout: std::time::Duration = config
-            .timeout
-            .try_into()
-            .unwrap_or(std::time::Duration::from_secs(30));
-
-        let mut builder = reqwest::Client::builder().timeout(timeout);
+        let mut builder = reqwest::Client::builder().timeout(config.timeout);
 
         if let Some(ref ua) = config.user_agent {
             builder = builder.user_agent(ua);
@@ -312,7 +307,7 @@ impl Downloader {
         }
 
         // Download all chunks
-        self.parallel.download_all(&state).await?;
+        self.parallel.download_all(&state, self.state.clone()).await?;
 
         // Save final state
         {

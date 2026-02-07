@@ -23,6 +23,7 @@ use tokio::sync::Mutex;
 use crate::{
     chunk_downloader::ChunkDownloader,
     error::DownloadError,
+    state_manager::StateManager,
     types::{ChunkState, ChunkStatus, DownloadState},
 };
 
@@ -47,6 +48,7 @@ impl ParallelDownloadManager {
     pub async fn download_all(
         &self,
         state: &Arc<Mutex<DownloadState>>,
+        state_manager: StateManager,
     ) -> Result<(), DownloadError> {
         let (url, pending_chunks) = self.get_pending_chunks(state).await;
 
@@ -54,7 +56,7 @@ impl ParallelDownloadManager {
             return Ok(());
         }
 
-        let handles = self.spawn_workers(url, pending_chunks, Arc::clone(state));
+        let handles = self.spawn_workers(url, pending_chunks, Arc::clone(state), state_manager);
         self.collect_results(handles).await?;
 
         Ok(())
@@ -82,6 +84,7 @@ impl ParallelDownloadManager {
         url: String,
         chunks: Vec<ChunkState>,
         state: Arc<Mutex<DownloadState>>,
+        state_manager: StateManager,
     ) -> Vec<tokio::task::JoinHandle<ChunkResult>> {
         chunks
             .into_iter()
@@ -89,10 +92,11 @@ impl ParallelDownloadManager {
                 let downloader =
                     ChunkDownloader::new(self.client.clone(), url.clone(), self.max_retries);
                 let state = Arc::clone(&state);
+                let state_manager = state_manager.clone();
 
-                tokio::spawn(
-                    async move { Self::download_chunk_worker(downloader, chunk, state).await },
-                )
+                tokio::spawn(async move {
+                    Self::download_chunk_worker(downloader, chunk, state, state_manager).await
+                })
             })
             .collect()
     }
@@ -102,16 +106,23 @@ impl ParallelDownloadManager {
         downloader: ChunkDownloader,
         chunk: ChunkState,
         state: Arc<Mutex<DownloadState>>,
+        state_manager: StateManager,
     ) -> ChunkResult {
         let index = chunk.index;
 
         match downloader.download(&chunk).await {
             Ok(()) => {
                 Self::mark_completed(&state, index).await;
+                // Best-effort save - don't fail the download if state persistence fails
+                let s = state.lock().await;
+                let _ = state_manager.save(&s).await;
                 Ok(index)
             }
             Err(e) => {
                 Self::mark_failed(&state, index).await;
+                // Best-effort save - don't fail the download if state persistence fails
+                let s = state.lock().await;
+                let _ = state_manager.save(&s).await;
                 Err((index, e))
             }
         }

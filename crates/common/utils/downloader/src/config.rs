@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::path::PathBuf;
+use std::{path::PathBuf, time::Duration};
 
 use bon::Builder;
-use jiff::SignedDuration;
 use rsketch_base::readable_size::ReadableSize;
 use smart_default::SmartDefault;
 
@@ -80,8 +79,8 @@ pub struct DownloaderConfig {
     pub temp_dir: PathBuf,
 
     /// Timeout for HTTP requests
-    #[default(SignedDuration::from_secs(30))]
-    pub timeout: SignedDuration,
+    #[default(Duration::from_secs(30))]
+    pub timeout: Duration,
 
     /// Maximum number of retries per chunk
     #[default = 3]
