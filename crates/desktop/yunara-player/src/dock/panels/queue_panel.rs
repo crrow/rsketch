@@ -23,7 +23,7 @@ use crate::{app_state::AppState, dock::DockPanel};
 /// Panel showing the current play queue.
 pub struct QueuePanel {
     weak_self: WeakEntity<Self>,
-    app_state: AppState,
+    _app_state: AppState,
 }
 
 impl QueuePanel {
@@ -31,7 +31,7 @@ impl QueuePanel {
     pub fn new(app_state: AppState, cx: &mut Context<Self>) -> Self {
         Self {
             weak_self: cx.weak_entity(),
-            app_state,
+            _app_state: app_state,
         }
     }
 }

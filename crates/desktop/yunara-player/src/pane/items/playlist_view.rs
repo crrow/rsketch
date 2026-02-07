@@ -28,8 +28,6 @@ use crate::{app_state::AppState, pane::PaneItem};
 
 /// Fixed height for each playlist item in pixels
 const ITEM_HEIGHT: f32 = 60.0;
-/// Trigger load more when this many items remain before reaching bottom
-const LOAD_THRESHOLD: usize = 20;
 
 /// View displaying a specific playlist's contents.
 pub struct PlaylistView {
@@ -48,7 +46,7 @@ pub struct PlaylistView {
     loading_more:       bool,
 
     // Virtual scroll state
-    scroll_offset:  f32,
+    _scroll_offset:  f32,
 }
 
 impl PlaylistView {
@@ -73,7 +71,7 @@ impl PlaylistView {
             continuation_token: None,
             has_more: false,
             loading_more: false,
-            scroll_offset: 0.0,
+            _scroll_offset: 0.0,
         };
         view.load_gradient_color(cx);
         view.load_first_page(cx);
@@ -133,109 +131,6 @@ impl PlaylistView {
         .detach();
     }
 
-    /// Loads the next page of playlist tracks
-    fn load_next_page(&mut self, cx: &mut Context<Self>) {
-        if self.loading_more || !self.has_more {
-            return;
-        }
-
-        let Some(token) = self.continuation_token.clone() else {
-            return;
-        };
-
-        self.loading_more = true;
-        let service = self.app_state.playlist_service().clone();
-
-        let tokio_task = gpui_tokio::Tokio::spawn(cx, async move {
-            service.get_playlist_next_page(token).await
-        });
-
-        cx.spawn(async move |this, cx| {
-            let result = match tokio_task.await {
-                Ok(r) => r,
-                Err(e) => {
-                    tracing::error!("Playlist next page task panicked: {}", e);
-                    return;
-                }
-            };
-
-            match cx.update(|cx| {
-                this.update(cx, |view, cx| {
-                    match result {
-                        Ok(page) => {
-                            view.tracks.extend(page.items);
-                            view.has_more = page.continuation.is_some();
-                            view.continuation_token = page.continuation;
-                        }
-                        Err(e) => {
-                            tracing::error!("Failed to load next page: {}", e);
-                            view.has_more = false;
-                        }
-                    }
-                    view.loading_more = false;
-                    cx.notify();
-                })
-            }) {
-                Ok(()) => {}
-                Err(error) => {
-                    tracing::error!("Failed to update playlist view: {}", error);
-                }
-            }
-        })
-        .detach();
-    }
-
-    /// Spawns an async task to load playlist tracks (legacy, kept for compatibility).
-    fn load_tracks(&mut self, cx: &mut Context<Self>) {
-        self.loading = true;
-        let service = self.app_state.playlist_service().clone();
-        let playlist_id = self.playlist_id.clone();
-
-        // Run API call on Tokio runtime, then update GPUI state
-        let tokio_task = gpui_tokio::Tokio::spawn(cx, async move {
-            service.get_playlist_details(&playlist_id).await
-        });
-
-        cx.spawn(async move |this, cx| {
-            let result = match tokio_task.await {
-                Ok(r) => r,
-                Err(e) => {
-                    tracing::error!("Playlist load task panicked: {}", e);
-                    return;
-                }
-            };
-
-            match cx.update(|cx| {
-                this.update(cx, |view, cx| {
-                    match result {
-                        Ok(tracks) => {
-                            view.tracks = tracks;
-                        }
-                        Err(e) => {
-                            tracing::error!("Failed to load playlist: {}", e);
-                            view.tracks = Vec::new();
-                        }
-                    }
-
-                    if view.thumbnail_url.is_none() {
-                        let playlists = view.app_state.playlist_service().get_playlists();
-                        view.thumbnail_url = select_thumbnail_url(&playlists, &view.playlist_id);
-                        view.load_gradient_color(cx);
-                    }
-
-                    view.loading = false;
-                    cx.notify();
-                })
-            }) {
-                Ok(()) => {}
-                Err(error) => {
-                    tracing::error!("Failed to update playlist view: {}", error);
-                }
-            }
-        })
-        .detach();
-    }
-
     fn load_gradient_color(&mut self, cx: &mut Context<Self>) {
         let Some(thumbnail_url) = self.thumbnail_url.clone() else {
             return;
@@ -269,23 +164,6 @@ impl PlaylistView {
         .detach();
     }
 
-    /// Checks if we need to load more items based on scroll position
-    fn check_load_more(&mut self, viewport_height: f32, cx: &mut Context<Self>) {
-        if self.tracks.is_empty() {
-            return;
-        }
-
-        // Calculate visible range
-        let first_visible = (self.scroll_offset / ITEM_HEIGHT).floor() as usize;
-        let visible_count = (viewport_height / ITEM_HEIGHT).ceil() as usize + 2;
-        let last_visible = (first_visible + visible_count).min(self.tracks.len());
-
-        // Check if near bottom
-        let remaining = self.tracks.len().saturating_sub(last_visible);
-        if remaining < LOAD_THRESHOLD && self.has_more && !self.loading_more {
-            self.load_next_page(cx);
-        }
-    }
 }
 
 impl PaneItem for PlaylistView {
@@ -436,7 +314,6 @@ impl Render for PlaylistView {
         let glass_base = blend_colors(top_color, theme.background_primary, 0.45);
         let glass_bg = with_alpha(glass_base, 0.45);
         let glass_border = with_alpha(theme.text_primary, 0.12);
-        let glass_highlight = with_alpha(theme.text_primary, 0.08);
         let glass_inner = with_alpha(theme.background_primary, 0.35);
         let icon_bg = Rgba {
             r: 1.0,
@@ -714,7 +591,6 @@ impl Render for PlaylistView {
                     .when(!self.loading && !self.tracks.is_empty(), |el| {
                         // For now, render all tracks but with fixed heights
                         // TODO: Implement full virtual scrolling when scroll events are available
-                        let tracks_len = self.tracks.len();
                         let loading_more = self.loading_more;
 
                         el.child(

@@ -90,8 +90,8 @@ impl Render for PlayerBar {
         let volume_width = effective_volume * 100.0;
 
         // Time strings
-        let current_str = Self::format_time(current_time);
-        let total_str = Self::format_time(total_duration);
+        let _current_str = Self::format_time(current_time);
+        let _total_str = Self::format_time(total_duration);
 
         // Control button helper
         let control_button =

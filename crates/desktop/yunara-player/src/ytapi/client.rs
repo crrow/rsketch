@@ -32,7 +32,7 @@ use ytmapi_rs::{
     YtMusic, YtMusicBuilder,
     auth::{BrowserToken, OAuthToken, noauth::NoAuthToken},
     common::{
-        BrowseParams, PlaylistID, SearchSuggestion, UserChannelID, UserPlaylistsParams, YoutubeID,
+        PlaylistID, SearchSuggestion, UserChannelID, UserPlaylistsParams, YoutubeID,
     },
     continuations::ParseFromContinuable,
     parse::{
@@ -461,6 +461,7 @@ impl ApiClientInner {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 enum GenericalYtmusic {
     Browser(YtMusic<BrowserToken>),
     OAuth(YtMusic<OAuthToken>),
@@ -496,6 +497,7 @@ impl GenericalYtmusic {
     }
 
     // TO DETERMINE HOW TO HANDLE BROWSER/NOAUTH CASE.
+    #[allow(dead_code)]
     fn get_token_hash(&self) -> Result<Option<u64>> {
         Ok(match self {
             GenericalYtmusic::Browser(_) | GenericalYtmusic::NoAuth(_) => None,
@@ -503,6 +505,7 @@ impl GenericalYtmusic {
         })
     }
 
+    #[allow(dead_code)]
     async fn query<Q, O>(&self, query: impl Borrow<Q>) -> Result<O>
     where
         Q: Query<BrowserToken, Output = O>,
@@ -563,6 +566,7 @@ impl GenericalYtmusic {
         })
     }
 
+    #[allow(dead_code)]
     async fn stream_browser_or_oauth<Q, O>(
         &self,
         query: impl Borrow<Q>,
@@ -595,6 +599,7 @@ impl GenericalYtmusic {
         })
     }
 
+    #[allow(dead_code)]
     async fn query_source<Q, O>(&self, query: impl Borrow<Q>) -> Result<String>
     where
         Q: Query<BrowserToken, Output = O>,
@@ -608,6 +613,7 @@ impl GenericalYtmusic {
         })
     }
 
+    #[allow(dead_code)]
     async fn query_source_browser_or_oauth<Q, O>(&self, query: impl Borrow<Q>) -> Result<String>
     where
         Q: Query<BrowserToken, Output = O>,
@@ -658,6 +664,7 @@ impl GenericalYtmusic {
         })
     }
 
+    #[allow(dead_code)]
     async fn stream_source_browser_or_oauth<Q, O>(
         &self,
         query: &Q,
