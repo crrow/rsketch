@@ -133,6 +133,26 @@ impl VolumeControl {
     }
 }
 
+/// Repeat mode for queue playback.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum RepeatMode {
+    #[default]
+    Off,
+    All,
+    One,
+}
+
+impl RepeatMode {
+    /// Cycles to the next repeat mode: Off -> All -> One -> Off.
+    pub fn cycle(self) -> Self {
+        match self {
+            RepeatMode::Off => RepeatMode::All,
+            RepeatMode::All => RepeatMode::One,
+            RepeatMode::One => RepeatMode::Off,
+        }
+    }
+}
+
 /// Complete player state including playback, queue, and current playlist.
 ///
 /// This is the central state structure for all player-related functionality.
@@ -153,6 +173,10 @@ pub struct PlayerState {
     pub current_index:    Option<usize>,
     /// The playlist being played from (determines if queue panel shows)
     pub current_playlist: Option<Playlist>,
+    /// Whether shuffle mode is enabled
+    pub shuffle:          bool,
+    /// Current repeat mode
+    pub repeat_mode:      RepeatMode,
 }
 
 impl PlayerState {
@@ -213,6 +237,12 @@ impl PlayerState {
 
     /// Toggles play/pause state.
     pub fn toggle_playback(&mut self) { self.playback.is_playing = !self.playback.is_playing; }
+
+    /// Toggles shuffle mode on/off.
+    pub fn toggle_shuffle(&mut self) { self.shuffle = !self.shuffle; }
+
+    /// Cycles the repeat mode: Off -> All -> One -> Off.
+    pub fn cycle_repeat_mode(&mut self) { self.repeat_mode = self.repeat_mode.cycle(); }
 
     /// Updates the now_playing field based on current queue position.
     fn update_now_playing(&mut self) {

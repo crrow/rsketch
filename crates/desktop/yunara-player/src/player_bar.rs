@@ -22,7 +22,7 @@ use gpui::{
 };
 use yunara_ui::components::theme::ThemeExt;
 
-use crate::{AppState, dock::DockPanel};
+use crate::{AppState, dock::DockPanel, state::RepeatMode};
 
 /// Player bar component that manages playback controls and state.
 ///
@@ -74,6 +74,8 @@ impl Render for PlayerBar {
         let volume = player_state.volume.volume;
         let is_muted = player_state.volume.is_muted;
         let now_playing = player_state.now_playing.clone();
+        let shuffle_active = player_state.shuffle;
+        let repeat_mode = player_state.repeat_mode;
         drop(player_state); // Release lock
 
         let has_track = now_playing.is_some();
@@ -114,7 +116,14 @@ impl Render for PlayerBar {
                     )
             };
 
-        // Mute toggle handler
+        let repeat_label: &str = match repeat_mode {
+            RepeatMode::Off => "\u{21bb}",
+            RepeatMode::All => "\u{21bb}",
+            RepeatMode::One => "\u{21bb}1",
+        };
+        let repeat_active = repeat_mode != RepeatMode::Off;
+
+        // Clone state for event handlers
         let weak_self = self.weak_self.clone();
         let app_state = self.app_state.clone();
 
@@ -145,13 +154,47 @@ impl Render for PlayerBar {
                     .flex()
                     .items_center()
                     // Left: Playback controls
-                    .child(
+                    .child({
+                        let shuffle_app_state = app_state.clone();
+                        let shuffle_weak_self = weak_self.clone();
+                        let repeat_app_state = app_state.clone();
+                        let repeat_weak_self = weak_self.clone();
+
                         div()
                             .flex()
                             .items_center()
                             .justify_center()
-                            .w(px(200.0))
-                            .gap_4()
+                            .w(px(280.0))
+                            .gap_3()
+                            // Shuffle button
+                            .child(
+                                div()
+                                    .id("shuffle-btn")
+                                    .w(px(32.0))
+                                    .h(px(32.0))
+                                    .rounded_full()
+                                    .flex()
+                                    .items_center()
+                                    .justify_center()
+                                    .cursor_pointer()
+                                    .hover(|style| style.bg(theme.hover))
+                                    .text_color(if shuffle_active {
+                                        theme.accent
+                                    } else {
+                                        theme.text_secondary
+                                    })
+                                    .text_sm()
+                                    .child("\u{21c4}")
+                                    .on_click(move |_event, _window, cx| {
+                                        shuffle_app_state
+                                            .player_state()
+                                            .write()
+                                            .toggle_shuffle();
+                                        if let Some(this) = shuffle_weak_self.upgrade() {
+                                            this.update(cx, |_, cx| cx.notify());
+                                        }
+                                    }),
+                            )
                             .child(control_button(
                                 "prev-btn",
                                 yunara_assets::icons::MEDIA_PREVIOUS,
@@ -173,8 +216,37 @@ impl Render for PlayerBar {
                                 yunara_assets::icons::MEDIA_NEXT,
                                 36.0,
                                 22.0,
-                            )),
-                    )
+                            ))
+                            // Repeat button
+                            .child(
+                                div()
+                                    .id("repeat-btn")
+                                    .w(px(32.0))
+                                    .h(px(32.0))
+                                    .rounded_full()
+                                    .flex()
+                                    .items_center()
+                                    .justify_center()
+                                    .cursor_pointer()
+                                    .hover(|style| style.bg(theme.hover))
+                                    .text_color(if repeat_active {
+                                        theme.accent
+                                    } else {
+                                        theme.text_secondary
+                                    })
+                                    .text_sm()
+                                    .child(repeat_label)
+                                    .on_click(move |_event, _window, cx| {
+                                        repeat_app_state
+                                            .player_state()
+                                            .write()
+                                            .cycle_repeat_mode();
+                                        if let Some(this) = repeat_weak_self.upgrade() {
+                                            this.update(cx, |_, cx| cx.notify());
+                                        }
+                                    }),
+                            )
+                    })
                     // Center: Album art + song info
                     .child(
                         div()

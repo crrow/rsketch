@@ -26,3 +26,11 @@ pub enum NavigateAction {
     /// Navigate to a specific playlist
     Playlist { id: String, name: String },
 }
+
+/// Player action to toggle shuffle mode on/off.
+#[derive(Debug, Clone, PartialEq)]
+pub struct ToggleShuffle;
+
+/// Player action to cycle repeat mode: Off -> All -> One -> Off.
+#[derive(Debug, Clone, PartialEq)]
+pub struct CycleRepeatMode;
