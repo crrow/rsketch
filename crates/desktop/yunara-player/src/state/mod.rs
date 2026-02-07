@@ -20,5 +20,5 @@
 mod player_state;
 
 pub use player_state::{
-    NowPlayingInfo, PlaybackControls, PlayerState, ProgressSlider, VolumeControl,
+    NowPlayingInfo, PlaybackControls, PlayerState, ProgressSlider, RepeatMode, VolumeControl,
 };
