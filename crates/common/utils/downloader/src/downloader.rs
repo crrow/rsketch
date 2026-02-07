@@ -208,7 +208,9 @@ impl Downloader {
 
         // Continue download with existing state
         let state = Arc::new(Mutex::new(saved_state));
-        self.parallel.download_all(&state, self.state.clone()).await?;
+        self.parallel
+            .download_all(&state, self.state.clone())
+            .await?;
 
         // Save final state
         {
@@ -307,7 +309,9 @@ impl Downloader {
         }
 
         // Download all chunks
-        self.parallel.download_all(&state, self.state.clone()).await?;
+        self.parallel
+            .download_all(&state, self.state.clone())
+            .await?;
 
         // Save final state
         {
