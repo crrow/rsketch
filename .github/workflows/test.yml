@@ -67,7 +67,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install cargo-nextest
-        uses: taiki-e/install-action@541dbe11e2898b05bb65bedbd1d0c4e3092b5bdd # v2
+        uses: taiki-e/install-action@f8d25fb8a2df08dcd3cead89780d572767b8655f # v2
         with:
           tool: cargo-nextest
 
