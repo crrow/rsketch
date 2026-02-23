@@ -66,7 +66,7 @@ serde = { version = "^1.0", features = ["derive"] }
 serde_json = "1.0.143"
 smart-default = "0.7"
 snafu = "^0.8"
-strum = "^0.27"
+strum = "^0.28"
 strum_macros = "^0.27"
 tokio = { version = "^1.45", features = ["full", "tracing"] }
 tokio-util = "^0.7"
