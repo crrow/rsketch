@@ -32,7 +32,7 @@ tokio = { workspace = true }
 
 [dev-dependencies]
 axum = { workspace = true }
-axum-test = "18.7"
+axum-test = "19.0"
 tempfile = "3.0"
 
 [lints]
