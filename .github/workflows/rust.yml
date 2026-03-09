@@ -130,7 +130,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install cargo-tarpaulin
-        uses: taiki-e/install-action@4a136ceac97fe29b942ff3b6c749a46c7950d853 # v2
+        uses: taiki-e/install-action@a37010ded18ff788be4440302bd6830b1ae50d8b # v2
         with:
           tool: cargo-tarpaulin
 
