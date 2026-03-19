@@ -130,7 +130,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install cargo-tarpaulin
-        uses: taiki-e/install-action@94a7388bec5d4c8dd93e3ebf09e0ff448f3f6f4d # v2
+        uses: taiki-e/install-action@e24b8b7a939c6a537188f34a4163cb153dd85cf6 # v2
         with:
           tool: cargo-tarpaulin
 
@@ -152,7 +152,7 @@ jobs:
             --output-dir ./coverage
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5
+        uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/cobertura.xml
