@@ -31,11 +31,11 @@ ctrlc = "3.4.2"
 human-panic = "2.0.0"
 rsketch-app = { workspace = true }
 rsketch-common-runtime = { workspace = true }
-shadow-rs = "1.2.1"
+shadow-rs = "2.0.0"
 snafu.workspace = true
 
 [build-dependencies]
-shadow-rs = "1.2.1"
+shadow-rs = "2.0.0"
 
 [lints]
 workspace = true
