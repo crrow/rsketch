@@ -16,7 +16,7 @@ bytes.workspace = true
 chrono.workspace = true
 crc32fast = "1.5"
 crossbeam = "0.8"
-mmap-io = "0.9"
+mmap-io = "1.0"
 snafu.workspace = true
 tracing.workspace = true
 
