@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+jobs:
+  # Call individual workflow jobs
+  lint:
+    name: Lint
+    uses: ./.github/workflows/lint.yml
+    secrets: inherit
+
+  rust:
+    name: Rust
+    uses: ./.github/workflows/rust.yml
+    secrets: inherit
+
+  test:
+    name: Test
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+
+  # Final validation - all workflows must pass
+  ci-success:
+    name: CI Success
+    runs-on: ubuntu-latest
+    needs: [lint, rust, test]
+    if: always()
+    steps:
+      - name: Check all workflow status
+        run: |
+          if [[ "${{ needs.lint.result }}" != "success" || \
+                "${{ needs.rust.result }}" != "success" || \
+                "${{ needs.test.result }}" != "success" ]]; then
+            echo "One or more workflows failed"
+            exit 1
+          fi
+          echo "All workflows passed successfully"
