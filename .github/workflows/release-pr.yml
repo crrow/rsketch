@@ -35,7 +35,7 @@ jobs:
           rm -rf bin/
           git clean -fdX
       - name: Run release-plz
-        uses: release-plz/action@b5543c19b03be9bd48852d20ca89f478b7723260 # v0.5
+        uses: release-plz/action@aec534bbd8631793b9b3b8f1ee6cd886c322e17f # v0.5
         with:
           command: release-pr
         env:
