@@ -53,7 +53,7 @@ bon = "^3.6"
 bytes = "^1.11"
 chrono = "^0.4"
 derive_more = { version = "2.0", features = ["full"] }
-dirs = "^6"
+dirs = "^7"
 futures = "^0.3"
 http = "^1"
 jiff = "^0.2"

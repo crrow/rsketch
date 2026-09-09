@@ -15,4 +15,4 @@ categories.workspace = true
 workspace = true
 
 [dependencies]
-dirs = "6.0"
+dirs = "7.0"
